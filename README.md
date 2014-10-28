@@ -10,6 +10,28 @@ It enhances default AWS `AmazonS3Client` for Scala :
 
 To use rich MFGLabs AWS S3 wrapper, you just have to add the following:
 
+
+In your build.sbt (plus the classic `~/.sbt/.s3credentials`):
+
+```scala
+resolvers ++= Seq(
+  "MFG releases" at "s3://mfg-mvn-repo/releases",
+  "MFG snapshots" at "s3://mfg-mvn-repo/snapshots",
+  "MFG thirdparty" at "s3://mfg-mvn-repo/thirdparty"
+)
+
+
+libraryDependencies ++= Seq(
+...
+  "com.mfglabs" %% "commons-aws" % "0.1-SNAPSHOT"
+...
+)
+
+```
+
+
+In your code:
+
 ```scala
 import com.mfglabs.commons.aws.s3
 import s3._ // brings implicit extensions

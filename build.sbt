@@ -15,6 +15,12 @@ resolvers in ThisBuild ++= Seq(
 
 scalacOptions in ThisBuild ++= Seq("-feature", "-deprecation", "-unchecked")
 
+publishTo in ThisBuild := Some("MFGLabs Snapshots" at "s3://mfg-mvn-repo/snapshots")
+
+publishMavenStyle in ThisBuild := true
+
+
+
 lazy val all = (project in file("."))
   .aggregate  (core)
   .settings   (site.settings ++ ghpages.settings: _*)
