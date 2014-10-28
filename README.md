@@ -17,7 +17,8 @@ In your build.sbt (plus the classic `~/.sbt/.s3credentials`):
 resolvers ++= Seq(
   "MFG releases" at "s3://mfg-mvn-repo/releases",
   "MFG snapshots" at "s3://mfg-mvn-repo/snapshots",
-  "MFG thirdparty" at "s3://mfg-mvn-repo/thirdparty"
+  "MFG thirdparty" at "s3://mfg-mvn-repo/thirdparty",
+  "Pellucid public" at "http://dl.bintray.com/content/pellucid/maven"
 )
 
 
