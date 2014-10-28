@@ -97,10 +97,10 @@
   l   <span class="kw">&lt;-</span> S3.listFiles(bucket)
   _   <span class="kw">&lt;-</span> S3.deleteFile(bucket, <span class="lit">"big.txt"</span>)
   l2  <span class="kw">&lt;-</span> S3.listFiles(bucket)
-} <span class="kw">yield</span> (l, l2)</pre><p>Please remark that you don't need any implicit <a href="http://www.scala-lang.org/api/2.11.1/index.html#scala.Option" class="extype" target="_top">scala.Option</a> as it's directly provided
+} <span class="kw">yield</span> (l, l2)</pre><p>Please remark that you don't need any implicit <a href="http://www.scala-lang.org/api/2.11.1/index.html#scala.concurrent.Future" class="extype" target="_top">scala.concurrent.Future</a> as it's directly provided
 and managed by <a href="s3/AmazonS3Client.html" class="extype" name="com.mfglabs.commons.aws.s3.AmazonS3Client">AmazonS3Client</a> itself.
 There are smart <a href="s3/AmazonS3Client.html" class="extype" name="com.mfglabs.commons.aws.s3.AmazonS3Client">AmazonS3Client</a> constructors that can be provided with custom.
-<a href="http://docs.oracle.com/javase/7/docs/api/index.html#java.util.concurrent.ExecutorService" class="extype" target="_top">java.util.concurrent.ExecutorService</a> if you want to manage your pools of threads.
+<a href="http://docs.oracle.com/javase/7/docs/api/index.html?java/util/concurrent/ExecutorService.html" class="extype" target="_top">java.util.concurrent.ExecutorService</a> if you want to manage your pools of threads.
 </p></div></div>
     </li></ol>
             </div>
