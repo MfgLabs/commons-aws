@@ -1,0 +1,579 @@
+<!DOCTYPE html >
+<html>
+        <head>
+          <title>RichS3Client - com.mfglabs.commons.aws.s3.RichS3Client</title>
+          <meta name="description" content="RichS3Client - com.mfglabs.commons.aws.s3.RichS3Client" />
+          <meta name="keywords" content="RichS3Client com.mfglabs.commons.aws.s3.RichS3Client" />
+          <meta http-equiv="content-type" content="text/html; charset=UTF-8" />
+          
+      <link href="../../../../../lib/template.css" media="screen" type="text/css" rel="stylesheet" />
+      <link href="../../../../../lib/diagrams.css" media="screen" type="text/css" rel="stylesheet" id="diagrams-css" />
+      <script type="text/javascript" src="../../../../../lib/jquery.js" id="jquery-js"></script>
+      <script type="text/javascript" src="../../../../../lib/jquery-ui.js"></script>
+      <script type="text/javascript" src="../../../../../lib/template.js"></script>
+      <script type="text/javascript" src="../../../../../lib/tools.tooltip.js"></script>
+      
+      <script type="text/javascript">
+         if(top === self) {
+            var url = '../../../../../index.html';
+            var hash = 'com.mfglabs.commons.aws.s3.package$$RichS3Client';
+            var anchor = window.location.hash;
+            var anchor_opt = '';
+            if (anchor.length >= 1)
+              anchor_opt = '@' + anchor.substring(1);
+            window.location.href = url + '#' + hash + anchor_opt;
+         }
+   	  </script>
+    
+        </head>
+        <body class="type">
+      <div id="definition">
+        <img src="../../../../../lib/class_big.png" />
+        <p id="owner"><a href="../../../../package.html" class="extype" name="com">com</a>.<a href="../../../package.html" class="extype" name="com.mfglabs">mfglabs</a>.<a href="../../package.html" class="extype" name="com.mfglabs.commons">commons</a>.<a href="../package.html" class="extype" name="com.mfglabs.commons.aws">aws</a>.<a href="package.html" class="extype" name="com.mfglabs.commons.aws.s3">s3</a></p>
+        <h1>RichS3Client</h1> <span class="permalink">
+      <a href="../../../../../index.html#com.mfglabs.commons.aws.s3.package$$RichS3Client" title="Permalink" target="_top">
+        <img src="../../../../../lib/permalink.png" />
+      </a>
+    </span>
+      </div>
+
+      <h4 id="signature" class="signature">
+      <span class="modifier_kind">
+        <span class="modifier">implicit final </span>
+        <span class="kind">class</span>
+      </span>
+      <span class="symbol">
+        <span class="name">RichS3Client</span><span class="result"> extends <a href="http://www.scala-lang.org/api/2.11.1/index.html#scala.AnyVal" class="extype" target="_top">AnyVal</a></span>
+      </span>
+      </h4>
+      
+          <div id="comment" class="fullcommenttop"><dl class="attributes block"> <dt>Source</dt><dd><a href="https://github.com/MfgLabs/commons-aws/tree/v0.1-SNAPSHOT/core/src/main/scala/s3/package.scala" target="_blank">package.scala</a></dd></dl><div class="toggleContainer block">
+          <span class="toggle">Linear Supertypes</span>
+          <div class="superTypes hiddenContent"><a href="http://www.scala-lang.org/api/2.11.1/index.html#scala.AnyVal" class="extype" target="_top">AnyVal</a>, <a href="http://www.scala-lang.org/api/2.11.1/index.html#scala.Any" class="extype" target="_top">Any</a></div>
+        </div></div>
+        
+
+      <div id="mbrsel">
+        <div id="textfilter"><span class="pre"></span><span class="input"><input id="mbrsel-input" type="text" accesskey="/" /></span><span class="post"></span></div>
+        <div id="order">
+              <span class="filtertype">Ordering</span>
+              <ol>
+                
+                <li class="alpha in"><span>Alphabetic</span></li>
+                <li class="inherit out"><span>By inheritance</span></li>
+              </ol>
+            </div>
+        <div id="ancestors">
+                <span class="filtertype">Inherited<br />
+                </span>
+                <ol id="linearization">
+                  <li class="in" name="com.mfglabs.commons.aws.s3.RichS3Client"><span>RichS3Client</span></li><li class="in" name="scala.AnyVal"><span>AnyVal</span></li><li class="in" name="scala.Any"><span>Any</span></li>
+                </ol>
+              </div><div id="ancestors">
+                <span class="filtertype">Implicitly<br />
+                </span>
+                <ol id="implicits"> <li class="in" name="scala.Predef.any2stringadd" data-hidden="true"><span>by any2stringadd</span></li><li class="in" name="scala.Predef.StringFormat" data-hidden="true"><span>by StringFormat</span></li><li class="in" name="scala.Predef.Ensuring" data-hidden="true"><span>by Ensuring</span></li><li class="in" name="scala.Predef.ArrowAssoc" data-hidden="true"><span>by ArrowAssoc</span></li>
+                </ol>
+              </div><div id="ancestors">
+            <span class="filtertype"></span>
+            <ol>
+              <li class="hideall out"><span>Hide All</span></li>
+              <li class="showall in"><span>Show all</span></li>
+            </ol>
+            <a href="http://docs.scala-lang.org/overviews/scaladoc/usage.html#members" target="_blank">Learn more about member selection</a>
+          </div>
+        <div id="visbl">
+            <span class="filtertype">Visibility</span>
+            <ol><li class="public in"><span>Public</span></li><li class="all out"><span>All</span></li></ol>
+          </div>
+      </div>
+
+      <div id="template">
+        <div id="allMembers">
+        <div id="constructors" class="members">
+              <h3>Instance Constructors</h3>
+              <ol><li name="com.mfglabs.commons.aws.s3.RichS3Client#&lt;init&gt;" visbl="pub" data-isabs="false" fullComment="no" group="Ungrouped">
+      <a id="&lt;init&gt;(client:com.mfglabs.commons.aws.s3.AmazonS3Client):com.mfglabs.commons.aws.s3.package.RichS3Client"></a>
+      <a id="&lt;init&gt;:RichS3Client"></a>
+      <h4 class="signature">
+      <span class="modifier_kind">
+        <span class="modifier"></span>
+        <span class="kind">new</span>
+      </span>
+      <span class="symbol">
+        <span class="name">RichS3Client</span><span class="params">(<span name="client">client: <a href="AmazonS3Client.html" class="extype" name="com.mfglabs.commons.aws.s3.AmazonS3Client">AmazonS3Client</a></span>)</span>
+      </span>
+      </h4><span class="permalink">
+      <a href="../../../../../index.html#com.mfglabs.commons.aws.s3.package$$RichS3Client@&lt;init&gt;(client:com.mfglabs.commons.aws.s3.AmazonS3Client):com.mfglabs.commons.aws.s3.package.RichS3Client" title="Permalink" target="_top">
+        <img src="../../../../../lib/permalink.png" />
+      </a>
+    </span>
+      
+    </li></ol>
+            </div>
+
+        
+
+        
+
+        <div id="values" class="values members">
+              <h3>Value Members</h3>
+              <ol><li name="scala.Any#!=" visbl="pub" data-isabs="false" fullComment="yes" group="Ungrouped">
+      <a id="!=(x$1:Any):Boolean"></a>
+      <a id="!=(Any):Boolean"></a>
+      <h4 class="signature">
+      <span class="modifier_kind">
+        <span class="modifier">final </span>
+        <span class="kind">def</span>
+      </span>
+      <span class="symbol">
+        <span title="gt4s: $bang$eq" class="name">!=</span><span class="params">(<span name="arg0">arg0: <a href="http://www.scala-lang.org/api/2.11.1/index.html#scala.Any" class="extype" target="_top">Any</a></span>)</span><span class="result">: <a href="http://www.scala-lang.org/api/2.11.1/index.html#scala.Boolean" class="extype" target="_top">Boolean</a></span>
+      </span>
+      </h4><span class="permalink">
+      <a href="../../../../../index.html#com.mfglabs.commons.aws.s3.package$$RichS3Client@!=(x$1:Any):Boolean" title="Permalink" target="_top">
+        <img src="../../../../../lib/permalink.png" />
+      </a>
+    </span>
+      <div class="fullcomment"><dl class="attributes block"> <dt>Definition Classes</dt><dd>Any</dd></dl></div>
+    </li><li name="scala.Any###" visbl="pub" data-isabs="false" fullComment="yes" group="Ungrouped">
+      <a id="##():Int"></a>
+      <a id="##():Int"></a>
+      <h4 class="signature">
+      <span class="modifier_kind">
+        <span class="modifier">final </span>
+        <span class="kind">def</span>
+      </span>
+      <span class="symbol">
+        <span title="gt4s: $hash$hash" class="name">##</span><span class="params">()</span><span class="result">: <a href="http://www.scala-lang.org/api/2.11.1/index.html#scala.Int" class="extype" target="_top">Int</a></span>
+      </span>
+      </h4><span class="permalink">
+      <a href="../../../../../index.html#com.mfglabs.commons.aws.s3.package$$RichS3Client@##():Int" title="Permalink" target="_top">
+        <img src="../../../../../lib/permalink.png" />
+      </a>
+    </span>
+      <div class="fullcomment"><dl class="attributes block"> <dt>Definition Classes</dt><dd>Any</dd></dl></div>
+    </li><li name="scala.Predef.any2stringadd#+" visbl="pub" data-isabs="false" fullComment="yes" group="Ungrouped">
+      <a id="+(other:String):String"></a>
+      <a id="+(String):String"></a>
+      <h4 class="signature">
+      <span class="modifier_kind">
+        <span class="modifier"></span>
+        <span class="kind">def</span>
+      </span>
+      <span class="symbol">
+        <span title="gt4s: $plus" class="implicit">+</span><span class="params">(<span name="other">other: <span class="extype" name="scala.Predef.String">String</span></span>)</span><span class="result">: <span class="extype" name="scala.Predef.String">String</span></span>
+      </span>
+      </h4><span class="permalink">
+      <a href="../../../../../index.html#com.mfglabs.commons.aws.s3.package$$RichS3Client@+(other:String):String" title="Permalink" target="_top">
+        <img src="../../../../../lib/permalink.png" />
+      </a>
+    </span>
+      <div class="fullcomment"><dl class="attributes block"> <dt class="implicit">Implicit information</dt><dd>
+            This member is added by an implicit conversion from <a href="" class="extype" name="com.mfglabs.commons.aws.s3.RichS3Client">RichS3Client</a> to
+            <span class="extype" name="scala.Predef.any2stringadd">any2stringadd</span>[<a href="" class="extype" name="com.mfglabs.commons.aws.s3.RichS3Client">RichS3Client</a>] performed by method any2stringadd in scala.Predef.
+            
+          </dd><dt>Definition Classes</dt><dd>any2stringadd</dd></dl></div>
+    </li><li name="scala.Predef.ArrowAssoc#-&gt;" visbl="pub" data-isabs="false" fullComment="yes" group="Ungrouped">
+      <a id="-&gt;[B](y:B):(A,B)"></a>
+      <a id="-&gt;[B](B):(RichS3Client,B)"></a>
+      <h4 class="signature">
+      <span class="modifier_kind">
+        <span class="modifier"></span>
+        <span class="kind">def</span>
+      </span>
+      <span class="symbol">
+        <span title="gt4s: $minus$greater" class="implicit">-&gt;</span><span class="tparams">[<span name="B">B</span>]</span><span class="params">(<span name="y">y: <span class="extype" name="scala.Predef.ArrowAssoc.-&gt;.B">B</span></span>)</span><span class="result">: (<a href="" class="extype" name="com.mfglabs.commons.aws.s3.RichS3Client">RichS3Client</a>, <span class="extype" name="scala.Predef.ArrowAssoc.-&gt;.B">B</span>)</span>
+      </span>
+      </h4><span class="permalink">
+      <a href="../../../../../index.html#com.mfglabs.commons.aws.s3.package$$RichS3Client@-&gt;[B](y:B):(A,B)" title="Permalink" target="_top">
+        <img src="../../../../../lib/permalink.png" />
+      </a>
+    </span>
+      <div class="fullcomment"><dl class="attributes block"> <dt class="implicit">Implicit information</dt><dd>
+            This member is added by an implicit conversion from <a href="" class="extype" name="com.mfglabs.commons.aws.s3.RichS3Client">RichS3Client</a> to
+            <span class="extype" name="scala.Predef.ArrowAssoc">ArrowAssoc</span>[<a href="" class="extype" name="com.mfglabs.commons.aws.s3.RichS3Client">RichS3Client</a>] performed by method ArrowAssoc in scala.Predef.
+            
+          </dd><dt>Definition Classes</dt><dd>ArrowAssoc</dd><dt>Annotations</dt><dd>
+                <span class="name">@inline</span><span class="args">()</span>
+              
+        </dd></dl></div>
+    </li><li name="scala.Any#==" visbl="pub" data-isabs="false" fullComment="yes" group="Ungrouped">
+      <a id="==(x$1:Any):Boolean"></a>
+      <a id="==(Any):Boolean"></a>
+      <h4 class="signature">
+      <span class="modifier_kind">
+        <span class="modifier">final </span>
+        <span class="kind">def</span>
+      </span>
+      <span class="symbol">
+        <span title="gt4s: $eq$eq" class="name">==</span><span class="params">(<span name="arg0">arg0: <a href="http://www.scala-lang.org/api/2.11.1/index.html#scala.Any" class="extype" target="_top">Any</a></span>)</span><span class="result">: <a href="http://www.scala-lang.org/api/2.11.1/index.html#scala.Boolean" class="extype" target="_top">Boolean</a></span>
+      </span>
+      </h4><span class="permalink">
+      <a href="../../../../../index.html#com.mfglabs.commons.aws.s3.package$$RichS3Client@==(x$1:Any):Boolean" title="Permalink" target="_top">
+        <img src="../../../../../lib/permalink.png" />
+      </a>
+    </span>
+      <div class="fullcomment"><dl class="attributes block"> <dt>Definition Classes</dt><dd>Any</dd></dl></div>
+    </li><li name="scala.Any#asInstanceOf" visbl="pub" data-isabs="false" fullComment="yes" group="Ungrouped">
+      <a id="asInstanceOf[T0]:T0"></a>
+      <a id="asInstanceOf[T0]:T0"></a>
+      <h4 class="signature">
+      <span class="modifier_kind">
+        <span class="modifier">final </span>
+        <span class="kind">def</span>
+      </span>
+      <span class="symbol">
+        <span class="name">asInstanceOf</span><span class="tparams">[<span name="T0">T0</span>]</span><span class="result">: <span class="extype" name="scala.Any.asInstanceOf.T0">T0</span></span>
+      </span>
+      </h4><span class="permalink">
+      <a href="../../../../../index.html#com.mfglabs.commons.aws.s3.package$$RichS3Client@asInstanceOf[T0]:T0" title="Permalink" target="_top">
+        <img src="../../../../../lib/permalink.png" />
+      </a>
+    </span>
+      <div class="fullcomment"><dl class="attributes block"> <dt>Definition Classes</dt><dd>Any</dd></dl></div>
+    </li><li name="com.mfglabs.commons.aws.s3.RichS3Client#client" visbl="pub" data-isabs="false" fullComment="no" group="Ungrouped">
+      <a id="client:com.mfglabs.commons.aws.s3.AmazonS3Client"></a>
+      <a id="client:AmazonS3Client"></a>
+      <h4 class="signature">
+      <span class="modifier_kind">
+        <span class="modifier"></span>
+        <span class="kind">val</span>
+      </span>
+      <span class="symbol">
+        <span class="name">client</span><span class="result">: <a href="AmazonS3Client.html" class="extype" name="com.mfglabs.commons.aws.s3.AmazonS3Client">AmazonS3Client</a></span>
+      </span>
+      </h4><span class="permalink">
+      <a href="../../../../../index.html#com.mfglabs.commons.aws.s3.package$$RichS3Client@client:com.mfglabs.commons.aws.s3.AmazonS3Client" title="Permalink" target="_top">
+        <img src="../../../../../lib/permalink.png" />
+      </a>
+    </span>
+      
+    </li><li name="com.mfglabs.commons.aws.s3.RichS3Client#deleteFile" visbl="pub" data-isabs="false" fullComment="yes" group="Ungrouped">
+      <a id="deleteFile(bucket:String,key:String):scala.concurrent.Future[Unit]"></a>
+      <a id="deleteFile(String,String):Future[Unit]"></a>
+      <h4 class="signature">
+      <span class="modifier_kind">
+        <span class="modifier"></span>
+        <span class="kind">def</span>
+      </span>
+      <span class="symbol">
+        <span class="name">deleteFile</span><span class="params">(<span name="bucket">bucket: <span class="extype" name="scala.Predef.String">String</span></span>, <span name="key">key: <span class="extype" name="scala.Predef.String">String</span></span>)</span><span class="result">: <a href="http://www.scala-lang.org/api/2.11.1/index.html#scala.concurrent.Future" class="extype" target="_top">Future</a>[<a href="http://www.scala-lang.org/api/2.11.1/index.html#scala.Unit" class="extype" target="_top">Unit</a>]</span>
+      </span>
+      </h4><span class="permalink">
+      <a href="../../../../../index.html#com.mfglabs.commons.aws.s3.package$$RichS3Client@deleteFile(bucket:String,key:String):scala.concurrent.Future[Unit]" title="Permalink" target="_top">
+        <img src="../../../../../lib/permalink.png" />
+      </a>
+    </span>
+      <p class="shortcomment cmt">Delete file from bucket
+</p><div class="fullcomment"><div class="comment cmt"><p>Delete file from bucket
+</p></div><dl class="paramcmts block"><dt class="param">bucket</dt><dd class="cmt"><p>the bucket name</p></dd><dt class="param">key</dt><dd class="cmt"><p>the key of file to delete</p></dd><dt>returns</dt><dd class="cmt"><p>a successful future (no content) (or a failure)
+</p></dd></dl></div>
+    </li><li name="scala.Predef.Ensuring#ensuring" visbl="pub" data-isabs="false" fullComment="yes" group="Ungrouped">
+      <a id="ensuring(cond:A=&gt;Boolean,msg:=&gt;Any):A"></a>
+      <a id="ensuring((RichS3Client)⇒Boolean,⇒Any):RichS3Client"></a>
+      <h4 class="signature">
+      <span class="modifier_kind">
+        <span class="modifier"></span>
+        <span class="kind">def</span>
+      </span>
+      <span class="symbol">
+        <span class="implicit">ensuring</span><span class="params">(<span name="cond">cond: (<a href="" class="extype" name="com.mfglabs.commons.aws.s3.RichS3Client">RichS3Client</a>) ⇒ <a href="http://www.scala-lang.org/api/2.11.1/index.html#scala.Boolean" class="extype" target="_top">Boolean</a></span>, <span name="msg">msg: ⇒ <a href="http://www.scala-lang.org/api/2.11.1/index.html#scala.Any" class="extype" target="_top">Any</a></span>)</span><span class="result">: <a href="" class="extype" name="com.mfglabs.commons.aws.s3.RichS3Client">RichS3Client</a></span>
+      </span>
+      </h4><span class="permalink">
+      <a href="../../../../../index.html#com.mfglabs.commons.aws.s3.package$$RichS3Client@ensuring(cond:A=&gt;Boolean,msg:=&gt;Any):A" title="Permalink" target="_top">
+        <img src="../../../../../lib/permalink.png" />
+      </a>
+    </span>
+      <div class="fullcomment"><dl class="attributes block"> <dt class="implicit">Implicit information</dt><dd>
+            This member is added by an implicit conversion from <a href="" class="extype" name="com.mfglabs.commons.aws.s3.RichS3Client">RichS3Client</a> to
+            <span class="extype" name="scala.Predef.Ensuring">Ensuring</span>[<a href="" class="extype" name="com.mfglabs.commons.aws.s3.RichS3Client">RichS3Client</a>] performed by method Ensuring in scala.Predef.
+            
+          </dd><dt>Definition Classes</dt><dd>Ensuring</dd></dl></div>
+    </li><li name="scala.Predef.Ensuring#ensuring" visbl="pub" data-isabs="false" fullComment="yes" group="Ungrouped">
+      <a id="ensuring(cond:A=&gt;Boolean):A"></a>
+      <a id="ensuring((RichS3Client)⇒Boolean):RichS3Client"></a>
+      <h4 class="signature">
+      <span class="modifier_kind">
+        <span class="modifier"></span>
+        <span class="kind">def</span>
+      </span>
+      <span class="symbol">
+        <span class="implicit">ensuring</span><span class="params">(<span name="cond">cond: (<a href="" class="extype" name="com.mfglabs.commons.aws.s3.RichS3Client">RichS3Client</a>) ⇒ <a href="http://www.scala-lang.org/api/2.11.1/index.html#scala.Boolean" class="extype" target="_top">Boolean</a></span>)</span><span class="result">: <a href="" class="extype" name="com.mfglabs.commons.aws.s3.RichS3Client">RichS3Client</a></span>
+      </span>
+      </h4><span class="permalink">
+      <a href="../../../../../index.html#com.mfglabs.commons.aws.s3.package$$RichS3Client@ensuring(cond:A=&gt;Boolean):A" title="Permalink" target="_top">
+        <img src="../../../../../lib/permalink.png" />
+      </a>
+    </span>
+      <div class="fullcomment"><dl class="attributes block"> <dt class="implicit">Implicit information</dt><dd>
+            This member is added by an implicit conversion from <a href="" class="extype" name="com.mfglabs.commons.aws.s3.RichS3Client">RichS3Client</a> to
+            <span class="extype" name="scala.Predef.Ensuring">Ensuring</span>[<a href="" class="extype" name="com.mfglabs.commons.aws.s3.RichS3Client">RichS3Client</a>] performed by method Ensuring in scala.Predef.
+            
+          </dd><dt>Definition Classes</dt><dd>Ensuring</dd></dl></div>
+    </li><li name="scala.Predef.Ensuring#ensuring" visbl="pub" data-isabs="false" fullComment="yes" group="Ungrouped">
+      <a id="ensuring(cond:Boolean,msg:=&gt;Any):A"></a>
+      <a id="ensuring(Boolean,⇒Any):RichS3Client"></a>
+      <h4 class="signature">
+      <span class="modifier_kind">
+        <span class="modifier"></span>
+        <span class="kind">def</span>
+      </span>
+      <span class="symbol">
+        <span class="implicit">ensuring</span><span class="params">(<span name="cond">cond: <a href="http://www.scala-lang.org/api/2.11.1/index.html#scala.Boolean" class="extype" target="_top">Boolean</a></span>, <span name="msg">msg: ⇒ <a href="http://www.scala-lang.org/api/2.11.1/index.html#scala.Any" class="extype" target="_top">Any</a></span>)</span><span class="result">: <a href="" class="extype" name="com.mfglabs.commons.aws.s3.RichS3Client">RichS3Client</a></span>
+      </span>
+      </h4><span class="permalink">
+      <a href="../../../../../index.html#com.mfglabs.commons.aws.s3.package$$RichS3Client@ensuring(cond:Boolean,msg:=&gt;Any):A" title="Permalink" target="_top">
+        <img src="../../../../../lib/permalink.png" />
+      </a>
+    </span>
+      <div class="fullcomment"><dl class="attributes block"> <dt class="implicit">Implicit information</dt><dd>
+            This member is added by an implicit conversion from <a href="" class="extype" name="com.mfglabs.commons.aws.s3.RichS3Client">RichS3Client</a> to
+            <span class="extype" name="scala.Predef.Ensuring">Ensuring</span>[<a href="" class="extype" name="com.mfglabs.commons.aws.s3.RichS3Client">RichS3Client</a>] performed by method Ensuring in scala.Predef.
+            
+          </dd><dt>Definition Classes</dt><dd>Ensuring</dd></dl></div>
+    </li><li name="scala.Predef.Ensuring#ensuring" visbl="pub" data-isabs="false" fullComment="yes" group="Ungrouped">
+      <a id="ensuring(cond:Boolean):A"></a>
+      <a id="ensuring(Boolean):RichS3Client"></a>
+      <h4 class="signature">
+      <span class="modifier_kind">
+        <span class="modifier"></span>
+        <span class="kind">def</span>
+      </span>
+      <span class="symbol">
+        <span class="implicit">ensuring</span><span class="params">(<span name="cond">cond: <a href="http://www.scala-lang.org/api/2.11.1/index.html#scala.Boolean" class="extype" target="_top">Boolean</a></span>)</span><span class="result">: <a href="" class="extype" name="com.mfglabs.commons.aws.s3.RichS3Client">RichS3Client</a></span>
+      </span>
+      </h4><span class="permalink">
+      <a href="../../../../../index.html#com.mfglabs.commons.aws.s3.package$$RichS3Client@ensuring(cond:Boolean):A" title="Permalink" target="_top">
+        <img src="../../../../../lib/permalink.png" />
+      </a>
+    </span>
+      <div class="fullcomment"><dl class="attributes block"> <dt class="implicit">Implicit information</dt><dd>
+            This member is added by an implicit conversion from <a href="" class="extype" name="com.mfglabs.commons.aws.s3.RichS3Client">RichS3Client</a> to
+            <span class="extype" name="scala.Predef.Ensuring">Ensuring</span>[<a href="" class="extype" name="com.mfglabs.commons.aws.s3.RichS3Client">RichS3Client</a>] performed by method Ensuring in scala.Predef.
+            
+          </dd><dt>Definition Classes</dt><dd>Ensuring</dd></dl></div>
+    </li><li name="scala.Predef.StringFormat#formatted" visbl="pub" data-isabs="false" fullComment="yes" group="Ungrouped">
+      <a id="formatted(fmtstr:String):String"></a>
+      <a id="formatted(String):String"></a>
+      <h4 class="signature">
+      <span class="modifier_kind">
+        <span class="modifier"></span>
+        <span class="kind">def</span>
+      </span>
+      <span class="symbol">
+        <span class="implicit">formatted</span><span class="params">(<span name="fmtstr">fmtstr: <span class="extype" name="scala.Predef.String">String</span></span>)</span><span class="result">: <span class="extype" name="scala.Predef.String">String</span></span>
+      </span>
+      </h4><span class="permalink">
+      <a href="../../../../../index.html#com.mfglabs.commons.aws.s3.package$$RichS3Client@formatted(fmtstr:String):String" title="Permalink" target="_top">
+        <img src="../../../../../lib/permalink.png" />
+      </a>
+    </span>
+      <div class="fullcomment"><dl class="attributes block"> <dt class="implicit">Implicit information</dt><dd>
+            This member is added by an implicit conversion from <a href="" class="extype" name="com.mfglabs.commons.aws.s3.RichS3Client">RichS3Client</a> to
+            <span class="extype" name="scala.Predef.StringFormat">StringFormat</span>[<a href="" class="extype" name="com.mfglabs.commons.aws.s3.RichS3Client">RichS3Client</a>] performed by method StringFormat in scala.Predef.
+            
+          </dd><dt>Definition Classes</dt><dd>StringFormat</dd><dt>Annotations</dt><dd>
+                <span class="name">@inline</span><span class="args">()</span>
+              
+        </dd></dl></div>
+    </li><li name="scala.AnyVal#getClass" visbl="pub" data-isabs="false" fullComment="yes" group="Ungrouped">
+      <a id="getClass():Class[_&lt;:AnyVal]"></a>
+      <a id="getClass():Class[_&lt;:AnyVal]"></a>
+      <h4 class="signature">
+      <span class="modifier_kind">
+        <span class="modifier"></span>
+        <span class="kind">def</span>
+      </span>
+      <span class="symbol">
+        <span class="name">getClass</span><span class="params">()</span><span class="result">: <span class="extype" name="scala.Predef.Class">Class</span>[_ &lt;: <a href="http://www.scala-lang.org/api/2.11.1/index.html#scala.AnyVal" class="extype" target="_top">AnyVal</a>]</span>
+      </span>
+      </h4><span class="permalink">
+      <a href="../../../../../index.html#com.mfglabs.commons.aws.s3.package$$RichS3Client@getClass():Class[_&lt;:AnyVal]" title="Permalink" target="_top">
+        <img src="../../../../../lib/permalink.png" />
+      </a>
+    </span>
+      <div class="fullcomment"><dl class="attributes block"> <dt>Definition Classes</dt><dd>AnyVal → Any</dd></dl></div>
+    </li><li name="scala.Any#isInstanceOf" visbl="pub" data-isabs="false" fullComment="yes" group="Ungrouped">
+      <a id="isInstanceOf[T0]:Boolean"></a>
+      <a id="isInstanceOf[T0]:Boolean"></a>
+      <h4 class="signature">
+      <span class="modifier_kind">
+        <span class="modifier">final </span>
+        <span class="kind">def</span>
+      </span>
+      <span class="symbol">
+        <span class="name">isInstanceOf</span><span class="tparams">[<span name="T0">T0</span>]</span><span class="result">: <a href="http://www.scala-lang.org/api/2.11.1/index.html#scala.Boolean" class="extype" target="_top">Boolean</a></span>
+      </span>
+      </h4><span class="permalink">
+      <a href="../../../../../index.html#com.mfglabs.commons.aws.s3.package$$RichS3Client@isInstanceOf[T0]:Boolean" title="Permalink" target="_top">
+        <img src="../../../../../lib/permalink.png" />
+      </a>
+    </span>
+      <div class="fullcomment"><dl class="attributes block"> <dt>Definition Classes</dt><dd>Any</dd></dl></div>
+    </li><li name="com.mfglabs.commons.aws.s3.RichS3Client#listFiles" visbl="pub" data-isabs="false" fullComment="yes" group="Ungrouped">
+      <a id="listFiles(bucket:String,path:Option[String]):scala.concurrent.Future[Seq[(String,java.util.Date)]]"></a>
+      <a id="listFiles(String,Option[String]):Future[Seq[(String,Date)]]"></a>
+      <h4 class="signature">
+      <span class="modifier_kind">
+        <span class="modifier"></span>
+        <span class="kind">def</span>
+      </span>
+      <span class="symbol">
+        <span class="name">listFiles</span><span class="params">(<span name="bucket">bucket: <span class="extype" name="scala.Predef.String">String</span></span>, <span name="path">path: <a href="http://www.scala-lang.org/api/2.11.1/index.html#scala.Option" class="extype" target="_top">Option</a>[<span class="extype" name="scala.Predef.String">String</span>] = <span class="symbol">None</span></span>)</span><span class="result">: <a href="http://www.scala-lang.org/api/2.11.1/index.html#scala.concurrent.Future" class="extype" target="_top">Future</a>[<span class="extype" name="scala.Seq">Seq</span>[(<span class="extype" name="scala.Predef.String">String</span>, <a href="http://docs.oracle.com/javase/7/docs/api/index.html#java.util.Date" class="extype" target="_top">Date</a>)]]</span>
+      </span>
+      </h4><span class="permalink">
+      <a href="../../../../../index.html#com.mfglabs.commons.aws.s3.package$$RichS3Client@listFiles(bucket:String,path:Option[String]):scala.concurrent.Future[Seq[(String,java.util.Date)]]" title="Permalink" target="_top">
+        <img src="../../../../../lib/permalink.png" />
+      </a>
+    </span>
+      <p class="shortcomment cmt">List files in a bucket (&amp; optional path)
+</p><div class="fullcomment"><div class="comment cmt"><p>List files in a bucket (&amp; optional path)
+</p></div><dl class="paramcmts block"><dt class="param">bucket</dt><dd class="cmt"><p>the bucket name</p></dd><dt class="param">path</dt><dd class="cmt"><p>an optional path to search in bucket</p></dd><dt>returns</dt><dd class="cmt"><p>a future of seq of file keys &amp; last modified dates (or a failure)
+</p></dd></dl></div>
+    </li><li name="scala.Any#toString" visbl="pub" data-isabs="false" fullComment="yes" group="Ungrouped">
+      <a id="toString():String"></a>
+      <a id="toString():String"></a>
+      <h4 class="signature">
+      <span class="modifier_kind">
+        <span class="modifier"></span>
+        <span class="kind">def</span>
+      </span>
+      <span class="symbol">
+        <span class="name">toString</span><span class="params">()</span><span class="result">: <a href="http://docs.oracle.com/javase/7/docs/api/index.html#java.lang.String" class="extype" target="_top">String</a></span>
+      </span>
+      </h4><span class="permalink">
+      <a href="../../../../../index.html#com.mfglabs.commons.aws.s3.package$$RichS3Client@toString():String" title="Permalink" target="_top">
+        <img src="../../../../../lib/permalink.png" />
+      </a>
+    </span>
+      <div class="fullcomment"><dl class="attributes block"> <dt>Definition Classes</dt><dd>Any</dd></dl></div>
+    </li><li name="com.mfglabs.commons.aws.s3.RichS3Client#uploadFile" visbl="pub" data-isabs="false" fullComment="yes" group="Ungrouped">
+      <a id="uploadFile(bucket:String,key:String,file:java.io.File):scala.concurrent.Future[com.amazonaws.services.s3.model.PutObjectResult]"></a>
+      <a id="uploadFile(String,String,File):Future[PutObjectResult]"></a>
+      <h4 class="signature">
+      <span class="modifier_kind">
+        <span class="modifier"></span>
+        <span class="kind">def</span>
+      </span>
+      <span class="symbol">
+        <span class="name">uploadFile</span><span class="params">(<span name="bucket">bucket: <span class="extype" name="scala.Predef.String">String</span></span>, <span name="key">key: <span class="extype" name="scala.Predef.String">String</span></span>, <span name="file">file: <a href="http://docs.oracle.com/javase/7/docs/api/index.html#java.io.File" class="extype" target="_top">File</a></span>)</span><span class="result">: <a href="http://www.scala-lang.org/api/2.11.1/index.html#scala.concurrent.Future" class="extype" target="_top">Future</a>[<span class="extype" name="com.amazonaws.services.s3.model.PutObjectResult">PutObjectResult</span>]</span>
+      </span>
+      </h4><span class="permalink">
+      <a href="../../../../../index.html#com.mfglabs.commons.aws.s3.package$$RichS3Client@uploadFile(bucket:String,key:String,file:java.io.File):scala.concurrent.Future[com.amazonaws.services.s3.model.PutObjectResult]" title="Permalink" target="_top">
+        <img src="../../../../../lib/permalink.png" />
+      </a>
+    </span>
+      <p class="shortcomment cmt">Upload file to bucket
+</p><div class="fullcomment"><div class="comment cmt"><p>Upload file to bucket
+</p></div><dl class="paramcmts block"><dt class="param">bucket</dt><dd class="cmt"><p>the bucket name</p></dd><dt class="param">key</dt><dd class="cmt"><p>the key of file into which it is uploaded</p></dd><dt class="param">file</dt><dd class="cmt"><p>the File from which to pump data</p></dd><dt>returns</dt><dd class="cmt"><p>a successful future of PutObjectResult (or a failure)
+</p></dd></dl></div>
+    </li><li name="com.mfglabs.commons.aws.s3.RichS3Client#uploadStream" visbl="pub" data-isabs="false" fullComment="yes" group="Ungrouped">
+      <a id="uploadStream(bucket:String,key:String,enum:play.api.libs.iteratee.Enumerator[Array[Byte]]):scala.concurrent.Future[Int]"></a>
+      <a id="uploadStream(String,String,Enumerator[Array[Byte]]):Future[Int]"></a>
+      <h4 class="signature">
+      <span class="modifier_kind">
+        <span class="modifier"></span>
+        <span class="kind">def</span>
+      </span>
+      <span class="symbol">
+        <span class="name">uploadStream</span><span class="params">(<span name="bucket">bucket: <span class="extype" name="scala.Predef.String">String</span></span>, <span name="key">key: <span class="extype" name="scala.Predef.String">String</span></span>, <span name="enum">enum: <span class="extype" name="play.api.libs.iteratee.Enumerator">Enumerator</span>[<a href="http://www.scala-lang.org/api/2.11.1/index.html#scala.Array" class="extype" target="_top">Array</a>[<a href="http://www.scala-lang.org/api/2.11.1/index.html#scala.Byte" class="extype" target="_top">Byte</a>]]</span>)</span><span class="result">: <a href="http://www.scala-lang.org/api/2.11.1/index.html#scala.concurrent.Future" class="extype" target="_top">Future</a>[<a href="http://www.scala-lang.org/api/2.11.1/index.html#scala.Int" class="extype" target="_top">Int</a>]</span>
+      </span>
+      </h4><span class="permalink">
+      <a href="../../../../../index.html#com.mfglabs.commons.aws.s3.package$$RichS3Client@uploadStream(bucket:String,key:String,enum:play.api.libs.iteratee.Enumerator[Array[Byte]]):scala.concurrent.Future[Int]" title="Permalink" target="_top">
+        <img src="../../../../../lib/permalink.png" />
+      </a>
+    </span>
+      <p class="shortcomment cmt">Streamed upload of a Play Enumerator
+</p><div class="fullcomment"><div class="comment cmt"><p>Streamed upload of a Play Enumerator
+</p></div><dl class="paramcmts block"><dt class="param">bucket</dt><dd class="cmt"><p>the bucket name</p></dd><dt class="param">key</dt><dd class="cmt"><p>the key of file</p></dd><dt class="param">enum</dt><dd class="cmt"><p>an enumerator of array of bytes</p></dd><dt>returns</dt><dd class="cmt"><p>a successful future of the uploaded number of chunks (or a failure)
+</p></dd></dl></div>
+    </li><li name="com.mfglabs.commons.aws.s3.RichS3Client#withFile" visbl="pub" data-isabs="false" fullComment="yes" group="Ungrouped">
+      <a id="withFile[U](bucket:String,key:String)(block:com.amazonaws.services.s3.model.S3ObjectInputStream=&gt;U):scala.concurrent.Future[U]"></a>
+      <a id="withFile[U](String,String)((S3ObjectInputStream)⇒U):Future[U]"></a>
+      <h4 class="signature">
+      <span class="modifier_kind">
+        <span class="modifier"></span>
+        <span class="kind">def</span>
+      </span>
+      <span class="symbol">
+        <span class="name">withFile</span><span class="tparams">[<span name="U">U</span>]</span><span class="params">(<span name="bucket">bucket: <span class="extype" name="scala.Predef.String">String</span></span>, <span name="key">key: <span class="extype" name="scala.Predef.String">String</span></span>)</span><span class="params">(<span name="block">block: (<span class="extype" name="com.amazonaws.services.s3.model.S3ObjectInputStream">S3ObjectInputStream</span>) ⇒ <span class="extype" name="com.mfglabs.commons.aws.s3.RichS3Client.withFile.U">U</span></span>)</span><span class="result">: <a href="http://www.scala-lang.org/api/2.11.1/index.html#scala.concurrent.Future" class="extype" target="_top">Future</a>[<span class="extype" name="com.mfglabs.commons.aws.s3.RichS3Client.withFile.U">U</span>]</span>
+      </span>
+      </h4><span class="permalink">
+      <a href="../../../../../index.html#com.mfglabs.commons.aws.s3.package$$RichS3Client@withFile[U](bucket:String,key:String)(block:com.amazonaws.services.s3.model.S3ObjectInputStream=&gt;U):scala.concurrent.Future[U]" title="Permalink" target="_top">
+        <img src="../../../../../lib/permalink.png" />
+      </a>
+    </span>
+      <p class="shortcomment cmt">Execute a block using the content of remote S3 file
+</p><div class="fullcomment"><div class="comment cmt"><p>Execute a block using the content of remote S3 file
+</p></div><dl class="paramcmts block"><dt class="param">bucket</dt><dd class="cmt"><p>the bucket name</p></dd><dt class="param">key</dt><dd class="cmt"><p>the key of file</p></dd><dt>returns</dt><dd class="cmt"><p>a successful future of your something U (or a failure)
+</p></dd></dl></div>
+    </li><li name="scala.Predef.ArrowAssoc#→" visbl="pub" data-isabs="false" fullComment="yes" group="Ungrouped">
+      <a id="→[B](y:B):(A,B)"></a>
+      <a id="→[B](B):(RichS3Client,B)"></a>
+      <h4 class="signature">
+      <span class="modifier_kind">
+        <span class="modifier"></span>
+        <span class="kind">def</span>
+      </span>
+      <span class="symbol">
+        <span title="gt4s: $u2192" class="implicit">→</span><span class="tparams">[<span name="B">B</span>]</span><span class="params">(<span name="y">y: <span class="extype" name="scala.Predef.ArrowAssoc.→.B">B</span></span>)</span><span class="result">: (<a href="" class="extype" name="com.mfglabs.commons.aws.s3.RichS3Client">RichS3Client</a>, <span class="extype" name="scala.Predef.ArrowAssoc.→.B">B</span>)</span>
+      </span>
+      </h4><span class="permalink">
+      <a href="../../../../../index.html#com.mfglabs.commons.aws.s3.package$$RichS3Client@→[B](y:B):(A,B)" title="Permalink" target="_top">
+        <img src="../../../../../lib/permalink.png" />
+      </a>
+    </span>
+      <div class="fullcomment"><dl class="attributes block"> <dt class="implicit">Implicit information</dt><dd>
+            This member is added by an implicit conversion from <a href="" class="extype" name="com.mfglabs.commons.aws.s3.RichS3Client">RichS3Client</a> to
+            <span class="extype" name="scala.Predef.ArrowAssoc">ArrowAssoc</span>[<a href="" class="extype" name="com.mfglabs.commons.aws.s3.RichS3Client">RichS3Client</a>] performed by method ArrowAssoc in scala.Predef.
+            
+          </dd><dt>Definition Classes</dt><dd>ArrowAssoc</dd></dl></div>
+    </li></ol>
+            </div>
+
+        
+
+        
+        </div>
+
+        <div id="inheritedMembers">
+        <div class="parent" name="scala.AnyVal">
+              <h3>Inherited from <a href="http://www.scala-lang.org/api/2.11.1/index.html#scala.AnyVal" class="extype" target="_top">AnyVal</a></h3>
+            </div><div class="parent" name="scala.Any">
+              <h3>Inherited from <a href="http://www.scala-lang.org/api/2.11.1/index.html#scala.Any" class="extype" target="_top">Any</a></h3>
+            </div>
+        <div class="conversion" name="scala.Predef.any2stringadd">
+              <h3>Inherited by implicit conversion any2stringadd from
+                <a href="" class="extype" name="com.mfglabs.commons.aws.s3.RichS3Client">RichS3Client</a> to <span class="extype" name="scala.Predef.any2stringadd">any2stringadd</span>[<a href="" class="extype" name="com.mfglabs.commons.aws.s3.RichS3Client">RichS3Client</a>]
+              </h3>
+            </div><div class="conversion" name="scala.Predef.StringFormat">
+              <h3>Inherited by implicit conversion StringFormat from
+                <a href="" class="extype" name="com.mfglabs.commons.aws.s3.RichS3Client">RichS3Client</a> to <span class="extype" name="scala.Predef.StringFormat">StringFormat</span>[<a href="" class="extype" name="com.mfglabs.commons.aws.s3.RichS3Client">RichS3Client</a>]
+              </h3>
+            </div><div class="conversion" name="scala.Predef.Ensuring">
+              <h3>Inherited by implicit conversion Ensuring from
+                <a href="" class="extype" name="com.mfglabs.commons.aws.s3.RichS3Client">RichS3Client</a> to <span class="extype" name="scala.Predef.Ensuring">Ensuring</span>[<a href="" class="extype" name="com.mfglabs.commons.aws.s3.RichS3Client">RichS3Client</a>]
+              </h3>
+            </div><div class="conversion" name="scala.Predef.ArrowAssoc">
+              <h3>Inherited by implicit conversion ArrowAssoc from
+                <a href="" class="extype" name="com.mfglabs.commons.aws.s3.RichS3Client">RichS3Client</a> to <span class="extype" name="scala.Predef.ArrowAssoc">ArrowAssoc</span>[<a href="" class="extype" name="com.mfglabs.commons.aws.s3.RichS3Client">RichS3Client</a>]
+              </h3>
+            </div>
+        </div>
+
+        <div id="groupedMembers">
+        <div class="group" name="Ungrouped">
+              <h3>Ungrouped</h3>
+              
+            </div>
+        </div>
+
+      </div>
+
+      <div id="tooltip"></div>
+
+      <div id="footer">  </div>
+
+
+    </body>
+      </html>
