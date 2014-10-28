@@ -33,7 +33,7 @@ import play.api.libs.iteratee._
   * } yield (l, l2)
   * }}}
   *
-  * Please remark that you don't need any implicit [[scala.Option]] as it's directly provided
+  * Please remark that you don't need any implicit [[scala.concurrent.Future]] as it's directly provided
   * and managed by [[AmazonS3Client]] itself.
   * There are smart [[AmazonS3Client]] constructors that can be provided with custom.
   * [[java.util.concurrent.ExecutorService]] if you want to manage your pools of threads.

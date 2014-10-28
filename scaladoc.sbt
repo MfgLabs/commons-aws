@@ -18,7 +18,6 @@ scalacOptions in (Compile, doc) ++=
     "-sourcepath", baseDirectory.value.getAbsolutePath,
     "-doc-source-url", s"https://github.com/MfgLabs/commons-aws/tree/v${version.value}€{FILE_PATH}.scala")
 
-
 autoAPIMappings := true
 
 apiURL := Some(url("https://MfgLabs.github.io/commons-aws/api/current/"))
@@ -38,11 +37,11 @@ apiMappings ++= {
   val links = Seq(
     findManagedDependency("org.scala-lang", "scala-library").map(d => d -> url(s"http://www.scala-lang.org/api/${scalaVersion.value}/"))
   )
-  val linkMap = links.collect { case Some(d) => d }.toMap
-  jarMap ++ linkMap ++ Map(
-    file("/Library/Java/JavaVirtualMachines/jdk1.7.0_71.jdk/Contents/Home/jre/lib/rt.jar") -> 
+  val otherLinksMap = links.collect { case Some(d) => d }.toMap
+  jarMap ++ Map(
+    file("/Library/Java/JavaVirtualMachines/jdk1.7.0_71.jdk/Contents/Home/jre/lib/rt.jar") ->
     url("http://docs.oracle.com/javase/7/docs/api")
-  )
+  ) ++ otherLinksMap
 }
 
 lazy val transformJavaDocLinksTask = taskKey[Unit](
@@ -59,9 +58,18 @@ transformJavaDocLinksTask := {
       "href=\"" + m.group(1) + "?" + m.group(2).replace(".", "/") + ".html")
     IO.write(f, newContent)
   }
+  (t ** "*.html").get.filter(hasJavadocApiLink).foreach { f =>
+    log.info("Transforming " + f)
+    val newContent = javadocApiLink.replaceAllIn(IO.read(f), m =>
+      "href=\"" + m.group(1) + "?" + m.group(2).replace(".", "/") + ".html")
+    IO.write(f, newContent)
+  }
 }
 
 val awsJavadocApiLink = """href=\"(http://docs\.aws\.amazon\.com/AWSJavaSDK/latest/javadoc/index\.html)#([^"]*)""".r
 def hasAwsJavadocApiLink(f: File): Boolean = (awsJavadocApiLink findFirstIn IO.read(f)).nonEmpty
+
+val javadocApiLink = """href=\"(http://docs\.oracle\.com/javase/7/docs/api/index\.html)#([^"]*)""".r
+def hasJavadocApiLink(f: File): Boolean = (javadocApiLink findFirstIn IO.read(f)).nonEmpty
 
 transformJavaDocLinksTask <<= transformJavaDocLinksTask triggeredBy (unidoc in Compile)
