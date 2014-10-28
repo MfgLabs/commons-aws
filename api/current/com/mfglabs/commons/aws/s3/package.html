@@ -58,10 +58,10 @@
   l   <span class="kw">&lt;-</span> S3.listFiles(bucket)
   _   <span class="kw">&lt;-</span> S3.deleteFile(bucket, <span class="lit">"big.txt"</span>)
   l2  <span class="kw">&lt;-</span> S3.listFiles(bucket)
-} <span class="kw">yield</span> (l, l2)</pre><p>Please remark that you don't need any implicit <a href="http://www.scala-lang.org/api/2.11.1/index.html#scala.concurrent.Future" class="extype" target="_top">scala.concurrent.Future</a> as it's directly provided
+} <span class="kw">yield</span> (l, l2)</pre><p>Please remark that you don't need any implicit <span class="extype" name="scala.concurrent.ExecutionContext">scala.concurrent.ExecutionContext</span> as it's directly provided
 and managed by <a href="AmazonS3Client.html" class="extype" name="com.mfglabs.commons.aws.s3.AmazonS3Client">AmazonS3Client</a> itself.
 There are smart <a href="AmazonS3Client.html" class="extype" name="com.mfglabs.commons.aws.s3.AmazonS3Client">AmazonS3Client</a> constructors that can be provided with custom.
-<a href="http://docs.oracle.com/javase/7/docs/api/index.html?java/util/concurrent/ExecutorService.html" class="extype" target="_top">java.util.concurrent.ExecutorService</a> if you want to manage your pools of threads.
+<a href="http://docs.oracle.com/javase/7/docs/api/index.html#java.util.concurrent.ExecutorService" class="extype" target="_top">java.util.concurrent.ExecutorService</a> if you want to manage your pools of threads.
 </p></div><dl class="attributes block"> <dt>Source</dt><dd><a href="https://github.com/MfgLabs/commons-aws/tree/v0.1-SNAPSHOT/core/src/main/scala/s3/package.scala" target="_blank">package.scala</a></dd></dl><div class="toggleContainer block">
           <span class="toggle">Linear Supertypes</span>
           <div class="superTypes hiddenContent"><a href="http://www.scala-lang.org/api/2.11.1/index.html#scala.AnyRef" class="extype" target="_top">AnyRef</a>, <a href="http://www.scala-lang.org/api/2.11.1/index.html#scala.Any" class="extype" target="_top">Any</a></div>
@@ -147,7 +147,7 @@ There are smart <a href="AmazonS3Client.html" class="extype" name="com.mfglabs.c
         <span class="kind">class</span>
       </span>
       <span class="symbol">
-        <a href="S3ThreadFactory.html"><span class="name">S3ThreadFactory</span></a><span class="result"> extends <a href="http://docs.oracle.com/javase/7/docs/api/index.html?java/util/concurrent/ThreadFactory.html" class="extype" target="_top">ThreadFactory</a></span>
+        <a href="S3ThreadFactory.html"><span class="name">S3ThreadFactory</span></a><span class="result"> extends <a href="http://docs.oracle.com/javase/7/docs/api/index.html#java.util.concurrent.ThreadFactory" class="extype" target="_top">ThreadFactory</a></span>
       </span>
       </h4><span class="permalink">
       <a href="../../../../../index.html#com.mfglabs.commons.aws.s3.package@S3ThreadFactoryextendsThreadFactory" title="Permalink" target="_top">
