@@ -1,0 +1,2 @@
+## MFG Commons AWS library
+
