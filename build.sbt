@@ -25,6 +25,7 @@ lazy val all = (project in file("."))
 
 lazy val core = project.in(file("core"))
   .settings   (
+    name := "commons-aws",
     libraryDependencies ++= Seq(
         Dependencies.Compile.awsJavaSDK
       , Dependencies.Compile.pellucidAwsWrap
