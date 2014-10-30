@@ -54,7 +54,7 @@ lazy val postgresExtensions = project.in(file("extensions/postgres"))
   .settings(
     name := "commons-aws-postgres",
     libraryDependencies ++= Seq(
-      Dependencies.Compile.postgreDriver,
+      Dependencies.Compile.postgresDriver,
       Dependencies.Test.scalaTest
     )
   )

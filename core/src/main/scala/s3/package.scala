@@ -130,7 +130,7 @@ package object `s3` {
      * @param chunkSize chunk size of the returned enumerator
      * @return an enumerator (stream) of the object
      */
-    def getStream[U](bucket: String, key: String, chunkSize: Int = 5 * 1024 * 1024): Enumerator[Array[Byte]] = {
+    def getStream(bucket: String, key: String, chunkSize: Int = 5 * 1024 * 1024): Enumerator[Array[Byte]] = {
       import client.executionContext
       val futEnum = client.getObject(bucket, key).map(o => Enumerator.fromStream(o.getObjectContent, chunkSize))
       Enumerator.flatten(futEnum)
