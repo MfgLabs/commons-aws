@@ -2,8 +2,6 @@ import sbtunidoc.Plugin._
 
 organization in ThisBuild := "com.mfglabs"
 
-name := "commons-aws"
-
 scalaVersion in ThisBuild := "2.11.1"
 
 version in ThisBuild := "0.1-SNAPSHOT"
@@ -19,15 +17,15 @@ publishTo in ThisBuild := Some("MFGLabs Snapshots" at "s3://mfg-mvn-repo/snapsho
 
 publishMavenStyle in ThisBuild := true
 
-
-
 lazy val all = (project in file("."))
   .aggregate  (core, postgresExtensions)
+  .settings   (name := "commons-aws-all")
   .settings   (site.settings ++ ghpages.settings: _*)
   .settings   (
     site.addMappingsToSiteDir(mappings in (ScalaUnidoc, packageDoc), "api/current"),
     git.remoteRepo := "git@github.com:MfgLabs/commons-aws.git"
   )
+  .settings(publishArtifact := false)
 
 lazy val core = project.in(file("core"))
   .settings   (
