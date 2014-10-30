@@ -1,5 +1,7 @@
 package com.mfglabs.commons.aws
 
+import com.mfglabs.commons.aws.s3.AmazonS3Client
+
 import scala.concurrent.{ExecutionContext, Future, Promise}
 
 import java.io.{ByteArrayInputStream, InputStream, File}
@@ -119,6 +121,42 @@ package object `s3` {
           if(o != null) o.close
         }
       }
+    }
+
+    /** Download of file as a reactive stream
+     *
+     * @param bucket the bucket name
+     * @param key the key of file
+     * @param chunkSize chunk size of the returned enumerator
+     * @return an enumerator (stream) of the object
+     */
+    def getStream(bucket: String, key: String, chunkSize: Int = 5 * 1024 * 1024): Enumerator[Array[Byte]] = {
+      import client.executionContext
+      val futEnum = client.getObject(bucket, key).map(o => Enumerator.fromStream(o.getObjectContent, chunkSize))
+      Enumerator.flatten(futEnum)
+    }
+
+    /** Sequential download of a multipart file as a reactive stream
+     *
+     * @param bucket bucket name
+     * @param path the common path of the parts of the file
+     * @param chunkSize
+     * @return
+     */
+    def getStreamMultipartFile(bucket: String, path: String, chunkSize: Int = 5 * 1024 * 1024): Enumerator[Array[Byte]] = {
+      import client.executionContext
+
+      val futFilesKeys = listFiles(bucket, Some(path))
+      val futEnum = futFilesKeys.flatMap { keys =>
+        val sortedKeys = keys.map(_._1).sortWith { case (a, b) => a < b }
+        sortedKeys.foldLeft(Future.successful(Enumerator.empty[Array[Byte]])) { case (futAcc, key) =>
+          for {
+            acc <- futAcc
+            enum <- client.getObject(bucket, key).map(o => Enumerator.fromStream(o.getObjectContent, chunkSize))
+          } yield acc andThen enum
+        }
+      }
+      Enumerator.flatten(futEnum)
     }
 
     /** Streamed upload of a Play Enumerator

@@ -22,7 +22,7 @@ publishMavenStyle in ThisBuild := true
 
 
 lazy val all = (project in file("."))
-  .aggregate  (core)
+  .aggregate  (core, postgresExtensions)
   .settings   (site.settings ++ ghpages.settings: _*)
   .settings   (
     site.addMappingsToSiteDir(mappings in (ScalaUnidoc, packageDoc), "api/current"),
@@ -44,7 +44,17 @@ lazy val core = project.in(file("core"))
 // EXTENSIONS GO HERE
 //
 
+
 // If you want to add an extension, put it in directory "extensions"
 // and add it to build as following.
-// lazy val myExtension = project.in(file("extensions/myExtension")).dependsOn(core)
+
+lazy val postgresExtensions = project.in(file("extensions/postgres"))
+  .dependsOn(core)
+  .settings(
+    name := "commons-aws-postgres",
+    libraryDependencies ++= Seq(
+      Dependencies.Compile.postgresDriver,
+      Dependencies.Test.scalaTest
+    )
+  )
 
