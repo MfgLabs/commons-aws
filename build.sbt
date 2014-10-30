@@ -22,8 +22,7 @@ publishMavenStyle in ThisBuild := true
 
 
 lazy val all = (project in file("."))
-  .aggregate  (core)
-  .aggregate  (postgresExtensions)
+  .aggregate  (core, postgresExtensions)
   .settings   (site.settings ++ ghpages.settings: _*)
   .settings   (
     site.addMappingsToSiteDir(mappings in (ScalaUnidoc, packageDoc), "api/current"),
