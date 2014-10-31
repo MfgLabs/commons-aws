@@ -10,10 +10,10 @@ import scala.concurrent.Future
 import play.api.libs.iteratee._
 
 /**
- * To run this test, launch a local postgresql instance and put the connection info into pgConnection
+ * To run this test, launch a local postgresql instance and put the right connection info into DriverManager.getConnection
  */
 
-class PostgresExtensionsSpec extends FlatSpec with Matchers with ScalaFutures {
+class PostgresExtensionsSpec extends FlatSpec with Matchers with ScalaFutures with BeforeAndAfterAll {
   import s3._
   import extensions.postgres._
   import scala.concurrent.ExecutionContext.Implicits.global
@@ -24,19 +24,16 @@ class PostgresExtensionsSpec extends FlatSpec with Matchers with ScalaFutures {
 
   val resDir = "extensions/postgres/src/test/resources"
 
-  val pgConnection = PostgresConnectionInfo("jdbc:postgresql:metadsp", "atamborrino", "password")
-
   implicit override val patienceConfig =
     PatienceConfig(timeout = Span(5, Minutes), interval = Span(5, Millis))
 
-  // val cred = new com.amazonaws.auth.BasicAWSCredentials("AWS_ACCESS_KEY_ID", "AWS_SECRET_ACCESS_KEY")
+  Class.forName("org.postgresql.Driver")
+  val conn = DriverManager.getConnection("jdbc:postgresql:metadsp", "atamborrino", "password")
   val S3 = new s3.AmazonS3Client()
-  val pg = new PostgresExtensions(pgConnection, S3)
+  val pg = new PostgresExtensions(conn, S3)
 
   it should "stream a S3 multipart file to postgres" in {
     // create table
-    Class.forName("org.postgresql.Driver")
-    val conn = DriverManager.getConnection(pgConnection.url, pgConnection.user, pgConnection.password)
     val stmt = conn.createStatement()
     stmt.execute(
       s"""
@@ -87,6 +84,9 @@ class PostgresExtensionsSpec extends FlatSpec with Matchers with ScalaFutures {
     }
 
     stmt.close()
+  }
+
+  override def afterAll(): Unit = {
     conn.close()
   }
 }
