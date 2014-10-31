@@ -28,9 +28,9 @@ class PostgresExtensionsSpec extends FlatSpec with Matchers with ScalaFutures wi
     PatienceConfig(timeout = Span(5, Minutes), interval = Span(5, Millis))
 
   Class.forName("org.postgresql.Driver")
-  val conn = DriverManager.getConnection("jdbc:postgresql:metadsp", "atamborrino", "password")
+  implicit val conn = DriverManager.getConnection("jdbc:postgresql:metadsp", "atamborrino", "password")
   val S3 = new s3.AmazonS3Client()
-  val pg = new PostgresExtensions(conn, S3)
+  val pg = new PostgresExtensions(S3)
 
   it should "stream a S3 multipart file to postgres" in {
     // create table
