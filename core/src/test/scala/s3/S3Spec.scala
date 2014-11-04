@@ -64,7 +64,7 @@ class S3Spec extends FlatSpec with Matchers with ScalaFutures {
         _ <- S3.deleteFile(bucket, s"$keyPrefix/big.txt")
       } yield (initContent, downloadContent)
     ) { case (initContent, downloadContent) =>
-      initContent === downloadContent
+      initContent should equal (downloadContent)
     }
   }
 
@@ -78,7 +78,7 @@ class S3Spec extends FlatSpec with Matchers with ScalaFutures {
         _ <- S3.deleteFile(bucket, s"$keyPrefix/part.2.txt")
       } yield downloadContent
     ) { downloadContent =>
-      new String(downloadContent) === "part1\npart2\n"
+      new String(downloadContent) should equal ("part1\npart2\n")
     }
   }
 }
