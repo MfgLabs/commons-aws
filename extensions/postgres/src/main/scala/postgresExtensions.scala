@@ -33,8 +33,6 @@ class PostgresExtensions(s3: AmazonS3Client) {
       val currentChunk = remaining ++ nextChunk.map(_.toChar).mkString
       val (toInsert, newRemaining) = currentChunk.splitAt(currentChunk.lastIndexOf('\n'))
 
-      println(toInsert)
-
       Future {
         cpManager.copyIn(s"COPY $dbSchema.$dbTableName FROM STDIN WITH DELIMITER '$delimiter'", new StringReader(toInsert))
       }.map(_ => if (newRemaining.head == '\n') newRemaining.tail else newRemaining)
