@@ -1,6 +1,6 @@
 package com.mfglabs.commons.aws
 
-import java.sql.DriverManager
+import java.sql.{Connection, DriverManager}
 
 import org.scalatest.time._
 import collection.mutable.Stack
