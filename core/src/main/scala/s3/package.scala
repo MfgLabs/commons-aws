@@ -1,5 +1,7 @@
 package com.mfglabs.commons.aws
 
+import java.util.zip.InflaterInputStream
+
 import com.mfglabs.commons.aws.s3.AmazonS3Client
 
 import scala.concurrent.{ExecutionContext, Future, Promise}
@@ -133,6 +135,20 @@ package object `s3` {
     def getStream(bucket: String, key: String, chunkSize: Int = 5 * 1024 * 1024): Enumerator[Array[Byte]] = {
       import client.executionContext
       val futEnum = client.getObject(bucket, key).map(o => Enumerator.fromStream(o.getObjectContent, chunkSize))
+      Enumerator.flatten(futEnum)
+    }
+
+    /** Download of file as a reactive stream, including a stream transformation.
+      *
+      * @param bucket the bucket name
+      * @param key the key of file
+      * @param inStrTransform transformation function (for ZIP, GZIP decompression, ...)
+      * @param chunkSize chunk size of the returned enumerator
+      * @return an enumerator (stream) of the object
+      */
+    def getTransformedStream(bucket: String, key: String, inStrTransform : InputStream => InputStream,  chunkSize: Int = 5 * 1024 * 1024): Enumerator[Array[Byte]] = {
+      import client.executionContext
+      val futEnum = client.getObject(bucket, key).map(o => Enumerator.fromStream(inStrTransform(o.getObjectContent), chunkSize))
       Enumerator.flatten(futEnum)
     }
 

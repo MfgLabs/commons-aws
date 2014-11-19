@@ -84,7 +84,6 @@ class PostgresExtensions(s3: AmazonS3Client) {
     copyToS3(identity)(tableOrQuery,delimiter,bucket,key)
 
   def copyToS3AsGzip(tableOrQuery : PGCopyable, delimiter : String, bucket : String, key : String)(implicit conn : PGConnection) =
-  //copyToS3(x => new zip.GZIPInputStream(x))(tableOrQuery,delimiter,bucket,key)
     copyToS3(x => {
       new zip.GZIPOutputStream(x)
     })(tableOrQuery,delimiter,bucket,key)

@@ -1,7 +1,9 @@
+
 package com.mfglabs.commons.aws
 
 import java.sql.{Connection, DriverManager}
 
+import com.mfglabs.commons.aws.commons.DockerTmpDB
 import org.scalatest.time._
 import collection.mutable.Stack
 import org.scalatest._
@@ -13,7 +15,7 @@ import play.api.libs.iteratee._
  * To run this test, launch a local postgresql instance and put the right connection info into DriverManager.getConnection
  */
 
-class PostgresExtensionsSpec extends FlatSpec with Matchers with ScalaFutures with BeforeAndAfterAll {
+class PostgresExtensionsSpec extends FlatSpec with Matchers with ScalaFutures with BeforeAndAfterAll with DockerTmpDB{
   import s3._
   import extensions.postgres._
   import scala.concurrent.ExecutionContext.Implicits.global
@@ -28,7 +30,7 @@ class PostgresExtensionsSpec extends FlatSpec with Matchers with ScalaFutures wi
     PatienceConfig(timeout = Span(5, Minutes), interval = Span(5, Millis))
 
   Class.forName("org.postgresql.Driver")
-  implicit val conn = DriverManager.getConnection("jdbc:postgresql:metadsp", "atamborrino", "password")
+  //implicit val conn = DriverManager.getConnection("jdbc:postgresql:metadsp", "atamborrino", "password")
   val S3 = new s3.AmazonS3Client()
   val pg = new PostgresExtensions(S3)
 
@@ -90,3 +92,4 @@ class PostgresExtensionsSpec extends FlatSpec with Matchers with ScalaFutures wi
     conn.close()
   }
 }
+
