@@ -56,13 +56,7 @@ class CopyToS3Spec extends FlatSpec with Matchers with ScalaFutures with DockerT
           new GZIPInputStream(is)
         }) |>>> Iteratee.fold("") { (z, x) => z + "\n" + x}
       }
-        /*.flatMap { _ =>
-          s3c.getObject(bucket, keyPrefix + "flat.tsv.gz")
-            .map( s3Obj =>
-            Source.fromInputStream(new GZIPInputStream(s3Obj.getObjectContent))
-              .getLines().map(_.toString)
-            )
-        }*/
+
     gzipS3ObjFut.futureValue === List("1;veau","2;vache","3;cochon")
     Await.result(s3c.deleteObject(bucket, keyPrefix + "flat.tsv"),10 seconds)
     Await.result(s3c.deleteObject(bucket, keyPrefix + "flat.tsv.gz"),10 seconds)
