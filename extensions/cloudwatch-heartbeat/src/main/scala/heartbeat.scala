@@ -143,16 +143,16 @@ class CloudwatchAkkaHeartbeat(
       .withComparisonOperator(ComparisonOperator.LessThanThreshold)
       .withDimensions(dim("Category", "Backend"))
 
-    client.putMetricAlarm(alarm) flatMap { _ =>
+    client.putMetricAlarm(alarm) map { _ =>
       // set the alarm to OK state
-      Thread.sleep(5000)
-      client.setAlarmState(
-        new SetAlarmStateRequest()
-          .withAlarmName(s"$namespace-$alarmName")
-          .withStateValue(StateValue.OK)
-          .withStateReason("Set to OK... Now, Listening heartbeats...")
-      )
-      // ()
+      // Thread.sleep(5000)
+      // client.setAlarmState(
+      //   new SetAlarmStateRequest()
+      //     .withAlarmName(s"$namespace-$alarmName")
+      //     .withStateValue(StateValue.OK)
+      //     .withStateReason("Set to OK... Now, Listening heartbeats...")
+      // )
+      ()
     }
   }
 
