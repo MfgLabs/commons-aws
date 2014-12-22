@@ -22,6 +22,7 @@ lazy val all = (project in file("."))
   .settings   (name := "commons-aws-all")
   .settings   (site.settings ++ ghpages.settings: _*)
   .settings   (
+    name := "commons-aws-all",
     site.addMappingsToSiteDir(mappings in (ScalaUnidoc, packageDoc), "api/current"),
     git.remoteRepo := "git@github.com:MfgLabs/commons-aws.git"
   )
@@ -56,3 +57,15 @@ lazy val postgresExtensions = project.in(file("extensions/postgres"))
     )
   )
 
+lazy val cloudwatchHeartbeat = project.in(file("extensions/cloudwatch-heartbeat"))
+  .dependsOn(core)
+  .settings(
+    name := "commons-aws-cloudwatch-heartbeat",
+    libraryDependencies ++= Seq(
+      Dependencies.Compile.akka,
+      Dependencies.Compile.grizzled,
+      Dependencies.Compile.logback,
+      Dependencies.Test.scalaTest,
+      Dependencies.Test.akkaTestkit
+    )
+  )
