@@ -117,6 +117,10 @@ class CloudwatchAkkaHeartbeat(
       new DescribeAlarmsForMetricRequest()
         .withNamespace(namespace)
         .withMetricName(metricName)
+        .withStatistic(Statistic.SampleCount)
+        .withUnit(StandardUnit.Count)
+        .withPeriod(alarmTimeout.toSeconds.toInt)
+        .withDimensions(dim("Category", "Backend"))
 
     ) map { res =>
       res.getMetricAlarms().toList.headOption
@@ -136,7 +140,7 @@ class CloudwatchAkkaHeartbeat(
       .withEvaluationPeriods(2) // if for 1 periods, there are less data than half of this count, it means there is a pb
       // TODO conversion to Int risky???
       .withPeriod(alarmTimeout.toSeconds.toInt)
-      .withInsufficientDataActions(actionEndpoint)
+      // .withInsufficientDataActions(actionEndpoint)
       .withAlarmActions(actionEndpoint)
       .withStatistic(Statistic.SampleCount)
       .withUnit(StandardUnit.Count)
@@ -144,36 +148,46 @@ class CloudwatchAkkaHeartbeat(
       .withDimensions(dim("Category", "Backend"))
 
     client.putMetricAlarm(alarm) map { _ =>
-      // set the alarm to OK state
-      // Thread.sleep(5000)
-      // client.setAlarmState(
-      //   new SetAlarmStateRequest()
-      //     .withAlarmName(s"$namespace-$alarmName")
-      //     .withStateValue(StateValue.OK)
-      //     .withStateReason("Set to OK... Now, Listening heartbeats...")
-      // )
-      ()
+      system.scheduler.scheduleOnce(
+        30.seconds
+      ) {
+        //set the alarm to OK state
+        client.setAlarmState(
+          new SetAlarmStateRequest()
+            .withAlarmName(s"$namespace-$alarmName")
+            .withStateValue(StateValue.OK)
+            .withStateReason("Set to OK... Now, Listening heartbeats...")
+        )
+      }
     }
   }
 
   def initMetricAlarm()(implicit ec: ExecutionContext): Future[Unit] = {
-    logger.info(s"Searching for Metric $namespace/$metricName & Alarm $alarmName at Cloudwatch")
-    getMetric() flatMap {
-      case None =>
-        logger.info(s"Metric $namespace/$metricName not found, creating it")
-        putMetric() map (_ => logger.info(s"Metric $namespace/$metricName created"))
-      case Some(m) =>
-        Future.successful(logger.info(s"Metric $namespace/$metricName found"))
-    } flatMap { _ =>
-      getAlarm() flatMap {
-        case None =>
-          logger.info(s"Alarm $alarmName not found, creating it")
-          putAlarm() map (_ => logger.info(s"Alarm $alarmName created"))
-        case Some(a) =>
-          logger.info(s"Alarm $alarmName found")
-          Future.successful(())
-      }
+    logger.info(s"Updating Metric $namespace/$metricName & Alarm $alarmName @Cloudwatch")
+    putMetric() flatMap { _ =>
+      logger.info(s"Metric $namespace/$metricName updated")
+      putAlarm() map (_ => logger.info(s"Alarm $alarmName updated"))
     }
+
+    // getMetric() flatMap {
+    //   case None =>
+    //     logger.info(s"Metric $namespace/$metricName not found, creating it")
+    //     putMetric() map (_ => logger.info(s"Metric $namespace/$metricName created"))
+    //   case Some(m) =>
+    //     //Future.successful(logger.info(s"Metric $namespace/$metricName found"))
+    //     logger.info(s"Metric $namespace/$metricName found, updating it")
+    //     putMetric() map (_ => logger.info(s"Metric $namespace/$metricName updated"))
+    // } flatMap { _ =>
+    //   getAlarm() flatMap {
+    //     case None =>
+    //       logger.info(s"Alarm $alarmName not found, creating it")
+    //       putAlarm() map (_ => logger.info(s"Alarm $alarmName created"))
+    //     case Some(a) =>
+    //       logger.info(s"Alarm $alarmName found, updating it")
+    //       putAlarm() map (_ => logger.info(s"Alarm $alarmName updated"))
+    //       //Future.successful(())
+    //   }
+    // }
   }
 
   override def start()(implicit ec: ExecutionContext): Future[Boolean] = {

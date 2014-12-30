@@ -36,8 +36,8 @@ class CloudwatchHeartBeatSpec extends TestKit(ActorSystem("testSystem"))
     val hb = new CloudwatchAkkaHeartbeat(
       namespace = "Test/Heartbeat",
       name = "test1",
-      beatPeriod = 1.second,
-      alarmTimeout = 60.seconds,
+      beatPeriod = 2.second,
+      alarmTimeout = 120.seconds,
       system = system,
       client = CW,
       actionEndpoint = "arn:aws:sns:eu-west-1:896733075612:Cloudwatch-HeartBeat-Test"
