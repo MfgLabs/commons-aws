@@ -147,19 +147,19 @@ class CloudwatchAkkaHeartbeat(
       .withComparisonOperator(ComparisonOperator.LessThanThreshold)
       .withDimensions(dim("Category", "Backend"))
 
-    client.putMetricAlarm(alarm) map { _ =>
-      system.scheduler.scheduleOnce(
-        30.seconds
-      ) {
-        //set the alarm to OK state
-        client.setAlarmState(
-          new SetAlarmStateRequest()
-            .withAlarmName(s"$namespace-$alarmName")
-            .withStateValue(StateValue.OK)
-            .withStateReason("Set to OK... Now, Listening heartbeats...")
-        )
-      }
-    }
+    client.putMetricAlarm(alarm) //map { _ =>
+    //   system.scheduler.scheduleOnce(
+    //     30.seconds
+    //   ) {
+    //     //set the alarm to OK state
+    //     client.setAlarmState(
+    //       new SetAlarmStateRequest()
+    //         .withAlarmName(s"$namespace-$alarmName")
+    //         .withStateValue(StateValue.OK)
+    //         .withStateReason("Set to OK... Now, Listening heartbeats...")
+    //     )
+    //   }
+    // }
   }
 
   def initMetricAlarm()(implicit ec: ExecutionContext): Future[Unit] = {
