@@ -18,7 +18,7 @@ publishTo in ThisBuild := Some("MFGLabs Snapshots" at "s3://mfg-mvn-repo/snapsho
 publishMavenStyle in ThisBuild := true
 
 lazy val all = (project in file("."))
-  .aggregate  (core, postgresExtensions)
+  .aggregate  (core, postgresExtensions, cloudwatchHeartbeat)
   .settings   (name := "commons-aws-all")
   .settings   (site.settings ++ ghpages.settings: _*)
   .settings   (

@@ -37,14 +37,16 @@ class CloudwatchHeartBeatSpec extends TestKit(ActorSystem("testSystem"))
       namespace = "Test/Heartbeat",
       name = "test1",
       beatPeriod = 2.second,
-      alarmTimeout = 120.seconds,
+      alarmPeriod = 120.seconds,
+      alarmPeriodNb = 1,
+      alarmThreshold = 10,
       system = system,
       client = CW,
       actionEndpoint = "arn:aws:sns:eu-west-1:896733075612:Cloudwatch-HeartBeat-Test"
     )
 
     val p = Promise[Boolean]
-    system.scheduler.scheduleOnce(300.seconds,
+    system.scheduler.scheduleOnce(120.seconds,
       new Runnable { override def run = {
         hb.stop() map { b => p success b }
         ()
