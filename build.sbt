@@ -13,7 +13,13 @@ resolvers in ThisBuild ++= Seq(
 
 scalacOptions in ThisBuild ++= Seq("-feature", "-deprecation", "-unchecked")
 
-publishTo in ThisBuild := Some("MFGLabs Snapshots" at "s3://mfg-mvn-repo/snapshots")
+publishTo in ThisBuild := {
+  val s3Repo = "s3://mfg-mvn-repo"
+  if (isSnapshot.value)
+    Some("snapshots" at s3Repo + "/snapshots")
+  else
+    Some("releases" at s3Repo + "/releases")
+}
 
 publishMavenStyle in ThisBuild := true
 
