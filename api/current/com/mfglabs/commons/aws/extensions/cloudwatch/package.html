@@ -1,9 +1,9 @@
 <!DOCTYPE html >
 <html>
         <head>
-          <title>postgres - com.mfglabs.commons.aws.extensions.postgres</title>
-          <meta name="description" content="postgres - com.mfglabs.commons.aws.extensions.postgres" />
-          <meta name="keywords" content="postgres com.mfglabs.commons.aws.extensions.postgres" />
+          <title>cloudwatch - com.mfglabs.commons.aws.extensions.cloudwatch</title>
+          <meta name="description" content="cloudwatch - com.mfglabs.commons.aws.extensions.cloudwatch" />
+          <meta name="keywords" content="cloudwatch com.mfglabs.commons.aws.extensions.cloudwatch" />
           <meta http-equiv="content-type" content="text/html; charset=UTF-8" />
           
       <link href="../../../../../../lib/template.css" media="screen" type="text/css" rel="stylesheet" />
@@ -16,7 +16,7 @@
       <script type="text/javascript">
          if(top === self) {
             var url = '../../../../../../index.html';
-            var hash = 'com.mfglabs.commons.aws.extensions.postgres.package';
+            var hash = 'com.mfglabs.commons.aws.extensions.cloudwatch.package';
             var anchor = window.location.hash;
             var anchor_opt = '';
             if (anchor.length >= 1)
@@ -30,8 +30,8 @@
       <div id="definition">
         <img src="../../../../../../lib/package_big.png" />
         <p id="owner"><a href="../../../../../package.html" class="extype" name="com">com</a>.<a href="../../../../package.html" class="extype" name="com.mfglabs">mfglabs</a>.<a href="../../../package.html" class="extype" name="com.mfglabs.commons">commons</a>.<a href="../../package.html" class="extype" name="com.mfglabs.commons.aws">aws</a>.<a href="../package.html" class="extype" name="com.mfglabs.commons.aws.extensions">extensions</a></p>
-        <h1>postgres</h1> <span class="permalink">
-      <a href="../../../../../../index.html#com.mfglabs.commons.aws.extensions.postgres.package" title="Permalink" target="_top">
+        <h1>cloudwatch</h1> <span class="permalink">
+      <a href="../../../../../../index.html#com.mfglabs.commons.aws.extensions.cloudwatch.package" title="Permalink" target="_top">
         <img src="../../../../../../lib/permalink.png" />
       </a>
     </span>
@@ -43,7 +43,7 @@
         <span class="kind">package</span>
       </span>
       <span class="symbol">
-        <span class="name">postgres</span>
+        <span class="name">cloudwatch</span>
       </span>
       </h4>
       
@@ -66,19 +66,53 @@
 
         <div id="types" class="types members">
               <h3>Type Members</h3>
-              <ol><li name="com.mfglabs.commons.aws.extensions.postgres.PostgresExtensions" visbl="pub" data-isabs="false" fullComment="no" group="Ungrouped">
-      <a id="PostgresExtensionsextendsAnyRef"></a>
-      <a id="PostgresExtensions:PostgresExtensions"></a>
+              <ol><li name="com.mfglabs.commons.aws.extensions.cloudwatch.CloudwatchAkkaHeartbeat" visbl="pub" data-isabs="false" fullComment="no" group="Ungrouped">
+      <a id="CloudwatchAkkaHeartbeatextendsHeartBeatwithLogging"></a>
+      <a id="CloudwatchAkkaHeartbeat:CloudwatchAkkaHeartbeat"></a>
       <h4 class="signature">
       <span class="modifier_kind">
         <span class="modifier"></span>
         <span class="kind">class</span>
       </span>
       <span class="symbol">
-        <a href="PostgresExtensions.html"><span class="name">PostgresExtensions</span></a><span class="result"> extends <a href="http://www.scala-lang.org/api/2.11.2/index.html#scala.AnyRef" class="extype" target="_top">AnyRef</a></span>
+        <a href="CloudwatchAkkaHeartbeat.html"><span class="name">CloudwatchAkkaHeartbeat</span></a><span class="result"> extends <a href="HeartBeat.html" class="extype" name="com.mfglabs.commons.aws.extensions.cloudwatch.HeartBeat">HeartBeat</a> with <span class="extype" name="grizzled.slf4j.Logging">Logging</span></span>
       </span>
       </h4><span class="permalink">
-      <a href="../../../../../../index.html#com.mfglabs.commons.aws.extensions.postgres.package@PostgresExtensionsextendsAnyRef" title="Permalink" target="_top">
+      <a href="../../../../../../index.html#com.mfglabs.commons.aws.extensions.cloudwatch.package@CloudwatchAkkaHeartbeatextendsHeartBeatwithLogging" title="Permalink" target="_top">
+        <img src="../../../../../../lib/permalink.png" />
+      </a>
+    </span>
+      
+    </li><li name="com.mfglabs.commons.aws.extensions.cloudwatch.CloudwatchHeartbeatLayer" visbl="pub" data-isabs="true" fullComment="no" group="Ungrouped">
+      <a id="CloudwatchHeartbeatLayerextendsAnyRef"></a>
+      <a id="CloudwatchHeartbeatLayer:CloudwatchHeartbeatLayer"></a>
+      <h4 class="signature">
+      <span class="modifier_kind">
+        <span class="modifier"></span>
+        <span class="kind">trait</span>
+      </span>
+      <span class="symbol">
+        <a href="CloudwatchHeartbeatLayer.html"><span class="name">CloudwatchHeartbeatLayer</span></a><span class="result"> extends <a href="http://www.scala-lang.org/api/2.11.2/index.html#scala.AnyRef" class="extype" target="_top">AnyRef</a></span>
+      </span>
+      </h4><span class="permalink">
+      <a href="../../../../../../index.html#com.mfglabs.commons.aws.extensions.cloudwatch.package@CloudwatchHeartbeatLayerextendsAnyRef" title="Permalink" target="_top">
+        <img src="../../../../../../lib/permalink.png" />
+      </a>
+    </span>
+      
+    </li><li name="com.mfglabs.commons.aws.extensions.cloudwatch.HeartBeat" visbl="pub" data-isabs="true" fullComment="no" group="Ungrouped">
+      <a id="HeartBeatextendsAnyRef"></a>
+      <a id="HeartBeat:HeartBeat"></a>
+      <h4 class="signature">
+      <span class="modifier_kind">
+        <span class="modifier"></span>
+        <span class="kind">trait</span>
+      </span>
+      <span class="symbol">
+        <a href="HeartBeat.html"><span class="name">HeartBeat</span></a><span class="result"> extends <a href="http://www.scala-lang.org/api/2.11.2/index.html#scala.AnyRef" class="extype" target="_top">AnyRef</a></span>
+      </span>
+      </h4><span class="permalink">
+      <a href="../../../../../../index.html#com.mfglabs.commons.aws.extensions.cloudwatch.package@HeartBeatextendsAnyRef" title="Permalink" target="_top">
         <img src="../../../../../../lib/permalink.png" />
       </a>
     </span>
@@ -88,27 +122,7 @@
 
         
 
-        <div id="values" class="values members">
-              <h3>Value Members</h3>
-              <ol><li name="com.mfglabs.commons.aws.extensions.postgres.PostgresExtensions" visbl="pub" data-isabs="false" fullComment="no" group="Ungrouped">
-      <a id="PostgresExtensions"></a>
-      <a id="PostgresExtensions:PostgresExtensions"></a>
-      <h4 class="signature">
-      <span class="modifier_kind">
-        <span class="modifier"></span>
-        <span class="kind">object</span>
-      </span>
-      <span class="symbol">
-        <a href="PostgresExtensions$.html"><span class="name">PostgresExtensions</span></a>
-      </span>
-      </h4><span class="permalink">
-      <a href="../../../../../../index.html#com.mfglabs.commons.aws.extensions.postgres.package@PostgresExtensions" title="Permalink" target="_top">
-        <img src="../../../../../../lib/permalink.png" />
-      </a>
-    </span>
-      
-    </li></ol>
-            </div>
+        
 
         
 
