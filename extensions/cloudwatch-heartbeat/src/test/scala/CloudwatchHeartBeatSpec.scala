@@ -32,7 +32,7 @@ class CloudwatchHeartBeatSpec extends TestKit(ActorSystem("testSystem"))
   client.setRegion(region)
   val CW = new cloudwatch.AmazonCloudwatchClient(client)
 
-  "heartbeat" should "create heartbeat metric / alarm" in {
+  /*"heartbeat" should "create heartbeat metric / alarm" in {
     val hb = new CloudwatchAkkaHeartbeat(
       namespace = "Test/Heartbeat",
       name = "test1",
@@ -59,7 +59,7 @@ class CloudwatchHeartBeatSpec extends TestKit(ActorSystem("testSystem"))
 
     // whenReady(hb.getMetrics()){ metrics => println("metrics:"+metrics)}
 
-  }
+  }*/
 
   override def afterAll {
     TestKit.shutdownActorSystem(system)
