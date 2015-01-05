@@ -2,6 +2,9 @@
 
 [Scaladoc](http://mfglabs.github.io/commons-aws/api/current/)
 
+> Current stable version is `"com.mfglabs" %% "commons-aws" % "0.1"`
+
+
 It enhances default AWS `AmazonS3Client` for Scala :
   - asynchronous/non-blocking wrapper using an external pool of threads managed internally.
   - Some custom extensions:
@@ -27,7 +30,7 @@ resolvers ++= Seq(
 
 libraryDependencies ++= Seq(
 ...
-  "com.mfglabs" %% "commons-aws" % "0.1"
+  "com.mfglabs" %% "commons-aws" % "0.2-SNAPSHOT"
 ...
 )
 
