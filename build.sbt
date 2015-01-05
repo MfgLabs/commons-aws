@@ -2,9 +2,9 @@ import sbtunidoc.Plugin._
 
 organization in ThisBuild := "com.mfglabs"
 
-scalaVersion in ThisBuild := "2.11.1"
+scalaVersion in ThisBuild := "2.11.2"
 
-version in ThisBuild := "0.1-SNAPSHOT"
+version in ThisBuild := "0.1"
 
 resolvers in ThisBuild ++= Seq(
 	  "Pellucid Deps" at "http://dl.bintray.com/content/pellucid/maven"
