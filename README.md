@@ -82,9 +82,9 @@ for {
 ```
 
 Please remark that you don't need any implicit `scala.concurrent.ExecutionContext` as it's directly provided
-and managed by [[AmazonS3Client]] itself.
+and managed by [[AmazonCloudwatchClient]] itself.
 
-There are also smart `AmazonS3Client` constructors that can be provided with custom.
+There are also smart `AmazonCloudwatchClient` constructors that can be provided with custom.
 `java.util.concurrent.ExecutorService` if you want to manage your pools of threads.
 
 
@@ -97,7 +97,7 @@ There are also smart `AmazonS3Client` constructors that can be provided with cus
 <br/>
 ### Postgres extensions
 
-Several utils to integrate AWS services with postgresql.
+It provides several utils to integrate AWS services with postgresql.
 
 Add in your build.sbt:
 ```scala
@@ -122,11 +122,15 @@ pg.streamMultipartFileFromS3(s3bucket, s3path, dbSchema = "public", dbTableName 
 <br/>
 ### Cloudwatch heartbeat
 
-It provides a simple mechanism that sends periodically a heartbeat metric to AWS Cloudwatch. If the heartbeat rate on a _configurable_ period falls under a _configurable_ threshold or the metrics isn't fed with sufficient data, a Cloudwatch `ALARM` status is triggered & sent to a given SQS endpoint.
+It provides a simple mechanism that sends periodically a heartbeat metric to AWS Cloudwatch.
+
+If the heartbeat rate on a _configurable_ period falls under a _configurable_ threshold or the metrics isn't fed with sufficient data, a Cloudwatch `ALARM` status is triggered & sent to a given SQS endpoint.
+
 When the rate goes above threshold again, an `OK` status is triggered & sent to the same SQS endpoint.
 
 
-> IMPORTANT: the alarm is created by the API itself but due to a limitation (or a bug) in Amazon API, the status of this alarm will stay at `INSUFFICIENT_DATA` until you manually update it in the AWS console. For that, wait 1/2 minutes so that Cloudwatch receives enough heartbeats and select the alarm, click on `modify` and then click on `save`. The alarm should pass to `OK` status.
+> **IMPORTANT**: the alarm is created by the API itself but due to a limitation (or a bug) in Amazon API, the status of this alarm will stay at `INSUFFICIENT_DATA` until you manually update it in the AWS console.
+For that, wait 1/2 minutes after start so that Cloudwatch receives enough heartbeats and then select the alarm, click on `modify` and then click on `save`. The alarm should pass to `OK` status.
 
 _Cloudwatch heartbeat is based on Cloudwatch service & Akka scheduler._
 
@@ -181,7 +185,7 @@ object MyAkkaService extends CloudwatchHeartbeatLayer {
 
   ...
   // start the heartbeat
-  heartbeat.start()
+  heartbeat.start()(myExeCtx)
 }
 
 ```
