@@ -127,7 +127,7 @@ class CloudwatchAkkaHeartbeat(
     ) map { res =>
       res.getMetricAlarms().toList.headOption match {
         case Some(ma) =>
-          logger.info("Alarm $namespace-$alarmName found...")
+          logger.info(s"Alarm $namespace-$alarmName found...")
           if(
             ma.getAlarmName() == s"$namespace-$alarmName" &&
             ma.getAlarmDescription() == alarmDesc &&
@@ -142,14 +142,14 @@ class CloudwatchAkkaHeartbeat(
             ma.getComparisonOperator() == ComparisonOperator.LessThanThreshold &&
             ma.getDimensions().toList == List(dim("Category", "Backend"))
           ) {
-            logger.info("Alarm $namespace-$alarmName unchanged...")
+            logger.info(s"Alarm $namespace-$alarmName unchanged...")
             Some(ma)
           } else {
-            logger.info("Alarm $namespace-$alarmName changed...")
+            logger.info(s"Alarm $namespace-$alarmName changed...")
             None
           }
         case None =>
-          logger.info("Alarm $namespace-$alarmName not found...")
+          logger.info(s"Alarm $namespace-$alarmName not found...")
           None
       }
     }
