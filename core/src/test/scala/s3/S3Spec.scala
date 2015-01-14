@@ -1,11 +1,12 @@
 package com.mfglabs.commons.aws
 
+import com.mfglabs.commons.stream.MFGSource
+
 import collection.mutable.Stack
 import org.scalatest._
 import concurrent.ScalaFutures
 import org.scalatest.time.{Minutes, Millis, Seconds, Span}
 import scala.concurrent.Future
-import play.api.libs.iteratee._
 
 class S3Spec extends FlatSpec with Matchers with ScalaFutures {
   import s3._
@@ -44,7 +45,7 @@ class S3Spec extends FlatSpec with Matchers with ScalaFutures {
   it should "upstream files" in {
     whenReady(
       for {
-        _   <- S3.uploadStream(bucket, s"$keyPrefix/big.txt", Enumerator.fromFile(new java.io.File(s"$resDir/big.txt")))
+        _   <- S3.uploadStream(bucket, s"$keyPrefix/big.txt", MFGSource.fromFile(new java.io.File(s"$resDir/big.txt")))
         l   <- S3.listFiles(bucket, Some(keyPrefix))
         _   <- S3.deleteFile(bucket, s"$keyPrefix/big.txt")
         l2  <- S3.listFiles(bucket, Some(keyPrefix))

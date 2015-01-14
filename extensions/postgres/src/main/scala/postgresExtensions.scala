@@ -3,10 +3,13 @@ package extensions.postgres
 
 import java.io.StringReader
 
+import akka.actor.ActorSystem
+import akka.stream.FlowMaterializer
+import akka.stream.scaladsl.FoldSink
 import com.mfglabs.commons.aws.s3.AmazonS3Client
 import com.mfglabs.commons.aws.s3._
+import com.mfglabs.commons.stream.MFGFlow
 import org.postgresql.PGConnection
-import play.api.libs.iteratee._
 import scala.concurrent._
 import java.sql.{ Connection, DriverManager }
 
@@ -25,20 +28,18 @@ class PostgresExtensions(s3: AmazonS3Client) {
   def streamMultipartFileFromS3(s3bucket: String, s3path: String, dbSchema: String, dbTableName: String,
                                 delimiter: String = ",", chunkSize: Int = 5 * 1024 * 1024)
                                (implicit sqlConnection: Connection): Future[String] = {
+
+    implicit val as = ActorSystem()
+    implicit val fm = FlowMaterializer()
+
     val cpManager = sqlConnection.asInstanceOf[PGConnection].getCopyAPI()
 
-    val s3stream = s3.getStreamMultipartFile(s3bucket, s3path, chunkSize)
-
-    val dbSink = Iteratee.foldM[Array[Byte], String]("") { case (remaining, nextChunk) =>
-      val currentChunk = remaining ++ nextChunk.map(_.toChar).mkString
-      val (toInsert, newRemaining) = currentChunk.splitAt(currentChunk.lastIndexOf('\n'))
-
-      Future {
-        cpManager.copyIn(s"COPY $dbSchema.$dbTableName FROM STDIN WITH DELIMITER '$delimiter'", new StringReader(toInsert))
-      }.map(_ => if (newRemaining.head == '\n') newRemaining.tail else newRemaining)
-    }
-
-    s3stream |>>> dbSink
+    s3.getStreamMultipartFile(s3bucket, s3path, chunkSize)
+      .via(MFGFlow.byteArrayToString)
+      .via(MFGFlow.mapAsyncUnorderedWithBoundedParallelism(5){ sqlQ =>
+        Future {
+          cpManager.copyIn(s"COPY $dbSchema.$dbTableName FROM STDIN WITH DELIMITER '$delimiter'", new StringReader(sqlQ))
+          }.map(_ => sqlQ)})
+      .runWith(FoldSink[String, String]("")(_ + "\n" + _))
   }
-
 }

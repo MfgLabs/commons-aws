@@ -33,7 +33,8 @@ lazy val core = project.in(file("core"))
     libraryDependencies ++= Seq(
         Dependencies.Compile.awsJavaSDK
       , Dependencies.Compile.pellucidAwsWrap
-      , Dependencies.Compile.playIteratees
+      , Dependencies.Compile.akkaStream
+      , "com.mfglabs" %% "commons-stream" % "0.3-SNAPSHOT" // Dependencies.Compile.commonsStream
       , Dependencies.Test.scalaTest
     )
   )
