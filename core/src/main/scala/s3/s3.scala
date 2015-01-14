@@ -95,8 +95,6 @@ class AmazonS3Client(
     *
     * @param awsCredentials
     *     AWS credentials.
-    * @param clientConfiguration
-    *     a client configuration.
     * @param executorService
     *     an executor service for synchronous calls to the underlying AmazonS3Client.
     */

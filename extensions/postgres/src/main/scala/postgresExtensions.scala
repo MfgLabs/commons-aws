@@ -5,10 +5,13 @@ import java.io.{PipedInputStream, PipedOutputStream, OutputStream, StringReader}
 import java.util.zip
 
 import com.mfglabs.commons.aws.extensions.postgres.PostgresExtensions.PGCopyable
+import akka.actor.ActorSystem
+import akka.stream.FlowMaterializer
+import akka.stream.scaladsl.FoldSink
 import com.mfglabs.commons.aws.s3.AmazonS3Client
 import com.mfglabs.commons.aws.s3._
+import com.mfglabs.commons.stream.MFGFlow
 import org.postgresql.PGConnection
-import play.api.libs.iteratee._
 import scala.concurrent._
 import java.sql.{ Connection, DriverManager }
 object PostgresExtensions {
@@ -20,8 +23,9 @@ object PostgresExtensions {
     def copyStr = "(" + str + ")"
   }
 }
-class PostgresExtensions(s3: AmazonS3Client) {
-  import s3.executionContext
+class PostgresExtensions(s3c: AmazonS3Client) {
+
+  import s3c.executionContext
 
   /** Stream a multipart S3 file to a postgre db
    *
@@ -35,20 +39,19 @@ class PostgresExtensions(s3: AmazonS3Client) {
   def streamMultipartFileFromS3(s3bucket: String, s3path: String, dbSchema: String, dbTableName: String,
                                 delimiter: String = ",", chunkSize: Int = 5 * 1024 * 1024)
                                (implicit sqlConnection: Connection): Future[String] = {
+
+    implicit val as = ActorSystem()
+    implicit val fm = FlowMaterializer()
+
     val cpManager = sqlConnection.asInstanceOf[PGConnection].getCopyAPI()
 
-    val s3stream = s3.getStreamMultipartFile(s3bucket, s3path, chunkSize)
-
-    val dbSink = Iteratee.foldM[Array[Byte], String]("") { case (remaining, nextChunk) =>
-      val currentChunk = remaining ++ nextChunk.map(_.toChar).mkString
-      val (toInsert, newRemaining) = currentChunk.splitAt(currentChunk.lastIndexOf('\n'))
-
-      Future {
-        cpManager.copyIn(s"COPY $dbSchema.$dbTableName FROM STDIN WITH DELIMITER '$delimiter'", new StringReader(toInsert))
-      }.map(_ => if (newRemaining.head == '\n') newRemaining.tail else newRemaining)
-    }
-
-    s3stream |>>> dbSink
+    s3c.getStreamMultipartFile(s3bucket, s3path, chunkSize)
+      .via(MFGFlow.byteArrayToString)
+      .via(MFGFlow.mapAsyncUnorderedWithBoundedParallelism(5){ sqlQ =>
+        Future {
+          cpManager.copyIn(s"COPY $dbSchema.$dbTableName FROM STDIN WITH DELIMITER '$delimiter'", new StringReader(sqlQ))
+          }.map(_ => sqlQ)})
+      .runWith(FoldSink[String, String]("")(_ + "\n" + _))
   }
 
   import com.mfglabs.commons.aws.s3.AmazonS3Client
@@ -77,7 +80,7 @@ class PostgresExtensions(s3: AmazonS3Client) {
       tos.close()
     }
     val en = Enumerator.fromStream(is,chunkSize)
-    s3.uploadStream(bucket, key, en)
+    s3c.uploadStream(bucket, key, en)
   }
 
   def copyToS3AsFlatFile(tableOrQuery : PGCopyable , delimiter : String, bucket : String, key : String)(implicit conn : PGConnection) =
@@ -87,6 +90,5 @@ class PostgresExtensions(s3: AmazonS3Client) {
     copyToS3(x => {
       new zip.GZIPOutputStream(x)
     })(tableOrQuery,delimiter,bucket,key)
-
 
 }

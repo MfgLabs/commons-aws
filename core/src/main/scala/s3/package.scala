@@ -1,17 +1,27 @@
 package com.mfglabs.commons.aws
 
-import java.util.zip.InflaterInputStream
+import java.text.SimpleDateFormat
+import java.util.zip.GZIPInputStream
 
+import akka.actor.Status.Failure
+import akka.actor.{ActorSystem, Props, Stash, ActorLogging}
+import akka.stream.{FlowMaterializer, FlattenStrategy}
+import akka.stream.actor.ActorPublisher
+import akka.stream.scaladsl._
+import akka.stream.stage._
 import com.mfglabs.commons.aws.s3.AmazonS3Client
-
+import com.mfglabs.commons.stream.internals.flow.BufferedStage
+import com.mfglabs.commons.stream.{MFGSource, MFGFlow}
+import scala.concurrent.duration.{FiniteDuration, Duration}
 import scala.concurrent.{ExecutionContext, Future, Promise}
 
-import java.io.{ByteArrayInputStream, InputStream, File}
+import java.io._
 import java.util.Date
 
 import com.amazonaws.services.s3.model._
 
-import play.api.libs.iteratee._
+import scala.util.Try
+
 
 /**
   * Enhances default AWS AmazonS3Client for Scala :
@@ -43,6 +53,7 @@ import play.api.libs.iteratee._
   * [[java.util.concurrent.ExecutorService]] if you want to manage your pools of threads.
   */
 package object `s3` {
+
   implicit class RichS3Client(val client: AmazonS3Client) extends AnyVal {
 
     /** List files in a bucket (& optional path)
@@ -60,7 +71,7 @@ package object `s3` {
 
       def nextBatch(futObjectListing: Future[ObjectListing], objects: List[S3ObjectSummary]): Future[List[S3ObjectSummary]] =
         futObjectListing flatMap { l =>
-          if(l.isTruncated) {
+          if (l.isTruncated) {
             nextBatch(client.listNextBatchOfObjects(l), objects ++ l.getObjectSummaries)
           } else {
             Future.successful(objects ++ l.getObjectSummaries)
@@ -73,8 +84,7 @@ package object `s3` {
           case None => client.listObjects(bucket)
         },
         List.empty
-      ) map { l => l map { x => (x.getKey, x.getLastModified) } }
-
+      ) map { l => l map { x => (x.getKey, x.getLastModified)}}
     }
 
     /** Upload file to bucket
@@ -109,7 +119,6 @@ package object `s3` {
       *
       * @param  bucket the bucket name
       * @param  key the key of file
-      * @param  a function from file content to something U
       * @return a successful future of your something U (or a failure)
       */
     def withFile[U](bucket: String, key: String)(block: S3ObjectInputStream => U): Future[U] = {
@@ -120,100 +129,121 @@ package object `s3` {
         try {
           block(o.getObjectContent)
         } finally {
-          if(o != null) o.close
+          if (o != null) o.close
         }
       }
     }
 
-    /** Download of file as a reactive stream
-     *
-     * @param bucket the bucket name
-     * @param key the key of file
-     * @param chunkSize chunk size of the returned enumerator
-     * @return an enumerator (stream) of the object
-     */
-    def getStream(bucket: String, key: String, chunkSize: Int = 5 * 1024 * 1024): Enumerator[Array[Byte]] = {
-      import client.executionContext
-      val futEnum = client.getObject(bucket, key).map(o => Enumerator.fromStream(o.getObjectContent, chunkSize))
-      Enumerator.flatten(futEnum)
-    }
 
     /** Download of file as a reactive stream, including a stream transformation.
       *
       * @param bucket the bucket name
       * @param key the key of file
-      * @param inStrTransform transformation function (for ZIP, GZIP decompression, ...)
+      * @param inputStreamTransform transformation function (for ZIP, GZIP decompression, ...)
       * @param chunkSize chunk size of the returned enumerator
       * @return an enumerator (stream) of the object
       */
-    def getTransformedStream(bucket: String, key: String, inStrTransform : InputStream => InputStream,  chunkSize: Int = 5 * 1024 * 1024): Enumerator[Array[Byte]] = {
+    def getTransformedStream(bucket: String, key: String, inputStreamTransform: InputStream => InputStream, chunkSize: Int): Source[Array[Byte]] = {
+      import akka.stream.scaladsl.FlowGraphImplicits._
       import client.executionContext
-      val futEnum = client.getObject(bucket, key).map(o => Enumerator.fromStream(inStrTransform(o.getObjectContent), chunkSize))
-      Enumerator.flatten(futEnum)
+      Source(client.getObject(bucket, key))
+        .map(o => MFGSource.fromStream(inputStreamTransform(o.getObjectContent), chunkSize)(client.executionContext))
+        .flatten(FlattenStrategy.concat)
     }
+
+    def getStream(bucket: String, key: String, chunkSize: Int = 5 * 1024 * 1024): Source[Array[Byte]] =
+      getTransformedStream(bucket, key, identity, chunkSize)
+
+    def getStreamFromGzipped(bucket: String, key: String, chunkSize: Int = 5 * 1024 * 1024) =
+      getTransformedStream(bucket, key, is => new GZIPInputStream(is), chunkSize)
 
     /** Sequential download of a multipart file as a reactive stream
-     *
-     * @param bucket bucket name
-     * @param path the common path of the parts of the file
-     * @param chunkSize
-     * @return
-     */
-    def getStreamMultipartFile(bucket: String, path: String, chunkSize: Int = 5 * 1024 * 1024): Enumerator[Array[Byte]] = {
+      *
+      * @param bucket bucket name
+      * @param path the common path of the parts of the file
+      * @param chunkSize
+      * @return
+      */
+    def getStreamMultipartFile(bucket: String, path: String, chunkSize: Int = 5 * 1024 * 1024): Source[Array[Byte]] = {
       import client.executionContext
+      val sortedkeysFut =
+        listFiles(bucket, Some(path))
+          .map(
+            _.map(_._1).sortWith { case (a, b) => a < b})
 
-      val futFilesKeys = listFiles(bucket, Some(path))
-      val futEnum = futFilesKeys.flatMap { keys =>
-        val sortedKeys = keys.map(_._1).sortWith { case (a, b) => a < b }
-        sortedKeys.foldLeft(Future.successful(Enumerator.empty[Array[Byte]])) { case (futAcc, key) =>
-          for {
-            acc <- futAcc
-            enum <- client.getObject(bucket, key).map(o => Enumerator.fromStream(o.getObjectContent, chunkSize))
-          } yield acc andThen enum
-        }
-      }
-      Enumerator.flatten(futEnum)
+      Source(sortedkeysFut)
+        .map[Source[Array[Byte]]](keys =>
+        keys
+          .map(key => getStream(bucket, key, chunkSize))
+          .reduce(_ concat _))
+        .flatten(FlattenStrategy.concat)
     }
 
-    /** Streamed upload of a Play Enumerator
-      *
-      * @param  bucket the bucket name
-      * @param  key the key of file
-      * @param  enum an enumerator of array of bytes
-      * @return a successful future of the uploaded number of chunks (or a failure)
-      */
-    def uploadStream(bucket: String, key: String, enum: Enumerator[Array[Byte]]): Future[Int] = {
 
-      import scala.collection.JavaConversions._
-      // implicit exectx
-      import client.executionContext
 
-      val rechunker: Enumeratee[Array[Byte], Array[Byte]] = Enumeratee.grouped {
-        Traversable.takeUpTo[Array[Byte]](5 * 1024 * 1024) &>> Iteratee.consume()
-      }
 
-      def makeUploader(uploadId: String) =
-        Iteratee.foldM[Array[Byte], Vector[PartETag]](Vector.empty) { case (etags, bytes) =>
-          val uploadRequest = new UploadPartRequest()
-                                  .withBucketName(bucket)
-                                  .withKey(key)
-                                  .withPartNumber(etags.length + 1)
-                                  .withUploadId(uploadId)
-                                  .withInputStream(new ByteArrayInputStream(bytes))
-                                  .withPartSize(bytes.length)
+    def rechunkArray[T](chunkSize : Int) : Flow[Array[T],Array[T]] = Flow[Array[T]].transform(() =>
+      new BufferedStage[Array[T],List[T],Array[T]] {
+        override def emitCondition(currBuffer: List[T]) = currBuffer.size >= chunkSize
 
-          client.uploadPart(uploadRequest) map { res => etags :+ res.getPartETag }
+        override def toEmit(currBuffer: List[T]): (Iterator[List[T]], List[T]) = {
+          val toShipList = currBuffer.grouped(chunkSize).toList
+          if (toShipList.last.size == chunkSize) {
+            (toShipList.iterator, List.empty[T])
+          } else {
+            (toShipList.dropRight(1).iterator, toShipList.last)
+          }
         }
 
+        override def zeroBuffer: List[T] = List.empty[T]
+
+        override def lastBufferToOut(b: List[T]): Array[T] = b.toArray
+
+        override def addToBuffer(b: List[T], i: Array[T]): List[T] = b ++ i.toList
+      })
+
+    /**
+     * Streamed upload of a akka stream
+     * @param  bucket the bucket name
+     * @param  key the key of file
+     * @param  source a source of array of bytes
+     * @return a successful future of the uploaded number of chunks (or a failure)
+     */
+    def uploadStream(bucket: String, key: String, source: Source[Array[Byte]], parallelism : Int = 5): Future[Int] = {
+
+      implicit val actSys = ActorSystem(s"$bucket/$key uploader")
+      implicit val mat = FlowMaterializer()
+      import scala.collection.JavaConversions._
+      import client.executionContext
+
+  /*    def rechunk[T](chunkSize : Int) : Flow[Array[T], Seq[T]] = {
+        Flow[Array[T]].mapConcat(_.toList).grouped(chunkSize)
+      }*/
+
+      def makeUploader(uploadId: String) = {
+        MFGFlow
+          .zipWithIndex[Array[Byte]]
+          .via(
+            MFGFlow.mapAsyncUnorderedWithBoundedParallelism(parallelism){ case (bytes, partNumber) => // //[(Int,Array[Byte]),UploadPartResult]
+            val uploadRequest = new UploadPartRequest()
+              .withBucketName(bucket)
+              .withKey(key)
+              .withPartNumber(partNumber + 1)
+              .withUploadId(uploadId)
+              .withInputStream(new ByteArrayInputStream(bytes))
+              .withPartSize(bytes.length)
+            client.uploadPart(uploadRequest)})
+      }
+
       client.initiateMultipartUpload(new InitiateMultipartUploadRequest(bucket, key)) flatMap { initResponse =>
-
         val uploadId = initResponse.getUploadId
-        val maybeEtags = enum &> rechunker |>>> makeUploader(uploadId)
-
-        maybeEtags flatMap { etags =>
-
+        val etagsFut : Future[Vector[PartETag]] =
+          source
+            .via(rechunkArray[Byte](5 * 1024 * 1024))
+            .via(makeUploader(uploadId))
+            .runWith(Sink.fold(Vector.empty[PartETag])(_ :+ _.getPartETag))
+        etagsFut.flatMap { etags =>
           val compRequest = new CompleteMultipartUploadRequest(bucket, key, uploadId, etags.toBuffer[PartETag])
-
           client.completeMultipartUpload(compRequest) map { _ =>
             etags.length
           } recoverWith { case e: Exception =>
@@ -222,8 +252,27 @@ package object `s3` {
           }
         }
       }
-
     }
 
+    /**
+     * periodically upload a stream to S3. Data is chuncked on a min(time,size) basis. Files are stored in a folder, named by their upload date
+     * @param bucket the bucket name
+     * @param prefix the folder where files will be saved
+     * @param source a source of array of bytes
+     * @param nbRecord maximum number of records to collect before dumping
+     * @param duration maximum time window before dumping
+     * @return
+     */
+    def uploadStreamMultipartFile(bucket : String, prefix: String, source: Source[Array[Byte]], nbRecord : Int, duration : FiniteDuration) : Flow[Array[Byte],Int] =
+      Flow[Array[Byte]].groupedWithin(nbRecord, duration)
+        .via(
+          MFGFlow.mapAsyncWithOrderedSideEffect{chunk => {
+            val cleanPrefix = if (prefix.last.equals("/")) prefix else prefix + "/"
+            val dStr = new SimpleDateFormat("yyyyMMdd_HHmmss_SSS").format(new Date)
+            uploadStream(bucket, cleanPrefix + dStr, Source(chunk))
+          }})
+
+
   }
+
 }
