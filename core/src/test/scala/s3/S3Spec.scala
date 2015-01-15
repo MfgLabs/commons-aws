@@ -1,5 +1,6 @@
 package com.mfglabs.commons.aws
 
+import akka.stream.scaladsl.{FoldSink, Flow, Source}
 import com.mfglabs.commons.stream.MFGSource
 
 import collection.mutable.Stack
@@ -7,6 +8,7 @@ import org.scalatest._
 import concurrent.ScalaFutures
 import org.scalatest.time.{Minutes, Millis, Seconds, Span}
 import scala.concurrent.Future
+import scala.concurrent.duration._
 
 class S3Spec extends FlatSpec with Matchers with ScalaFutures {
   import s3._
@@ -81,5 +83,32 @@ class S3Spec extends FlatSpec with Matchers with ScalaFutures {
     ) { downloadContent =>
       new String(downloadContent) should equal ("part1\npart2\n")
     }
+  }
+
+
+  it should "upload a stream as a multipart file" in {
+    // test window
+    // test nbrecords
+    // test stop entre deux
+
+    val tickSource =
+      Source(initialDelay = 0 second, interval = 2 second, () => "tick".toCharArray.map(_.toByte))
+        .takeWithin(11 seconds)
+
+
+    whenReady(
+    for {
+      _ <- S3.deleteObject(bucket, keyPrefix + "/multipart-upload")
+      nbSent <-
+        S3.uploadStreamMultipartFile(bucket, keyPrefix + "/multipart-upload", tickSource , 10, 5 seconds)
+          .via(FoldSink[Int,Int](0){(z,c) => z + 1})
+      nbFiles <- S3.listObjects(bucket, keyPrefix + "/multipart-upload")
+    } yield (nbSent, nbFiles)
+    ){
+      case (nbSent, nbFiles) =>
+        nbSent shouldEqual(2)
+        nbFiles shouldEqual(2)
+    }
+
   }
 }

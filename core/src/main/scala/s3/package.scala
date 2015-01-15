@@ -10,8 +10,6 @@ import akka.stream.actor.ActorPublisher
 import akka.stream.scaladsl._
 import akka.stream.stage._
 import com.mfglabs.commons.aws.s3.AmazonS3Client
-import com.mfglabs.commons.stream.MFGFlow.BufferedStage
-import com.mfglabs.commons.stream.internals.flow.BufferedStage
 import com.mfglabs.commons.stream.{MFGSource, MFGFlow}
 import scala.concurrent.duration.{FiniteDuration, Duration}
 import scala.concurrent.{ExecutionContext, Future, Promise}
@@ -182,27 +180,6 @@ package object `s3` {
 
 
 
-
-    def rechunkArray[T](chunkSize : Int) : Flow[Array[T],Array[T]] = Flow[Array[T]].transform(() =>
-      new BufferedStage[Array[T],List[T],Array[T]] {
-        override def emitCondition(currBuffer: List[T]) = currBuffer.size >= chunkSize
-
-        override def toEmit(currBuffer: List[T]): (Iterator[List[T]], List[T]) = {
-          val toShipList = currBuffer.grouped(chunkSize).toList
-          if (toShipList.last.size == chunkSize) {
-            (toShipList.iterator, List.empty[T])
-          } else {
-            (toShipList.dropRight(1).iterator, toShipList.last)
-          }
-        }
-
-        override def zeroBuffer: List[T] = List.empty[T]
-
-        override def lastBufferToOut(b: List[T]): Array[T] = b.toArray
-
-        override def addToBuffer(b: List[T], i: Array[T]): List[T] = b ++ i.toList
-      })
-
     /**
      * Streamed upload of a akka stream
      * @param  bucket the bucket name
@@ -217,11 +194,7 @@ package object `s3` {
       import scala.collection.JavaConversions._
       import client.executionContext
 
-  /*    def rechunk[T](chunkSize : Int) : Flow[Array[T], Seq[T]] = {
-        Flow[Array[T]].mapConcat(_.toList).grouped(chunkSize)
-      }*/
-
-      def makeUploader(uploadId: String) = {
+       def makeUploader(uploadId: String) = {
         MFGFlow
           .zipWithIndex[Array[Byte]]
           .via(
@@ -240,7 +213,7 @@ package object `s3` {
         val uploadId = initResponse.getUploadId
         val etagsFut : Future[Vector[PartETag]] =
           source
-            .via(rechunk[Byte](5 * 1024 * 1024))
+            .via(MFGFlow.rechunkArray[Byte](5 * 1024 * 1024))
             .via(makeUploader(uploadId))
             .runWith(Sink.fold(Vector.empty[PartETag])(_ :+ _.getPartETag))
         etagsFut.flatMap { etags =>
