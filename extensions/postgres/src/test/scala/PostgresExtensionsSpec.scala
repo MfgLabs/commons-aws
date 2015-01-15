@@ -9,7 +9,6 @@ import collection.mutable.Stack
 import org.scalatest._
 import concurrent.ScalaFutures
 import scala.concurrent.Future
-import play.api.libs.iteratee._
 
 /**
  * To run this test, launch a local postgresql instance and put the right connection info into DriverManager.getConnection

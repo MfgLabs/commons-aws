@@ -18,8 +18,9 @@ object Dependencies {
     val awsJavaSDK        = "com.amazonaws"       %   "aws-java-sdk"                  % V.awsJavaSDK
     val pellucidAwsWrap   = "com.pellucid"        %%  "aws-wrap"                      % V.pellucidAwsWrap
     val akkaStream        = "com.typesafe.akka"   %%  "akka-stream-experimental"      % V.akkaStream
+    val akka              = "com.typesafe.akka"   %%  "akka-actor"                    % V.akka
     val commonsStream     = "com.mfglabs"         %%  "commons-stream"                % V.commonsStream
-    val postgresDriver    = "org.postgresql"      % "postgresql"                      % V.postgresDriver
+    val postgresDriver    = "org.postgresql"      %   "postgresql"                    % V.postgresDriver
     val grizzled          = "org.clapper"         %%  "grizzled-slf4j"                % V.grizzled
     val logback           = "ch.qos.logback"      %   "logback-classic"               % V.logback           % "runtime"
   }
