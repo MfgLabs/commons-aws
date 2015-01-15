@@ -5,6 +5,7 @@ import akka.stream.FlowMaterializer
 import akka.stream.scaladsl.{FoldSink, Flow, Source}
 import com.mfglabs.commons.stream.{MFGSource, MFGSink}
 
+
 import collection.mutable.Stack
 import org.scalatest._
 import concurrent.ScalaFutures

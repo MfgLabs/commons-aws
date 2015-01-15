@@ -22,36 +22,35 @@ import com.amazonaws.services.s3.model._
 
 import scala.util.Try
 
-
 /**
-  * Enhances default AWS AmazonS3Client for Scala :
-  *   - asynchronous/non-blocking wrapper using an external pool of threads managed internally.
-  *   - a few file management/streaming facilities.
-  *
-  * It is based on Opensource Pellucid wrapper.
-  *
-  * ==Overview==
-  * To use rich MFGLabs AWS S3 wrapper, you just have to add the following:
-  * {{{
-  * import com.mfglabs.commons.aws.s3
-  * import s3._ // brings implicit extensions
-  *
-  * // Create the client
-  * val S3 = new AmazonS3Client()
-  * // Use it
-  * for {
-  *   _   <- S3.uploadStream(bucket, "big.txt", Enumerator.fromFile(new java.io.File(s"big.txt")))
-  *   l   <- S3.listFiles(bucket)
-  *   _   <- S3.deleteFile(bucket, "big.txt")
-  *   l2  <- S3.listFiles(bucket)
-  * } yield (l, l2)
-  * }}}
-  *
-  * Please remark that you don't need any implicit [[scala.concurrent.ExecutionContext]] as it's directly provided
-  * and managed by [[AmazonS3Client]] itself.
-  * There are smart [[AmazonS3Client]] constructors that can be provided with custom.
-  * [[java.util.concurrent.ExecutorService]] if you want to manage your pools of threads.
-  */
+ * Enhances default AWS AmazonS3Client for Scala :
+ * - asynchronous/non-blocking wrapper using an external pool of threads managed internally.
+ * - a few file management/streaming facilities.
+ *
+ * It is based on Opensource Pellucid wrapper.
+ *
+ * ==Overview==
+ * To use rich MFGLabs AWS S3 wrapper, you just have to add the following:
+ * {{{
+ * import com.mfglabs.commons.aws.s3
+ * import s3._ // brings implicit extensions
+ *
+ * // Create the client
+ * val S3 = new AmazonS3Client()
+ * // Use it
+ * for {
+ *   _   <- S3.uploadStream(bucket, "big.txt", Enumerator.fromFile(new java.io.File(s"big.txt")))
+ *   l   <- S3.listFiles(bucket)
+ *   _   <- S3.deleteFile(bucket, "big.txt")
+ *   l2  <- S3.listFiles(bucket)
+ * } yield (l, l2)
+ * }}}
+ *
+ * Please remark that you don't need any implicit [[scala.concurrent.ExecutionContext]] as it's directly provided
+ * and managed by [[AmazonS3Client]] itself.
+ * There are smart [[AmazonS3Client]] constructors that can be provided with custom.
+ * [[java.util.concurrent.ExecutorService]] if you want to manage your pools of threads.
+ */
 package object `s3` {
 
   implicit class RichS3Client(val client: AmazonS3Client) extends AnyVal {
@@ -134,7 +133,6 @@ package object `s3` {
       }
     }
 
-
     /** Download of file as a reactive stream, including a stream transformation.
       *
       * @param bucket the bucket name
@@ -187,7 +185,7 @@ package object `s3` {
      * @param  source a source of array of bytes
      * @return a successful future of the uploaded number of chunks (or a failure)
      */
-    def uploadStream(bucket: String, key: String, source: Source[Array[Byte]], parallelism: Int = 8)(implicit fm : FlowMaterializer) : Future[Int] = {
+    def uploadStream(bucket: String, key: String, source: Source[Array[Byte]], parallelism: Int = 8)(implicit fm: FlowMaterializer): Future[Int] = {
 
       import scala.collection.JavaConversions._
       import client.executionContext
@@ -235,7 +233,7 @@ package object `s3` {
      * @param duration maximum time window before dumping
      * @return
      */
-    def uploadStreamMultipartFile(bucket: String, prefix: String, nbRecord: Int, duration: FiniteDuration, dateFormatter : DateFormat = new SimpleDateFormat("yyyyMMdd_HHmmss_SSS"))(implicit fm : FlowMaterializer): Flow[Array[Byte], Int] =
+    def uploadStreamMultipartFile(bucket: String, prefix: String, nbRecord: Int, duration: FiniteDuration, dateFormatter: DateFormat = new SimpleDateFormat("yyyyMMdd_HHmmss_SSS"))(implicit fm: FlowMaterializer): Flow[Array[Byte], Int] =
       Flow[Array[Byte]].groupedWithin(nbRecord, duration)
         .via(
           MFGFlow.mapAsyncWithOrderedSideEffect { chunk => {
@@ -254,7 +252,7 @@ package object `s3` {
      * @tparam T
      * @return
      */
-    def uploadStreamMultipartFileWithCompanion[T](bucket: String, prefix: String, nbRecord: Int, duration: FiniteDuration, dateFormatter : DateFormat = new SimpleDateFormat("yyyyMMdd_HHmmss_SSS"))(implicit fm : FlowMaterializer): Flow[(Array[Byte], T), T] = {
+    def uploadStreamMultipartFileWithCompanion[T](bucket: String, prefix: String, nbRecord: Int, duration: FiniteDuration, dateFormatter: DateFormat = new SimpleDateFormat("yyyyMMdd_HHmmss_SSS"))(implicit fm: FlowMaterializer): Flow[(Array[Byte], T), T] = {
       import scala.concurrent.ExecutionContext.Implicits.global
       Flow[(Array[Byte], T)].groupedWithin(nbRecord, duration)
         .via(
