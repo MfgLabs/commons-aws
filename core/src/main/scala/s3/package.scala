@@ -180,7 +180,6 @@ package object `s3` {
     }
 
 
-
     /**
      * Streamed upload of a akka stream
      * @param  bucket the bucket name
@@ -188,14 +187,12 @@ package object `s3` {
      * @param  source a source of array of bytes
      * @return a successful future of the uploaded number of chunks (or a failure)
      */
-    def uploadStream(bucket: String, key: String, source: Source[Array[Byte]], parallelism : Int = 5): Future[Int] = {
+    def uploadStream(bucket: String, key: String, source: Source[Array[Byte]], parallelism: Int = 8)(implicit fm : FlowMaterializer) : Future[Int] = {
 
-      implicit val actSys = ActorSystem(s"$bucket/$key uploader")
-      implicit val mat = FlowMaterializer()
       import scala.collection.JavaConversions._
       import client.executionContext
 
-       def makeUploader(uploadId: String) = {
+      def makeUploader(uploadId: String) = {
         MFGFlow
           .zipWithIndex[Array[Byte]]
           .via(
@@ -212,7 +209,7 @@ package object `s3` {
 
       client.initiateMultipartUpload(new InitiateMultipartUploadRequest(bucket, key)) flatMap { initResponse =>
         val uploadId = initResponse.getUploadId
-        val etagsFut : Future[Vector[PartETag]] =
+        val etagsFut: Future[Vector[PartETag]] =
           source
             .via(MFGFlow.rechunkArray[Byte](5 * 1024 * 1024))
             .via(makeUploader(uploadId))
@@ -238,16 +235,38 @@ package object `s3` {
      * @param duration maximum time window before dumping
      * @return
      */
-    def uploadStreamMultipartFile(bucket : String, prefix: String, source: Source[Array[Byte]], nbRecord : Int, duration : FiniteDuration) : Flow[Array[Byte],Int] =
+    def uploadStreamMultipartFile(bucket: String, prefix: String, source: Source[Array[Byte]], nbRecord: Int, duration: FiniteDuration)(implicit fm : FlowMaterializer): Flow[Array[Byte], Int] =
       Flow[Array[Byte]].groupedWithin(nbRecord, duration)
         .via(
-          MFGFlow.mapAsyncWithOrderedSideEffect{chunk => {
+          MFGFlow.mapAsyncWithOrderedSideEffect { chunk => {
             val cleanPrefix = if (prefix.last.equals("/")) prefix else prefix + "/"
             val dStr = new SimpleDateFormat("yyyyMMdd_HHmmss_SSS").format(new Date)
             uploadStream(bucket, cleanPrefix + dStr, Source(chunk))
-          }})
+          }
+          })
 
+    /**
+     * alternative
+     * @param bucket
+     * @param prefix
+     * @param source
+     * @param nbRecord
+     * @param duration
+     * @tparam T
+     * @return
+     */
+    def uploadStreamMultipartFileWithCompanion[T](bucket: String, prefix: String, nbRecord: Int, duration: FiniteDuration)(implicit fm : FlowMaterializer): Flow[(Array[Byte], T), T] = {
+      import scala.concurrent.ExecutionContext.Implicits.global
 
+      Flow[(Array[Byte], T)].groupedWithin(nbRecord, duration)
+        .via(
+          MFGFlow.mapAsyncWithOrderedSideEffect { chunk => {
+            val cleanPrefix = if (prefix.last.equals('/')) prefix else prefix + "/"
+            val dStr = new SimpleDateFormat("yyyyMMdd_HHmmss_SSS").format(new Date)
+            val (data, companion) = chunk.unzip
+            uploadStream(bucket, cleanPrefix + dStr, Source(data)).map(res => companion)
+          }
+          }).map(xs => Source(xs)).flatten(FlattenStrategy.concat)
+    }
   }
-
 }
