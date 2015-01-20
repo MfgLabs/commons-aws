@@ -1,6 +1,6 @@
 package com.mfglabs.commons.aws
 
-import java.text.SimpleDateFormat
+import java.text.{DateFormat, SimpleDateFormat}
 import java.util.zip.GZIPInputStream
 
 import akka.actor.Status.Failure
@@ -196,15 +196,16 @@ package object `s3` {
         MFGFlow
           .zipWithIndex[Array[Byte]]
           .via(
-            MFGFlow.mapAsyncUnorderedWithBoundedParallelism(parallelism){ case (bytes, partNumber) => // //[(Int,Array[Byte]),UploadPartResult]
-            val uploadRequest = new UploadPartRequest()
-              .withBucketName(bucket)
-              .withKey(key)
-              .withPartNumber(partNumber + 1)
-              .withUploadId(uploadId)
-              .withInputStream(new ByteArrayInputStream(bytes))
-              .withPartSize(bytes.length)
-            client.uploadPart(uploadRequest)})
+            MFGFlow.mapAsyncUnorderedWithBoundedParallelism(parallelism) { case (bytes, partNumber) => // //[(Int,Array[Byte]),UploadPartResult]
+              val uploadRequest = new UploadPartRequest()
+                .withBucketName(bucket)
+                .withKey(key)
+                .withPartNumber(partNumber + 1)
+                .withUploadId(uploadId)
+                .withInputStream(new ByteArrayInputStream(bytes))
+                .withPartSize(bytes.length)
+              client.uploadPart(uploadRequest)
+            })
       }
 
       client.initiateMultipartUpload(new InitiateMultipartUploadRequest(bucket, key)) flatMap { initResponse =>
@@ -230,39 +231,36 @@ package object `s3` {
      * periodically upload a stream to S3. Data is chuncked on a min(time,size) basis. Files are stored in a folder, named by their upload date
      * @param bucket the bucket name
      * @param prefix the folder where files will be saved
-     * @param source a source of array of bytes
      * @param nbRecord maximum number of records to collect before dumping
      * @param duration maximum time window before dumping
      * @return
      */
-    def uploadStreamMultipartFile(bucket: String, prefix: String, source: Source[Array[Byte]], nbRecord: Int, duration: FiniteDuration)(implicit fm : FlowMaterializer): Flow[Array[Byte], Int] =
+    def uploadStreamMultipartFile(bucket: String, prefix: String, nbRecord: Int, duration: FiniteDuration, dateFormatter : DateFormat = new SimpleDateFormat("yyyyMMdd_HHmmss_SSS"))(implicit fm : FlowMaterializer): Flow[Array[Byte], Int] =
       Flow[Array[Byte]].groupedWithin(nbRecord, duration)
         .via(
           MFGFlow.mapAsyncWithOrderedSideEffect { chunk => {
-            val cleanPrefix = if (prefix.last.equals("/")) prefix else prefix + "/"
-            val dStr = new SimpleDateFormat("yyyyMMdd_HHmmss_SSS").format(new Date)
+            val cleanPrefix = if (prefix.last.equals('/')) prefix else prefix + "/"
+            val dStr = dateFormatter.format(new Date)
             uploadStream(bucket, cleanPrefix + dStr, Source(chunk))
           }
           })
 
     /**
-     * alternative
+     * uploadStreamMultipartFile + manage an second associated object, for callback use cases (exemple : queue acknowledgment)
      * @param bucket
      * @param prefix
-     * @param source
      * @param nbRecord
      * @param duration
      * @tparam T
      * @return
      */
-    def uploadStreamMultipartFileWithCompanion[T](bucket: String, prefix: String, nbRecord: Int, duration: FiniteDuration)(implicit fm : FlowMaterializer): Flow[(Array[Byte], T), T] = {
+    def uploadStreamMultipartFileWithCompanion[T](bucket: String, prefix: String, nbRecord: Int, duration: FiniteDuration, dateFormatter : DateFormat = new SimpleDateFormat("yyyyMMdd_HHmmss_SSS"))(implicit fm : FlowMaterializer): Flow[(Array[Byte], T), T] = {
       import scala.concurrent.ExecutionContext.Implicits.global
-
       Flow[(Array[Byte], T)].groupedWithin(nbRecord, duration)
         .via(
           MFGFlow.mapAsyncWithOrderedSideEffect { chunk => {
             val cleanPrefix = if (prefix.last.equals('/')) prefix else prefix + "/"
-            val dStr = new SimpleDateFormat("yyyyMMdd_HHmmss_SSS").format(new Date)
+            val dStr = dateFormatter.format(new Date)
             val (data, companion) = chunk.unzip
             uploadStream(bucket, cleanPrefix + dStr, Source(data)).map(res => companion)
           }

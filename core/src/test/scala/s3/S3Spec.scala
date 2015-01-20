@@ -1,7 +1,9 @@
 package com.mfglabs.commons.aws
 
+import akka.actor.ActorSystem
+import akka.stream.FlowMaterializer
 import akka.stream.scaladsl.{FoldSink, Flow, Source}
-import com.mfglabs.commons.stream.MFGSource
+import com.mfglabs.commons.stream.{MFGSource, MFGSink}
 
 import collection.mutable.Stack
 import org.scalatest._
@@ -23,6 +25,8 @@ class S3Spec extends FlatSpec with Matchers with ScalaFutures {
   implicit override val patienceConfig =
     PatienceConfig(timeout = Span(2, Minutes), interval = Span(5, Millis))
 
+  implicit val as = ActorSystem("test")
+  implicit val fm = FlowMaterializer()
   // val cred = new com.amazonaws.auth.BasicAWSCredentials("AWS_ACCESS_KEY_ID", "AWS_SECRET_ACCESS_KEY")
   val S3 = new s3.AmazonS3Client()
 
@@ -61,9 +65,9 @@ class S3Spec extends FlatSpec with Matchers with ScalaFutures {
   it should "download a file as a stream" in {
     whenReady(
       for {
-        initContent <- Enumerator.fromFile(new java.io.File(s"$resDir/big.txt")) |>>> Iteratee.consume()
-        _ <- S3.uploadStream(bucket, s"$keyPrefix/big.txt", Enumerator.fromFile(new java.io.File(s"$resDir/big.txt")))
-        downloadContent <- S3.getStream(bucket, s"$keyPrefix/big.txt") |>>> Iteratee.consume()
+        initContent <- MFGSource.fromFile(new java.io.File(s"$resDir/big.txt")).runWith(MFGSink.collect)
+        _ <- S3.uploadStream(bucket, s"$keyPrefix/big.txt", MFGSource.fromFile(new java.io.File(s"$resDir/big.txt")))
+        downloadContent <- S3.getStream(bucket, s"$keyPrefix/big.txt").runWith(MFGSink.collect)
         _ <- S3.deleteFile(bucket, s"$keyPrefix/big.txt")
       } yield (initContent, downloadContent)
     ) { case (initContent, downloadContent) =>
@@ -74,8 +78,8 @@ class S3Spec extends FlatSpec with Matchers with ScalaFutures {
   it should "download a multipart file as a stream" in {
     whenReady(
       for {
-        _ <- S3.uploadStream(bucket, s"$keyPrefix/part.1.txt", Enumerator.fromFile(new java.io.File(s"$resDir/part.1.txt")))
-        _ <- S3.uploadStream(bucket, s"$keyPrefix/part.2.txt", Enumerator.fromFile(new java.io.File(s"$resDir/part.2.txt")))
+        _ <- S3.uploadStream(bucket, s"$keyPrefix/part.1.txt", MFGSource.fromFile(new java.io.File(s"$resDir/part.1.txt")))
+        _ <- S3.uploadStream(bucket, s"$keyPrefix/part.2.txt", MFGSource.fromFile(new java.io.File(s"$resDir/part.2.txt")))
         downloadContent <- S3.getStreamMultipartFile(bucket, s"$keyPrefix/part") |>>> Iteratee.consume()
         _ <- S3.deleteFile(bucket, s"$keyPrefix/part.1.txt")
         _ <- S3.deleteFile(bucket, s"$keyPrefix/part.2.txt")
