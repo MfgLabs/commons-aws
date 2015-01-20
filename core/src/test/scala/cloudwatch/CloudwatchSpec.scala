@@ -5,7 +5,6 @@ import org.scalatest._
 import concurrent.ScalaFutures
 import org.scalatest.time.{Minutes, Millis, Seconds, Span}
 import scala.concurrent.Future
-import play.api.libs.iteratee._
 
 class CloudwatchSpec extends FlatSpec with Matchers with ScalaFutures {
   import cloudwatch._

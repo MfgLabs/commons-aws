@@ -10,7 +10,7 @@ import akka.stream.FlowMaterializer
 import akka.stream.scaladsl.FoldSink
 import com.mfglabs.commons.aws.s3.AmazonS3Client
 import com.mfglabs.commons.aws.s3._
-import com.mfglabs.commons.stream.MFGFlow
+import com.mfglabs.commons.stream.{MFGSource, MFGFlow}
 import org.postgresql.PGConnection
 import scala.concurrent._
 import java.sql.{ Connection, DriverManager }
@@ -24,7 +24,6 @@ object PostgresExtensions {
   }
 }
 class PostgresExtensions(s3c: AmazonS3Client) {
-
   import s3c.executionContext
 
   /** Stream a multipart S3 file to a postgre db
@@ -38,16 +37,16 @@ class PostgresExtensions(s3c: AmazonS3Client) {
    */
   def streamMultipartFileFromS3(s3bucket: String, s3path: String, dbSchema: String, dbTableName: String,
                                 delimiter: String = ",", chunkSize: Int = 5 * 1024 * 1024)
-                               (implicit sqlConnection: Connection): Future[String] = {
+                               (implicit sqlConnection: Connection, as : ActorSystem): Future[String] = { //
 
-    implicit val as = ActorSystem()
+   // implicit val as = ActorSystem()
     implicit val fm = FlowMaterializer()
 
     val cpManager = sqlConnection.asInstanceOf[PGConnection].getCopyAPI()
 
     s3c.getStreamMultipartFile(s3bucket, s3path, chunkSize)
       .via(MFGFlow.byteArrayToString)
-      .via(MFGFlow.mapAsyncUnorderedWithBoundedParallelism(5){ sqlQ =>
+      .via(MFGFlow.mapAsyncUnorderedWithBoundedParallelism(4){ sqlQ => //java.lang.IllegalStateException: Processor actor terminated abruptly java.lang.IllegalStateException: Input buffer overrun
         Future {
           cpManager.copyIn(s"COPY $dbSchema.$dbTableName FROM STDIN WITH DELIMITER '$delimiter'", new StringReader(sqlQ))
           }.map(_ => sqlQ)})
@@ -71,6 +70,8 @@ class PostgresExtensions(s3c: AmazonS3Client) {
   def copyToS3(outputStreamTransformer : OutputStream => OutputStream)
               (tableOrQuery : PGCopyable, delimiter : String, bucket : String, key : String, chunkSize: Int = 81920)(implicit conn : PGConnection)
   : Future[Int] = {
+    implicit val as = ActorSystem()
+    implicit val fm = FlowMaterializer()
     val copyManager = conn.getCopyAPI()
     val os = new PipedOutputStream()
     val is = new PipedInputStream(os)
@@ -79,7 +80,7 @@ class PostgresExtensions(s3c: AmazonS3Client) {
       copyManager.copyOut(s"COPY ${tableOrQuery.copyStr} TO STDOUT DELIMITER E'$delimiter'", tos)
       tos.close()
     }
-    val en = Enumerator.fromStream(is,chunkSize)
+    val en = MFGSource.fromStream(is,chunkSize)
     s3c.uploadStream(bucket, key, en)
   }
 

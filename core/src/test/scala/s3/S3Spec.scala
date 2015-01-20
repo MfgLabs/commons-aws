@@ -3,7 +3,8 @@ package com.mfglabs.commons.aws
 import akka.actor.ActorSystem
 import akka.stream.FlowMaterializer
 import akka.stream.scaladsl.{FoldSink, Flow, Source}
-import com.mfglabs.commons.stream.{MFGSource, MFGSink}
+import com.mfglabs.commons.MFGSink
+import com.mfglabs.commons.stream.{MFGFlow, MFGSource}
 
 
 import collection.mutable.Stack
@@ -64,16 +65,18 @@ class S3Spec extends FlatSpec with Matchers with ScalaFutures {
   }
 
   it should "download a file as a stream" in {
+    List("medium.txt", "big.txt").map{ file =>
     whenReady(
       for {
-        initContent <- MFGSource.fromFile(new java.io.File(s"$resDir/big.txt")).runWith(MFGSink.collect)
-        _ <- S3.uploadStream(bucket, s"$keyPrefix/big.txt", MFGSource.fromFile(new java.io.File(s"$resDir/big.txt")))
-        downloadContent <- S3.getStream(bucket, s"$keyPrefix/big.txt").runWith(MFGSink.collect)
-        _ <- S3.deleteFile(bucket, s"$keyPrefix/big.txt")
+        initContent <- MFGSource.fromFile(new java.io.File(s"$resDir/$file")).runWith(MFGSink.collect)
+        _ <- S3.uploadStream(bucket, s"$keyPrefix/$file", MFGSource.fromFile(new java.io.File(s"$resDir/$file")))
+        downloadContent <- S3.getStream(bucket, s"$keyPrefix/$file").runWith(MFGSink.collect)
+        _ <- S3.deleteFile(bucket, s"$keyPrefix/$file")
       } yield (initContent, downloadContent)
     ) { case (initContent, downloadContent) =>
-      initContent should equal (downloadContent)
-    }
+      initContent.map(_.to[List]) shouldEqual (downloadContent.map(_.to[List]))
+
+    } }
   }
 
   it should "download a multipart file as a stream" in {
@@ -81,12 +84,12 @@ class S3Spec extends FlatSpec with Matchers with ScalaFutures {
       for {
         _ <- S3.uploadStream(bucket, s"$keyPrefix/part.1.txt", MFGSource.fromFile(new java.io.File(s"$resDir/part.1.txt")))
         _ <- S3.uploadStream(bucket, s"$keyPrefix/part.2.txt", MFGSource.fromFile(new java.io.File(s"$resDir/part.2.txt")))
-        downloadContent <- S3.getStreamMultipartFile(bucket, s"$keyPrefix/part") |>>> Iteratee.consume()
+        downloadContent <- S3.getStreamMultipartFile(bucket, s"$keyPrefix/part").via(MFGFlow.byteArrayToString).runWith(MFGSink.collect)
         _ <- S3.deleteFile(bucket, s"$keyPrefix/part.1.txt")
         _ <- S3.deleteFile(bucket, s"$keyPrefix/part.2.txt")
       } yield downloadContent
     ) { downloadContent =>
-      new String(downloadContent) should equal ("part1\npart2\n")
+      downloadContent shouldEqual List("part1","part1.2","part2","part2.2")
     }
   }
 
@@ -98,15 +101,15 @@ class S3Spec extends FlatSpec with Matchers with ScalaFutures {
 
     val tickSource =
       Source(initialDelay = 0 second, interval = 2 second, () => "tick".toCharArray.map(_.toByte))
-        .takeWithin(11 seconds)
+        .takeWithin(10 seconds)
 
 
     whenReady(
     for {
       _ <- S3.deleteObject(bucket, keyPrefix + "/multipart-upload")
-      nbSent <-
-        S3.uploadStreamMultipartFile(bucket, keyPrefix + "/multipart-upload", tickSource , 10, 5 seconds)
-          .via(FoldSink[Int,Int](0){(z,c) => z + 1})
+      nbSent <- tickSource
+        .via(S3.uploadStreamMultipartFile(bucket, keyPrefix + "/multipart-upload" , 10, 5 seconds))
+        .runWith(FoldSink[Int,Int](0){(z,c) => z + 1})
       nbFiles <- S3.listObjects(bucket, keyPrefix + "/multipart-upload")
     } yield (nbSent, nbFiles)
     ){

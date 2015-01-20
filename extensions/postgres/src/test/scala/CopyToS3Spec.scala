@@ -3,7 +3,11 @@ package com.mfglabs.commons.aws
 import java.sql.Connection
 import java.util.zip.GZIPInputStream
 
+import akka.actor.ActorSystem
+import akka.stream.FlowMaterializer
+import akka.stream.scaladsl.FoldSink
 import com.amazonaws.ClientConfiguration
+import com.mfglabs.commons.MFGSink
 import com.mfglabs.commons.aws.`s3`._
 import com.mfglabs.commons.aws.commons.DockerTmpDB
 import com.mfglabs.commons.aws.extensions.postgres.PostgresExtensions
@@ -13,7 +17,6 @@ import org.postgresql.PGConnection
 import org.scalatest.concurrent.ScalaFutures
 import org.scalatest.time.{Minutes, Span, Millis}
 import org.scalatest.{BeforeAndAfterAll, Matchers, FlatSpec}
-import play.api.libs.iteratee.Iteratee
 import scala.concurrent.Await
 import scala.concurrent.duration._
 import scala.io.Source
@@ -31,6 +34,8 @@ class CopyToS3Spec extends FlatSpec with Matchers with ScalaFutures with DockerT
 
   val keyPrefix = "test/extensions/postgres_copy2s3/"
   //val ClientConfiguration
+  implicit val as = ActorSystem("test")
+  implicit val fm = FlowMaterializer()
   val s3c = new s3.AmazonS3Client()
   val pgExt = new PostgresExtensions(s3c)
 
@@ -45,16 +50,14 @@ class CopyToS3Spec extends FlatSpec with Matchers with ScalaFutures with DockerT
     val flatS3ObjFut =
       pgExt.copyToS3AsFlatFile(Table("public", "test_copy_to_s3"), ";", bucket, keyPrefix + "flat.tsv")(conn.asInstanceOf[PGConnection])
         .map { _ =>
-        s3c.getStream(bucket, keyPrefix + "flat.tsv") |>>> Iteratee.fold("") { (z, x) => z + "\n" + x}
+        s3c.getStream(bucket, keyPrefix + "flat.tsv").runWith(MFGSink.collect)
       }
-    flatS3ObjFut.futureValue === "\n1;veau\n2;vache\n3;cochon"
+    flatS3ObjFut.futureValue === List("1;veau","2;vache","3;cochon")
 
     val gzipS3ObjFut =
       pgExt.copyToS3AsGzip(Table("public", "test_copy_to_s3"), ";", bucket, keyPrefix + "flat.tsv.gz")(conn.asInstanceOf[PGConnection])
         .map { _ =>
-        s3c.getTransformedStream(bucket, keyPrefix + "flat.tsv.gz", is => {
-          new GZIPInputStream(is)
-        }) |>>> Iteratee.fold("") { (z, x) => z + "\n" + x}
+        s3c.getStreamFromGzipped(bucket, keyPrefix + "flat.tsv.gz").runWith(MFGSink.collect)
       }
 
     gzipS3ObjFut.futureValue === List("1;veau","2;vache","3;cochon")

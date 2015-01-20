@@ -3,6 +3,7 @@ package com.mfglabs.commons.aws
 
 import java.sql.{Connection, DriverManager}
 
+import akka.actor.ActorSystem
 import com.mfglabs.commons.aws.commons.DockerTmpDB
 import org.scalatest.time._
 import collection.mutable.Stack
@@ -14,7 +15,7 @@ import scala.concurrent.Future
  * To run this test, launch a local postgresql instance and put the right connection info into DriverManager.getConnection
  */
 
-class PostgresExtensionsSpec extends FlatSpec with Matchers with ScalaFutures with BeforeAndAfterAll with DockerTmpDB{
+class PostgresExtensionsSpec extends FlatSpec with Matchers with ScalaFutures with BeforeAndAfterAll with DockerTmpDB {
   import s3._
   import extensions.postgres._
   import scala.concurrent.ExecutionContext.Implicits.global
@@ -25,6 +26,7 @@ class PostgresExtensionsSpec extends FlatSpec with Matchers with ScalaFutures wi
 
   val resDir = "extensions/postgres/src/test/resources"
 
+  implicit val as = ActorSystem()
   implicit override val patienceConfig =
     PatienceConfig(timeout = Span(5, Minutes), interval = Span(5, Millis))
 
@@ -34,7 +36,11 @@ class PostgresExtensionsSpec extends FlatSpec with Matchers with ScalaFutures wi
   val pg = new PostgresExtensions(S3)
 
   it should "stream a S3 multipart file to postgres" in {
-    // create table
+
+
+    fail("test dataset is not correct")
+  }
+   /* // create table
     val stmt = conn.createStatement()
     stmt.execute(
       s"""
@@ -61,6 +67,8 @@ class PostgresExtensionsSpec extends FlatSpec with Matchers with ScalaFutures wi
        """
     )
 
+    //WARNING data is corrupted
+
     whenReady(
       for {
 //        _ <- S3.uploadStream(bucket, s"$keyPrefix/report.csv0000_part_00",
@@ -86,7 +94,7 @@ class PostgresExtensionsSpec extends FlatSpec with Matchers with ScalaFutures wi
 
     stmt.close()
   }
-
+*/
   override def afterAll(): Unit = {
     conn.close()
   }

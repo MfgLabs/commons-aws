@@ -21,7 +21,7 @@ class CloudwatchHeartBeatSpec extends TestKit(ActorSystem("testSystem"))
   with FlatSpecLike with Matchers with ScalaFutures with BeforeAndAfterAll {
 
   import cloudwatch._
-  import extensions.postgres._
+  //import extensions.postgres._
   import scala.concurrent.ExecutionContext.Implicits.global
 
   implicit override val patienceConfig =

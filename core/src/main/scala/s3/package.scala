@@ -142,8 +142,6 @@ package object `s3` {
       * @return an enumerator (stream) of the object
       */
     def getTransformedStream(bucket: String, key: String, inputStreamTransform: InputStream => InputStream, chunkSize: Int): Source[Array[Byte]] = {
-      import akka.stream.scaladsl.FlowGraphImplicits._
-      import client.executionContext
       Source(client.getObject(bucket, key))
         .map(o => MFGSource.fromStream(inputStreamTransform(o.getObjectContent), chunkSize)(client.executionContext))
         .flatten(FlattenStrategy.concat)
@@ -164,17 +162,21 @@ package object `s3` {
       */
     def getStreamMultipartFile(bucket: String, path: String, chunkSize: Int = 5 * 1024 * 1024): Source[Array[Byte]] = {
       import client.executionContext
+      import scala.collection.JavaConversions._
       val sortedkeysFut =
         listFiles(bucket, Some(path))
           .map(
             _.map(_._1).sortWith { case (a, b) => a < b})
-
       Source(sortedkeysFut)
-        .map[Source[Array[Byte]]](keys =>
-        keys
-          .map(key => getStream(bucket, key, chunkSize))
-          .reduce(_ concat _))
-        .flatten(FlattenStrategy.concat)
+        .mapConcat[String](x => x.asInstanceOf[scala.collection.immutable.Seq[String]])
+        .map( key => getStream(bucket, key, chunkSize))
+/*        .via(
+          Flow[String]
+            .section(OperationAttributes.inputBuffer(initial = 1, max = 1))(
+              _.map( key => getStream(bucket, key, chunkSize))
+            )
+        )*/
+        .flatten(FlattenStrategy.concat[Array[Byte]])
     }
 
 

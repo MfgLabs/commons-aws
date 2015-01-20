@@ -11,7 +11,7 @@ resolvers in ThisBuild ++= Seq(
   , "Typesafe repository" at "http://repo.typesafe.com/typesafe/releases/"
 )
 
-scalacOptions in ThisBuild ++= Seq("-feature", "-deprecation", "-unchecked")
+scalacOptions in ThisBuild ++= Seq("-feature", "-deprecation", "-unchecked", "-language:postfixOps")
 
 publishTo in ThisBuild := {
   val s3Repo = "s3://mfg-mvn-repo"
