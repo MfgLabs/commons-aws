@@ -34,8 +34,8 @@ class PostgresExtensions(s3c: AmazonS3Client) {
    * @param dbSchema
    * @param dbTableName
    * @param delimiter
-   * @param insertbatchSize copy
-   * @param chunkSize
+   * @param insertbatchSize number of lines by COPY batch
+   * @param chunkSize size of the downloaded chunks from S3
    * @param sqlConnection
    * @param as
    * @return nothing
