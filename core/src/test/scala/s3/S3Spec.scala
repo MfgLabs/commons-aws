@@ -9,7 +9,6 @@ import com.amazonaws.services.s3.model.DeleteObjectsRequest
 import com.mfglabs.commons.stream.MFGSink
 import com.mfglabs.commons.stream.{MFGFlow, MFGSource}
 
-
 import collection.mutable.Stack
 import org.scalatest._
 import concurrent.ScalaFutures
@@ -123,6 +122,5 @@ class S3Spec extends FlatSpec with Matchers with ScalaFutures {
         nbSent shouldEqual (2)
         nbFiles.getObjectSummaries.size shouldEqual (2)
     }
-
   }
 }

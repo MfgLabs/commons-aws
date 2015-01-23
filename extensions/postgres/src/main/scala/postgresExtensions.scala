@@ -99,5 +99,4 @@ class PostgresExtensions(s3c: AmazonS3Client) {
     copyToS3(x => {
       new zip.GZIPOutputStream(x)
     })(tableOrQuery,delimiter,bucket,key)
-
 }

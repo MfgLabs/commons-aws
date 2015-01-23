@@ -180,6 +180,7 @@ package object `s3` {
         .map(_.map(_._1).sortWith { case (a, b) => a < b}.toList)
         .mapConcat(identity)//(x => x.asInstanceOf[scala.collection.immutable.Seq[String]])
     }
+
     /** Sequential download of a multipart file as a reactive stream
       *
       * @param bucket bucket name
@@ -216,7 +217,6 @@ package object `s3` {
      * @return a successful future of the uploaded number of chunks (or a failure)
      */
     def uploadStream(bucket: String, key: String, source: Source[Array[Byte]], parallelism: Int = 1)(implicit fm: FlowMaterializer): Future[Int] = {
-
       import scala.collection.JavaConversions._
       import client.executionContext
 
