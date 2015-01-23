@@ -7,8 +7,10 @@ scalaVersion in ThisBuild := "2.11.2"
 version in ThisBuild := "0.2-AKKA-STREAM-SNAPSHOT"
 
 resolvers in ThisBuild ++= Seq(
-	  "Pellucid Deps" at "http://dl.bintray.com/content/pellucid/maven"
-  , "Typesafe repository" at "http://repo.typesafe.com/typesafe/releases/"
+	"Pellucid Deps" at "http://dl.bintray.com/content/pellucid/maven",
+  "Typesafe repository" at "http://repo.typesafe.com/typesafe/releases/",
+  "MFG releases" at "s3://mfg-mvn-repo/releases",
+  "MFG snapshots" at "s3://mfg-mvn-repo/snapshots"
 )
 
 scalacOptions in ThisBuild ++= Seq("-feature", "-deprecation", "-unchecked", "-language:postfixOps")
