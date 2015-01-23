@@ -7,12 +7,12 @@ import akka.actor.ActorSystem
 import akka.stream.FlowMaterializer
 import akka.stream.scaladsl.FoldSink
 import com.amazonaws.ClientConfiguration
-import com.mfglabs.commons.MFGSink
 import com.mfglabs.commons.aws.`s3`._
 import com.mfglabs.commons.aws.commons.DockerTmpDB
 import com.mfglabs.commons.aws.extensions.postgres.PostgresExtensions
 import com.mfglabs.commons.aws.extensions.postgres.PostgresExtensions.{Table, PGCopyable}
 import com.mfglabs.commons.aws.s3.AmazonS3Client
+import com.mfglabs.commons.stream.MFGSink
 import org.postgresql.PGConnection
 import org.scalatest.concurrent.ScalaFutures
 import org.scalatest.time.{Minutes, Span, Millis}

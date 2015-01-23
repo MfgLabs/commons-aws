@@ -1,4 +1,5 @@
 
+
 package com.mfglabs.commons.aws
 
 import java.sql.{Connection, DriverManager}
@@ -16,6 +17,7 @@ import scala.concurrent.Future
  */
 
 class PostgresExtensionsSpec extends FlatSpec with Matchers with ScalaFutures with BeforeAndAfterAll with DockerTmpDB {
+
   import s3._
   import extensions.postgres._
   import scala.concurrent.ExecutionContext.Implicits.global
@@ -37,10 +39,7 @@ class PostgresExtensionsSpec extends FlatSpec with Matchers with ScalaFutures wi
 
   it should "stream a S3 multipart file to postgres" in {
 
-
-    fail("test dataset is not correct")
-  }
-   /* // create table
+    // create table
     val stmt = conn.createStatement()
     stmt.execute(
       s"""
@@ -71,32 +70,29 @@ class PostgresExtensionsSpec extends FlatSpec with Matchers with ScalaFutures wi
 
     whenReady(
       for {
-//        _ <- S3.uploadStream(bucket, s"$keyPrefix/report.csv0000_part_00",
-//                        Enumerator.fromFile(new java.io.File(s"$resDir/report.csv0000_part_00")))
-//        _ <- S3.uploadStream(bucket, s"$keyPrefix/report.csv0001_part_00",
-//                        Enumerator.fromFile(new java.io.File(s"$resDir/report.csv0001_part_00")))
-//        _ <- S3.uploadStream(bucket, s"$keyPrefix/report.csv0002_part_00",
-//                        Enumerator.fromFile(new java.io.File(s"$resDir/report.csv0002_part_00")))
-//        _ <- S3.uploadStream(bucket, s"$keyPrefix/report.csv0003_part_00",
-//                          Enumerator.fromFile(new java.io.File(s"$resDir/report.csv0003_part_00")))
+      //        _ <- S3.uploadStream(bucket, s"$keyPrefix/report.csv0000_part_00",
+      //                        Enumerator.fromFile(new java.io.File(s"$resDir/report.csv0000_part_00")))
+      //        _ <- S3.uploadStream(bucket, s"$keyPrefix/report.csv0001_part_00",
+      //                        Enumerator.fromFile(new java.io.File(s"$resDir/report.csv0001_part_00")))
+      //        _ <- S3.uploadStream(bucket, s"$keyPrefix/report.csv0002_part_00",
+      //                        Enumerator.fromFile(new java.io.File(s"$resDir/report.csv0002_part_00")))
+      //        _ <- S3.uploadStream(bucket, s"$keyPrefix/report.csv0003_part_00",
+      //                          Enumerator.fromFile(new java.io.File(s"$resDir/report.csv0003_part_00")))
         leftString <- pg.streamMultipartFileFromS3(bucket, s"$keyPrefix/report.csv", "public", "test_postgres_aws_s3")
-//        _ <- S3.deleteFile(bucket, s"$keyPrefix/report.csv0000_part_00")
-//        _ <- S3.deleteFile(bucket, s"$keyPrefix/report.csv0001_part_00")
-//        _ <- S3.deleteFile(bucket, s"$keyPrefix/report.csv0002_part_00")
-//        _ <- S3.deleteFile(bucket, s"$keyPrefix/report.csv0003_part_00")
+      //        _ <- S3.deleteFile(bucket, s"$keyPrefix/report.csv0000_part_00")
+      //        _ <- S3.deleteFile(bucket, s"$keyPrefix/report.csv0001_part_00")
+      //        _ <- S3.deleteFile(bucket, s"$keyPrefix/report.csv0002_part_00")
+      //        _ <- S3.deleteFile(bucket, s"$keyPrefix/report.csv0003_part_00")
       } yield leftString
     ) { leftString =>
       val rs = stmt.executeQuery("select count(*) from test_postgres_aws_s3")
       rs.next()
-      rs.getInt(1) should equal (1150907) // number of lines
-      leftString should equal ("")
+      rs.getInt(1) should equal(1150907) // number of lines
+      leftString should equal({})
     }
 
     stmt.close()
   }
-*/
-  override def afterAll(): Unit = {
-    conn.close()
-  }
 }
+
 

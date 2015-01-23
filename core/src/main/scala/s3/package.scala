@@ -9,6 +9,7 @@ import akka.stream.{FlowMaterializer, FlattenStrategy}
 import akka.stream.actor.ActorPublisher
 import akka.stream.scaladsl._
 import akka.stream.stage._
+import com.amazonaws.services.s3.model.DeleteObjectsResult.DeletedObject
 import com.mfglabs.commons.aws.s3.AmazonS3Client
 import com.mfglabs.commons.stream.internals.flow.BufferedStage
 import com.mfglabs.commons.stream.{MFGSource, MFGFlow}
@@ -19,7 +20,7 @@ import java.io._
 import java.util.Date
 
 import com.amazonaws.services.s3.model._
-
+import scala.collection.JavaConversions._
 import scala.util.Try
 
 /**
@@ -114,6 +115,19 @@ package object `s3` {
     }
 
 
+    def deleteFiles(bucket : String, commonPrefix : String) : Future[Seq[Unit]] = {
+      import client.executionContext
+      client.listObjects(bucket, commonPrefix).flatMap { objListing =>
+        val allKeys = objListing.getObjectSummaries.listIterator().toList.map(_.getKey)
+        Future.sequence(allKeys.map { key =>
+          deleteFile(bucket, key)
+          //val delObjReq = new DeleteObjectsRequest(bucket).withKeys(allKeys:_*)
+          //client.deleteObjects(delObjReq)
+        })
+
+      }
+    }
+
     /** Execute a block using the content of remote S3 file
       *
       * @param  bucket the bucket name
@@ -153,6 +167,19 @@ package object `s3` {
     def getStreamFromGzipped(bucket: String, key: String, chunkSize: Int = 5 * 1024 * 1024) =
       getTransformedStream(bucket, key, is => new GZIPInputStream(is), chunkSize)
 
+    def getLines(bucket : String, key : String) = {
+      Source(client.getObject(bucket, key))
+        .map(o => MFGSource.fromStreamByLine(o.getObjectContent)(client.executionContext))
+        .flatten(FlattenStrategy.concat)
+    }
+
+    private def fileListAsAStream(bucket : String, path : String) : Source[String] = {
+      import client.executionContext
+        Source(
+            listFiles(bucket, Some(path)))
+        .map(_.map(_._1).sortWith { case (a, b) => a < b}.toList)
+        .mapConcat(identity)//(x => x.asInstanceOf[scala.collection.immutable.Seq[String]])
+    }
     /** Sequential download of a multipart file as a reactive stream
       *
       * @param bucket bucket name
@@ -161,22 +188,23 @@ package object `s3` {
       * @return
       */
     def getStreamMultipartFile(bucket: String, path: String, chunkSize: Int = 5 * 1024 * 1024): Source[Array[Byte]] = {
-      import client.executionContext
       import scala.collection.JavaConversions._
-      val sortedkeysFut =
-        listFiles(bucket, Some(path))
-          .map(
-            _.map(_._1).sortWith { case (a, b) => a < b})
-      Source(sortedkeysFut)
-        .mapConcat[String](x => x.asInstanceOf[scala.collection.immutable.Seq[String]])
+      fileListAsAStream(bucket,path)
         .map( key => getStream(bucket, key, chunkSize))
-/*        .via(
-          Flow[String]
-            .section(OperationAttributes.inputBuffer(initial = 1, max = 1))(
-              _.map( key => getStream(bucket, key, chunkSize))
-            )
-        )*/
         .flatten(FlattenStrategy.concat[Array[Byte]])
+    }
+
+    /** Sequential download of a multipart file as a reactive stream
+      *
+      * @param bucket bucket name
+      * @param path the common path of the parts of the file
+      * @param chunkSize
+      * @return
+      */
+    def getStreamMultipartFileByLine(bucket: String, path: String, chunkSize: Int = 5 * 1024 * 1024): Source[String] = {
+      fileListAsAStream(bucket, path)
+        .map(key => getLines(bucket, key))
+        .flatten(FlattenStrategy.concat[String])
     }
 
 
@@ -187,7 +215,7 @@ package object `s3` {
      * @param  source a source of array of bytes
      * @return a successful future of the uploaded number of chunks (or a failure)
      */
-    def uploadStream(bucket: String, key: String, source: Source[Array[Byte]], parallelism: Int = 8)(implicit fm: FlowMaterializer): Future[Int] = {
+    def uploadStream(bucket: String, key: String, source: Source[Array[Byte]], parallelism: Int = 1)(implicit fm: FlowMaterializer): Future[Int] = {
 
       import scala.collection.JavaConversions._
       import client.executionContext

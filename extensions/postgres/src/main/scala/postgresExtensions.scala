@@ -7,7 +7,7 @@ import java.util.zip
 import com.mfglabs.commons.aws.extensions.postgres.PostgresExtensions.PGCopyable
 import akka.actor.ActorSystem
 import akka.stream.FlowMaterializer
-import akka.stream.scaladsl.FoldSink
+import akka.stream.scaladsl.{Sink, Flow, FoldSink}
 import com.mfglabs.commons.aws.s3.AmazonS3Client
 import com.mfglabs.commons.aws.s3._
 import com.mfglabs.commons.stream.{MFGSource, MFGFlow}
@@ -26,33 +26,41 @@ object PostgresExtensions {
 class PostgresExtensions(s3c: AmazonS3Client) {
   import s3c.executionContext
 
-  /** Stream a multipart S3 file to a postgre db
-   *
+
+  /**
+   * Stream a multipart S3 file to a postgres db
    * @param s3bucket
    * @param s3path
    * @param dbSchema
    * @param dbTableName
+   * @param delimiter
+   * @param insertbatchSize copy
    * @param chunkSize
-   * @return remaining string if the stream does not end with a '\n'
+   * @param sqlConnection
+   * @param as
+   * @return nothing
    */
   def streamMultipartFileFromS3(s3bucket: String, s3path: String, dbSchema: String, dbTableName: String,
-                                delimiter: String = ",", chunkSize: Int = 5 * 1024 * 1024)
-                               (implicit sqlConnection: Connection, as : ActorSystem): Future[String] = { //
+                                delimiter: String = ",", insertbatchSize : Int = 5000, chunkSize: Int = 5 * 1024 * 1024)
+                               (implicit sqlConnection: Connection, as : ActorSystem): Future[Unit] = { //
 
    // implicit val as = ActorSystem()
     implicit val fm = FlowMaterializer()
 
     val cpManager = sqlConnection.asInstanceOf[PGConnection].getCopyAPI()
 
-    s3c.getStreamMultipartFile(s3bucket, s3path, chunkSize)
-      .via(MFGFlow.byteArrayToString)
-      .via(MFGFlow.mapAsyncUnorderedWithBoundedParallelism(4){ sqlQ => //java.lang.IllegalStateException: Processor actor terminated abruptly java.lang.IllegalStateException: Input buffer overrun
+   val res : Future[Unit] =
+     s3c.getStreamMultipartFile(s3bucket, s3path, chunkSize)
+      .via(MFGFlow.byteArrayToString())
+      .via(Flow[String].grouped(insertbatchSize))
+      .via(MFGFlow.mapAsyncUnorderedWithBoundedParallelism(1){ sqlQ => //java.lang.IllegalStateException: Processor actor terminated abruptly java.lang.IllegalStateException: Input buffer overrun
         Future {
-          cpManager.copyIn(s"COPY $dbSchema.$dbTableName FROM STDIN WITH DELIMITER '$delimiter'", new StringReader(sqlQ))
-          }.map(_ => sqlQ)})
-      .runWith(FoldSink[String, String]("")(_ + "\n" + _))
+          cpManager.copyIn(s"COPY $dbSchema.$dbTableName FROM STDIN WITH DELIMITER '$delimiter'", new StringReader(sqlQ.mkString("\n")))
+          }
+      })
+      .runWith(FoldSink({})((a,b)=> {})) //FoldSink[String, String]("")(_ + "\n" + _))
+    res
   }
-
   import com.mfglabs.commons.aws.s3.AmazonS3Client
   import com.mfglabs.commons.aws.s3._
   import scala.concurrent.ExecutionContext.Implicits.global
