@@ -5,6 +5,7 @@ package com.mfglabs.commons.aws
 import java.sql.{Connection, DriverManager}
 
 import akka.actor.ActorSystem
+import akka.stream.FlowMaterializer
 import com.mfglabs.commons.aws.commons.DockerTmpDB
 import org.scalatest.time._
 import collection.mutable.Stack
@@ -29,11 +30,11 @@ class PostgresExtensionsSpec extends FlatSpec with Matchers with ScalaFutures wi
   val resDir = "extensions/postgres/src/test/resources"
 
   implicit val as = ActorSystem()
+  implicit val fm = FlowMaterializer()
   implicit override val patienceConfig =
     PatienceConfig(timeout = Span(5, Minutes), interval = Span(5, Millis))
 
   Class.forName("org.postgresql.Driver")
-  //implicit val conn = DriverManager.getConnection("jdbc:postgresql:metadsp", "atamborrino", "password")
   val S3 = new s3.AmazonS3Client()
   val pg = new PostgresExtensions(S3)
 
@@ -65,8 +66,6 @@ class PostgresExtensionsSpec extends FlatSpec with Matchers with ScalaFutures wi
          )
        """
     )
-
-    //WARNING data is corrupted
 
     whenReady(
       for {
