@@ -121,6 +121,10 @@ val s3path = "report.csv" // will stream sequentially report.csv.part0001, repor
 pg.streamMultipartFileFromS3(s3bucket, s3path, dbSchema = "public", dbTableName = "test_postgres_aws_s3")
 ```
 
+#### Testing
+You must have Docker installed (via boot2docker if you're using OSX) to run the tests (as a Postgres table is launched in a docker container
+to perform the tests).
+
 <br/>
 <br/>
 ### Cloudwatch heartbeat
