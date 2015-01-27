@@ -5,27 +5,30 @@ import java.sql.{DriverManager, Connection}
 import org.postgresql.PGConnection
 import org.scalatest.{Suite, BeforeAndAfter, BeforeAndAfterAll}
 import scala.sys.process._
-import scala.util.Try
+import scala.util.{Failure, Success, Try}
 
 /**
  * for each test, creates a PostgresSQL docker container and provides a connection to its database
  */
-trait DockerTmpDB extends BeforeAndAfter  {
-  self : Suite => //required by BeforeAndAfter
+trait DockerTmpDB extends BeforeAndAfter { self: Suite =>
 
   var dockerIdOpt: Option[String] = None
 
   Class.forName("org.postgresql.Driver")
   implicit var conn : Connection = _
 
-  def newPGDB() : Int = {
+  def newPGDB(): Int = {
     val port: Int = 5432 + (math.random * (10000 - 5432)).toInt
-    try {
+    Try {
       dockerIdOpt = Some(s"docker run -p $port:5432 -e POSTGRES_PASSWORD=pwd -d postgres:9.3".!!.trim)
-      println("dockerId : " + dockerIdOpt)
+      println("Docker Id: " + dockerIdOpt)
       port
-    } catch {
-      case e: Exception => // if the port is already allocated
+    } match {
+      case Success(port) => port
+      case Failure(err) => // if the port is already allocated
+        println(s"Error while trying to run docker container: $err")
+        println("Retrying...")
+        Thread.sleep(1000)
         newPGDB()
     }
   }
@@ -56,11 +59,13 @@ trait DockerTmpDB extends BeforeAndAfter  {
   after {
     conn.close()
     println(s"stop and rm docker container $dockerIdOpt")
-    dockerIdOpt.foreach(dockerId => {
+    dockerIdOpt.foreach { dockerId =>
       val stopOUT = s"docker stop $dockerId".!!
+      println(s"Docker stop: $stopOUT")
       val rmOUT = s"docker rm $dockerId".!!
-      println("docker stop : " + stopOUT + " / docker rm : " + rmOUT)
-    })
+      println(s"docker rm : $rmOUT")
+    }
   }
+
 }
 
