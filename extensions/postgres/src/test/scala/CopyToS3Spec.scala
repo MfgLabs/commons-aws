@@ -10,7 +10,6 @@ import com.amazonaws.ClientConfiguration
 import com.mfglabs.commons.aws.`s3`._
 import com.mfglabs.commons.aws.commons.DockerTmpDB
 import com.mfglabs.commons.aws.extensions.postgres.PostgresExtensions
-import com.mfglabs.commons.aws.extensions.postgres.PostgresExtensions.{Table, PGCopyable}
 import com.mfglabs.commons.aws.s3.AmazonS3Client
 import com.mfglabs.commons.stream.MFGSink
 import org.postgresql.PGConnection
@@ -48,14 +47,14 @@ class CopyToS3Spec extends FlatSpec with Matchers with ScalaFutures with DockerT
     stmt.execute("INSERT INTO test_copy_to_s3 (id, mot) VALUES (1, 'veau'),(2, 'vache'),(3, 'cochon');")
     val fileContent = "\n1;veau\n2;vache\n3;cochon"
     val flatS3ObjFut =
-      pgExt.copyToS3AsFlatFile(Table("public", "test_copy_to_s3"), ";", bucket, keyPrefix + "flat.tsv")(conn.asInstanceOf[PGConnection], fm)
+      pgExt.uploadTableAsFlatS3MultipartFile(Table("public", "test_copy_to_s3"), ";", bucket, keyPrefix + "flat.tsv")(pgExt.sqlConnAsPgConnUnsafe(conn), fm)
         .map { _ =>
           s3c.getStream(bucket, keyPrefix + "flat.tsv").runWith(MFGSink.collect)
         }
     flatS3ObjFut.futureValue === List("1;veau","2;vache","3;cochon")
 
     val gzipS3ObjFut =
-      pgExt.copyToS3AsGzip(Table("public", "test_copy_to_s3"), ";", bucket, keyPrefix + "flat.tsv.gz")(conn.asInstanceOf[PGConnection], fm)
+      pgExt.uploadTableAsGzipS3MultipartFile(Table("public", "test_copy_to_s3"), ";", bucket, keyPrefix + "flat.tsv.gz")(pgExt.sqlConnAsPgConnUnsafe(conn), fm)
         .map { _ =>
           s3c.getStreamFromGzipped(bucket, keyPrefix + "flat.tsv.gz").runWith(MFGSink.collect)
         }

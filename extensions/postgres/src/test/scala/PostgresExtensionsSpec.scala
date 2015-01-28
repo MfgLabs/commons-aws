@@ -39,6 +39,7 @@ class PostgresExtensionsSpec extends FlatSpec with Matchers with ScalaFutures wi
   val pg = new PostgresExtensions(S3)
 
   it should "stream a S3 multipart file to postgres" in {
+    implicit val pgConn = pg.sqlConnAsPgConnUnsafe(conn)
 
     // create table
     val stmt = conn.createStatement()
@@ -77,7 +78,7 @@ class PostgresExtensionsSpec extends FlatSpec with Matchers with ScalaFutures wi
       //                        Enumerator.fromFile(new java.io.File(s"$resDir/report.csv0002_part_00")))
       //        _ <- S3.uploadStream(bucket, s"$keyPrefix/report.csv0003_part_00",
       //                          Enumerator.fromFile(new java.io.File(s"$resDir/report.csv0003_part_00")))
-        leftString <- pg.streamMultipartFileFromS3(bucket, s"$keyPrefix/report.csv", "public", "test_postgres_aws_s3")
+        leftString <- pg.insertMultipartFileFromS3AsTable(bucket, s"$keyPrefix/report.csv", Table("public", "test_postgres_aws_s3"))
       //        _ <- S3.deleteFile(bucket, s"$keyPrefix/report.csv0000_part_00")
       //        _ <- S3.deleteFile(bucket, s"$keyPrefix/report.csv0001_part_00")
       //        _ <- S3.deleteFile(bucket, s"$keyPrefix/report.csv0002_part_00")
