@@ -36,12 +36,15 @@ trait PostgresStream {
    * @return
    */
   def getTableAsStream(tableOrQuery: PGCopyable, delimiter: String = ",", chunkSize: Int = 5 * 1024 * 1024)
+                      (outputStreamTransformer : OutputStream => OutputStream)
                       (implicit conn: PGConnection, blockingEc: ExecutionContext, fm: FlowMaterializer): Source[Array[Byte]] = {
     val copyManager = conn.getCopyAPI()
     val os = new PipedOutputStream()
     val is = new PipedInputStream(os)
+    val tos = outputStreamTransformer(os)
     Future {
-      copyManager.copyOut(s"COPY ${tableOrQuery.copyStr} TO STDOUT DELIMITER E'$delimiter'", os)
+      copyManager.copyOut(s"COPY ${tableOrQuery.copyStr} TO STDOUT DELIMITER E'$delimiter'", tos)
+      tos.close()
     }(blockingEc)
     MFGSource.fromStream(is, chunkSize)
   }
@@ -126,15 +129,7 @@ class PostgresExtensions(s3c: AmazonS3Client) extends PostgresStream {
   def streamTableToS3File(tableOrQuery : PGCopyable, delimiter : String, bucket : String, key : String, chunkSize: Int = 5 * 1024 * 1024)
               (outputStreamTransformer : OutputStream => OutputStream)
               (implicit conn: PGConnection, fm: FlowMaterializer) : Future[Int] = {
-    val copyManager = conn.getCopyAPI()
-    val os = new PipedOutputStream()
-    val is = new PipedInputStream(os)
-    val tos = outputStreamTransformer(os)
-    Future {
-      copyManager.copyOut(s"COPY ${tableOrQuery.copyStr} TO STDOUT DELIMITER E'$delimiter'", tos)
-      tos.close()
-    }
-    val en = MFGSource.fromStream(is,chunkSize)
+    val en = getTableAsStream(tableOrQuery, delimiter, chunkSize)(outputStreamTransformer)
     s3c.uploadStream(bucket, key, en)
   }
 
