@@ -25,6 +25,16 @@ case class Query(str:String) extends PGCopyable {
 }
 
 trait PostgresStream {
+  /**
+   * Get a postgres table as a stream source
+   * @param tableOrQuery
+   * @param delimiter
+   * @param chunkSize
+   * @param conn
+   * @param blockingEc
+   * @param fm
+   * @return
+   */
   def getTableAsStream(tableOrQuery: PGCopyable, delimiter: String = ",", chunkSize: Int = 5 * 1024 * 1024)
                       (implicit conn: PGConnection, blockingEc: ExecutionContext, fm: FlowMaterializer): Source[Array[Byte]] = {
     val copyManager = conn.getCopyAPI()
@@ -36,12 +46,32 @@ trait PostgresStream {
     MFGSource.fromStream(is, chunkSize)
   }
 
+  /**
+   * Side-effecting flow that inserts a binary stream to a postgres table
+   * @param table
+   * @param delimiter
+   * @param chunkSize
+   * @param conn
+   * @param blockingEc
+   * @param fm
+   * @return
+   */
   def insertStreamAsTable(table: Table, delimiter: String = ",", chunkSize: Int = 5 * 1024 * 1024)
                          (implicit conn: PGConnection, blockingEc: ExecutionContext, fm: FlowMaterializer): Flow[Array[Byte], Long] = {
     MFGFlow.byteArrayToString()
            .via(insertLineStreamAsTable(table, delimiter, chunkSize))
   }
 
+  /**
+   * Side-effecting flow that inserts a chunked-by-line string stream to a postgres table
+   * @param table
+   * @param delimiter
+   * @param chunkSize
+   * @param conn
+   * @param blockingEc
+   * @param fm
+   * @return
+   */
   def insertLineStreamAsTable(table: Table, delimiter: String = ",", chunkSize: Int = 5 * 1024 * 1024)
                          (implicit conn: PGConnection, blockingEc: ExecutionContext, fm: FlowMaterializer): Flow[String, Long] = {
     val copyManager = conn.getCopyAPI()
@@ -72,18 +102,18 @@ class PostgresExtensions(s3c: AmazonS3Client) extends PostgresStream {
    * @param fm flow materializer
    * @return nothing
    */
-  def insertMultipartFileFromS3AsTable(s3bucket: String, s3path: String, table: Table,
+  def streamS3MultipartFileToTable(s3bucket: String, s3path: String, table: Table,
                                 delimiter: String = ",", insertbatchSize : Int = 5000, chunkSize: Int = 5 * 1024 * 1024)
                                (implicit conn: PGConnection, fm: FlowMaterializer): Future[Unit] = {
    val cpManager = conn.getCopyAPI()
 
-     s3c.getStreamMultipartFile(s3bucket, s3path, chunkSize)
-        .via(insertStreamAsTable(table, delimiter, chunkSize))
-        .runWith(Sink.foreach(_ => ()))
+   s3c.getStreamMultipartFile(s3bucket, s3path, chunkSize)
+      .via(insertStreamAsTable(table, delimiter, chunkSize))
+      .runWith(Sink.foreach(_ => ()))
   }
 
   /**
-   * dump a table or a query result as a CSV to S3
+   * Stream a table or a query result as a CSV to S3
    * @param outputStreamTransformer inputStream transformation. (uncompress through a InflaterInputStream for instance).
    * @param tableOrQuery table name + schema or sql query
    * @param delimiter for the resulting CSV
@@ -93,7 +123,7 @@ class PostgresExtensions(s3c: AmazonS3Client) extends PostgresStream {
    * @param fm flow materializer
    * @return a successful future of the uploaded number of chunks (or a failure)
    */
-  def uploadTableAsS3MultipartFile(tableOrQuery : PGCopyable, delimiter : String, bucket : String, key : String, chunkSize: Int = 5 * 1024 * 1024)
+  def streamTableToS3File(tableOrQuery : PGCopyable, delimiter : String, bucket : String, key : String, chunkSize: Int = 5 * 1024 * 1024)
               (outputStreamTransformer : OutputStream => OutputStream)
               (implicit conn: PGConnection, fm: FlowMaterializer) : Future[Int] = {
     val copyManager = conn.getCopyAPI()
@@ -108,11 +138,11 @@ class PostgresExtensions(s3c: AmazonS3Client) extends PostgresStream {
     s3c.uploadStream(bucket, key, en)
   }
 
-  def uploadTableAsFlatS3MultipartFile(tableOrQuery : PGCopyable , delimiter : String, bucket : String, key : String)
+  def streamTableToUncompressedS3File(tableOrQuery : PGCopyable , delimiter : String, bucket : String, key : String)
                                   (implicit conn: PGConnection, fm: FlowMaterializer): Future[Int] =
-    uploadTableAsS3MultipartFile(tableOrQuery, delimiter, bucket, key)(identity)(conn, fm)
+    streamTableToS3File(tableOrQuery, delimiter, bucket, key)(identity)(conn, fm)
 
-  def uploadTableAsGzipS3MultipartFile(tableOrQuery : PGCopyable, delimiter : String, bucket : String, key : String)
+  def streamTableToGzipedS3File(tableOrQuery : PGCopyable, delimiter : String, bucket : String, key : String)
                                       (implicit conn : PGConnection, fm: FlowMaterializer) =
-    uploadTableAsS3MultipartFile(tableOrQuery,delimiter,bucket,key)(new zip.GZIPOutputStream(_))
+    streamTableToS3File(tableOrQuery,delimiter,bucket,key)(new zip.GZIPOutputStream(_))
 }

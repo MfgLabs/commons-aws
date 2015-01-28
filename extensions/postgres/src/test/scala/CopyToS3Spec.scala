@@ -47,14 +47,14 @@ class CopyToS3Spec extends FlatSpec with Matchers with ScalaFutures with DockerT
     stmt.execute("INSERT INTO test_copy_to_s3 (id, mot) VALUES (1, 'veau'),(2, 'vache'),(3, 'cochon');")
     val fileContent = "\n1;veau\n2;vache\n3;cochon"
     val flatS3ObjFut =
-      pgExt.uploadTableAsFlatS3MultipartFile(Table("public", "test_copy_to_s3"), ";", bucket, keyPrefix + "flat.tsv")(pgExt.sqlConnAsPgConnUnsafe(conn), fm)
+      pgExt.streamTableToUncompressedS3File(Table("public", "test_copy_to_s3"), ";", bucket, keyPrefix + "flat.tsv")(pgExt.sqlConnAsPgConnUnsafe(conn), fm)
         .map { _ =>
           s3c.getStream(bucket, keyPrefix + "flat.tsv").runWith(MFGSink.collect)
         }
     flatS3ObjFut.futureValue === List("1;veau","2;vache","3;cochon")
 
     val gzipS3ObjFut =
-      pgExt.uploadTableAsGzipS3MultipartFile(Table("public", "test_copy_to_s3"), ";", bucket, keyPrefix + "flat.tsv.gz")(pgExt.sqlConnAsPgConnUnsafe(conn), fm)
+      pgExt.streamTableToGzipedS3File(Table("public", "test_copy_to_s3"), ";", bucket, keyPrefix + "flat.tsv.gz")(pgExt.sqlConnAsPgConnUnsafe(conn), fm)
         .map { _ =>
           s3c.getStreamFromGzipped(bucket, keyPrefix + "flat.tsv.gz").runWith(MFGSink.collect)
         }
