@@ -75,7 +75,7 @@ trait PostgresStream {
    */
   def insertStreamAsTable(table: Table, delimiter: String = ",", chunkSize: Int = 5 * 1024 * 1024)
                          (implicit conn: PGConnection, blockingEc: ExecutionContext, fm: FlowMaterializer): Flow[Array[Byte], Long] = {
-    MFGFlow.byteArrayToString()
+    MFGFlow.byteArrayToLines()
            .via(insertLineStreamAsTable(table, delimiter, chunkSize))
   }
 
