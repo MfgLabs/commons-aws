@@ -1,6 +1,6 @@
 package com.mfglabs.commons.aws
 
-import java.sql.Connection
+import java.sql.{SQLException, Connection}
 import java.util.zip.GZIPInputStream
 
 import akka.actor.ActorSystem
@@ -42,19 +42,21 @@ class CopyToS3Spec extends FlatSpec with Matchers with ScalaFutures with DockerT
     PatienceConfig(timeout = Span(5, Minutes), interval = Span(5, Millis))
 
   it should "copy a table to S3 as flat file" in {
+    implicit val pgConn = pgExt.sqlConnAsPgConnUnsafe(conn)
+
     val stmt = conn.createStatement()
     stmt.execute("CREATE TABLE test_copy_to_s3(id bigint, mot text);")
     stmt.execute("INSERT INTO test_copy_to_s3 (id, mot) VALUES (1, 'veau'),(2, 'vache'),(3, 'cochon');")
     val fileContent = "\n1;veau\n2;vache\n3;cochon"
     val flatS3ObjFut =
-      pgExt.streamTableToUncompressedS3File(Table("public", "test_copy_to_s3"), ";", bucket, keyPrefix + "flat.tsv")(pgExt.sqlConnAsPgConnUnsafe(conn), fm)
+      pgExt.streamTableToUncompressedS3File(Table("public", "test_copy_to_s3"), ";", bucket, keyPrefix + "flat.tsv")
         .map { _ =>
           s3c.getStream(bucket, keyPrefix + "flat.tsv").runWith(MFGSink.collect)
         }
     flatS3ObjFut.futureValue === List("1;veau","2;vache","3;cochon")
 
     val gzipS3ObjFut =
-      pgExt.streamTableToGzipedS3File(Table("public", "test_copy_to_s3"), ";", bucket, keyPrefix + "flat.tsv.gz")(pgExt.sqlConnAsPgConnUnsafe(conn), fm)
+      pgExt.streamTableToGzipedS3File(Table("public", "test_copy_to_s3"), ";", bucket, keyPrefix + "flat.tsv.gz")
         .map { _ =>
           s3c.getStreamFromGzipped(bucket, keyPrefix + "flat.tsv.gz").runWith(MFGSink.collect)
         }
@@ -62,7 +64,20 @@ class CopyToS3Spec extends FlatSpec with Matchers with ScalaFutures with DockerT
     gzipS3ObjFut.futureValue === List("1;veau","2;vache","3;cochon")
     Await.result(s3c.deleteObject(bucket, keyPrefix + "flat.tsv"),10 seconds)
     Await.result(s3c.deleteObject(bucket, keyPrefix + "flat.tsv.gz"),10 seconds)
-
   }
+
+  it should "produce an error when Query is malformed" in {
+    implicit val pgConn = pgExt.sqlConnAsPgConnUnsafe(conn)
+
+    val stmt = conn.createStatement()
+    stmt.execute("CREATE TABLE test_copy_to_s3(id bigint, mot text);")
+    stmt.execute("INSERT INTO test_copy_to_s3 (id, mot) VALUES (1, 'veau'),(2, 'vache'),(3, 'cochon');")
+
+    val q = Query("select non_existent_column from test_copy_to_s3")
+    whenReady(pgExt.streamTableToUncompressedS3File(q, ";", bucket, keyPrefix + "flat.tsv").failed) { e =>
+      e shouldBe a [org.postgresql.util.PSQLException]
+    }
+  }
+
 }
 

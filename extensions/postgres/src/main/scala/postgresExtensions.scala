@@ -14,6 +14,8 @@ import org.postgresql.PGConnection
 import scala.concurrent._
 import java.sql.{ Connection, DriverManager }
 
+import scala.util.{Failure, Try, Success}
+
 sealed trait PGCopyable {
   def copyStr : String
 }
@@ -38,15 +40,27 @@ trait PostgresStream {
   def getTableAsStream(tableOrQuery: PGCopyable, delimiter: String = ",", chunkSize: Int = 5 * 1024 * 1024)
                       (outputStreamTransformer : OutputStream => OutputStream)
                       (implicit conn: PGConnection, blockingEc: ExecutionContext, fm: FlowMaterializer): Source[Array[Byte]] = {
+
     val copyManager = conn.getCopyAPI()
     val os = new PipedOutputStream()
     val is = new PipedInputStream(os)
     val tos = outputStreamTransformer(os)
+
+    val p = Promise[Array[Byte]]
+    val errorStream = Source(p.future) // hack to fail the stream if error in copyOut
+
     Future {
-      copyManager.copyOut(s"COPY ${tableOrQuery.copyStr} TO STDOUT DELIMITER E'$delimiter'", tos)
-      tos.close()
-    }(blockingEc)
-    MFGSource.fromStream(is, chunkSize)
+      Try(copyManager.copyOut(s"COPY ${tableOrQuery.copyStr} TO STDOUT DELIMITER E'$delimiter'", tos)) match {
+        case Success(_) =>
+          p.success(Array.empty)
+          tos.close()
+        case Failure(err) =>
+          p.failure(err)
+          tos.close()
+      }
+    }
+
+    Source.concat(MFGSource.fromStream(is, chunkSize), errorStream)
   }
 
   /**
