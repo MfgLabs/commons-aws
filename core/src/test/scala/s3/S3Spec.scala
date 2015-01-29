@@ -91,7 +91,7 @@ class S3Spec extends FlatSpec with Matchers with ScalaFutures {
       for {
         _ <- S3.uploadStream(bucket, s"$keyPrefix/part.1.txt", MFGSource.fromFile(new java.io.File(s"$resDir/part.1.txt")))
         _ <- S3.uploadStream(bucket, s"$keyPrefix/part.2.txt", MFGSource.fromFile(new java.io.File(s"$resDir/part.2.txt")))
-        downloadContent <- S3.getStreamMultipartFile(bucket, s"$keyPrefix/part").via(MFGFlow.byteArrayToString(Charset.forName("UTF-8"))).runWith(MFGSink.collect)
+        downloadContent <- S3.getStreamMultipartFile(bucket, s"$keyPrefix/part").via(MFGFlow.byteArrayToLines(Charset.forName("UTF-8"))).runWith(MFGSink.collect)
         downloadContentByLine <- S3.getStreamMultipartFileByLine(bucket, s"$keyPrefix/part").runWith(MFGSink.collect)
         _ <- S3.deleteFile(bucket, s"$keyPrefix/part.1.txt")
         _ <- S3.deleteFile(bucket, s"$keyPrefix/part.2.txt")

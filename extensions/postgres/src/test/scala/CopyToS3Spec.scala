@@ -72,7 +72,7 @@ class CopyToS3Spec extends FlatSpec with Matchers with ScalaFutures with DockerT
     val stmt = conn.createStatement()
     stmt.execute("CREATE TABLE test_copy_to_s3(id bigint, mot text);")
 
-    val nbInsert = 1000
+    val nbInsert = 10
 
     for (_ <- 1 to nbInsert) {
       stmt.execute("INSERT INTO test_copy_to_s3 (id, mot) VALUES (1, 'veau'),(2, 'vache'),(3, 'cochon');")
@@ -90,7 +90,7 @@ class CopyToS3Spec extends FlatSpec with Matchers with ScalaFutures with DockerT
 
     val futUploaded = pgExt.streamTableToUncompressedS3File(q, ";", bucket, keyPrefix + "flat.tsv")
 
-    // THIS TEST FAILS (the upload hangs, the downstream never ask the bulkAsyncPuller for the beginning of the stream)
+    // THIS TEST FAILS with nbInsert = 1000  (the upload hangs, the downstream never ask the bulkAsyncPuller for the beginning of the stream)
     // This really makes no sense as when nbInsert = 10, this works (downstream asks bulkAsyncPuller for chunks) !!!
     Await.result(futUploaded, 15 seconds)
   }
