@@ -4,7 +4,8 @@ import java.sql.{SQLException, Connection}
 import java.util.zip.GZIPInputStream
 
 import akka.actor.ActorSystem
-import akka.stream.FlowMaterializer
+import akka.stream._
+import akka.stream.scaladsl._
 import akka.stream.scaladsl.FoldSink
 import com.amazonaws.ClientConfiguration
 import com.mfglabs.commons.aws.`s3`._
@@ -34,7 +35,7 @@ class CopyToS3Spec extends FlatSpec with Matchers with ScalaFutures with DockerT
   val keyPrefix = "test/extensions/postgres_copy2s3/"
   //val ClientConfiguration
   implicit val as = ActorSystem("test")
-  implicit val fm = FlowMaterializer()
+  implicit val fm = FlowMaterializer(MaterializerSettings(as).withInputBuffer(initialSize = 1, maxSize = 1))
   val s3c = new s3.AmazonS3Client()
   val pgExt = new PostgresExtensions(s3c)
 
@@ -64,6 +65,34 @@ class CopyToS3Spec extends FlatSpec with Matchers with ScalaFutures with DockerT
     gzipS3ObjFut.futureValue === List("1;veau","2;vache","3;cochon")
     Await.result(s3c.deleteObject(bucket, keyPrefix + "flat.tsv"),10 seconds)
     Await.result(s3c.deleteObject(bucket, keyPrefix + "flat.tsv.gz"),10 seconds)
+  }
+
+  it should "copy a big query to S3" in {
+    implicit val pgConn = pgExt.sqlConnAsPgConnUnsafe(conn)
+    val stmt = conn.createStatement()
+    stmt.execute("CREATE TABLE test_copy_to_s3(id bigint, mot text);")
+
+    val nbInsert = 1000
+
+    for (_ <- 1 to nbInsert) {
+      stmt.execute("INSERT INTO test_copy_to_s3 (id, mot) VALUES (1, 'veau'),(2, 'vache'),(3, 'cochon');")
+    }
+
+    val q = Query(
+      """
+        select id, mot
+        from public.test_copy_to_s3
+      """)
+
+    val futTableAsByte = pgExt.getTableAsStream(q)(identity).runWith(MFGSink.collect)
+    Await.result(futTableAsByte, 10 seconds) should not be empty
+    println("futTableAsByte OK")
+
+    val futUploaded = pgExt.streamTableToUncompressedS3File(q, ";", bucket, keyPrefix + "flat.tsv")
+
+    // THIS TEST FAILS (the upload hangs, the downstream never ask the bulkAsyncPuller for the beginning of the stream)
+    // This really makes no sense as when nbInsert = 10, this works (downstream asks bulkAsyncPuller for chunks) !!!
+    Await.result(futUploaded, 15 seconds)
   }
 
   it should "produce an error when Query is malformed" in {

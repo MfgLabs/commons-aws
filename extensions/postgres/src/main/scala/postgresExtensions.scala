@@ -40,6 +40,7 @@ trait PostgresStream {
   def getTableAsStream(tableOrQuery: PGCopyable, delimiter: String = ",", chunkSize: Int = 5 * 1024 * 1024)
                       (outputStreamTransformer : OutputStream => OutputStream)
                       (implicit conn: PGConnection, blockingEc: ExecutionContext, fm: FlowMaterializer): Source[Array[Byte]] = {
+    println("GO")
 
     val copyManager = conn.getCopyAPI()
     val os = new PipedOutputStream()
@@ -52,15 +53,22 @@ trait PostgresStream {
     Future {
       Try(copyManager.copyOut(s"COPY ${tableOrQuery.copyStr} TO STDOUT DELIMITER E'$delimiter'", tos)) match {
         case Success(_) =>
+          println("FINISHED SUCCESS")
           p.success(Array.empty)
           tos.close()
+          os.close()
         case Failure(err) =>
+          println("FINISHED FAILURE")
           p.failure(err)
           tos.close()
+          os.close()
       }
     }
 
-    Source.concat(MFGSource.fromStream(is, chunkSize), errorStream)
+    Source.concat(MFGSource.fromStream(is, chunkSize), errorStream).map { el =>
+      println(el)
+      el
+    }
   }
 
   /**
@@ -147,11 +155,11 @@ class PostgresExtensions(s3c: AmazonS3Client) extends PostgresStream {
     s3c.uploadStream(bucket, key, en)
   }
 
-  def streamTableToUncompressedS3File(tableOrQuery : PGCopyable , delimiter : String, bucket : String, key : String)
+  def streamTableToUncompressedS3File(tableOrQuery : PGCopyable , delimiter : String, bucket : String, key : String, chunkSize: Int = 5 * 1024 * 1024)
                                   (implicit conn: PGConnection, fm: FlowMaterializer): Future[Int] =
     streamTableToS3File(tableOrQuery, delimiter, bucket, key)(identity)(conn, fm)
 
-  def streamTableToGzipedS3File(tableOrQuery : PGCopyable, delimiter : String, bucket : String, key : String)
+  def streamTableToGzipedS3File(tableOrQuery : PGCopyable, delimiter : String, bucket : String, key : String, chunkSize: Int = 5 * 1024 * 1024)
                                       (implicit conn : PGConnection, fm: FlowMaterializer) =
     streamTableToS3File(tableOrQuery,delimiter,bucket,key)(new zip.GZIPOutputStream(_))
 }
