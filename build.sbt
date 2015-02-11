@@ -2,9 +2,9 @@ import sbtunidoc.Plugin._
 
 organization in ThisBuild := "com.mfglabs"
 
-scalaVersion in ThisBuild := "2.11.2"
+scalaVersion in ThisBuild := "2.11.5"
 
-version in ThisBuild := "0.2-AKKA-STREAM-SNAPSHOT"
+version in ThisBuild := "0.3-SNAPSHOT"
 
 resolvers in ThisBuild ++= Seq(
 	"Pellucid Deps" at "http://dl.bintray.com/content/pellucid/maven",
@@ -40,11 +40,10 @@ lazy val core = project.in(file("core"))
   .settings   (
     name := "commons-aws",
     libraryDependencies ++= Seq(
-        Dependencies.Compile.awsJavaSDK
-      , Dependencies.Compile.pellucidAwsWrap
-      , Dependencies.Compile.akkaStream
-      , "com.mfglabs" %% "commons-stream" % "0.3-SNAPSHOT" // Dependencies.Compile.commonsStream
-      , Dependencies.Test.scalaTest
+      Dependencies.Compile.awsJavaSDK,
+      Dependencies.Compile.pellucidAwsWrap,
+      Dependencies.Compile.commonsStream,
+      Dependencies.Test.scalaTest
     )
   )
 

@@ -1,11 +1,12 @@
 package com.mfglabs.commons.aws
 package s3
 
+import com.mfglabs.commons.stream.ExecutionContextForBlockingOps
+
 import scala.concurrent.{ExecutionContext, Future, Promise}
 import scala.util.Try
 
 import java.util.concurrent.{Executors, ExecutorService, LinkedBlockingQueue, ThreadFactory, ThreadPoolExecutor, TimeUnit}
-import java.util.concurrent.atomic.AtomicLong
 
 import com.amazonaws.auth.{AWSCredentials, AWSCredentialsProvider, DefaultAWSCredentialsProviderChain}
 import com.amazonaws.{AmazonWebServiceRequest, ClientConfiguration}
@@ -35,7 +36,8 @@ class AmazonS3Client(
   executorService
 ) {
 
-  implicit val executionContext = ExecutionContext.fromExecutorService(executorService)
+  implicit val ecForBlockingOps = ExecutionContextForBlockingOps(ExecutionContext.fromExecutorService(executorService))
+  implicit val ec = ecForBlockingOps.value
 
   /**
     * make a client from a credentials provider, a config, and a default executor service.
