@@ -194,43 +194,51 @@ package object `s3` {
      * @return a stream with only one element of type CompleteMultipartUploadResult if the upload was successful
      *         (otherwise, of an error happened during the upload, the stream fails)
      */
-    def uploadFileAsStream(bucket: String, key: String, parallelism: Int = 1): FoldSink[CompleteMultipartUploadResult, ByteString] = {
+    def uploadFileAsStream(bucket: String, key: String, chunkUploadConcurrency: Int = 1): Flow[ByteString, CompleteMultipartUploadResult] = {
       import scala.collection.JavaConversions._
       import client.ec
 
-      def makeUploader(uploadId: String) = {
-        MFGFlow
-          .zipWithIndex[ByteString]
-          .via(
-            MFGFlow.mapAsyncUnorderedWithBoundedParallelism(parallelism) { case (bytes, partNumber) =>
-              val uploadRequest = new UploadPartRequest()
-                .withBucketName(bucket)
-                .withKey(key)
-                .withPartNumber((partNumber + 1).toInt)
-                .withUploadId(uploadId)
-                .withInputStream(new ByteArrayInputStream(bytes.toArray))
-                .withPartSize(bytes.length)
-              client.uploadPart(uploadRequest)
-            })
-      }
+      def initiateUpload(bucket: String, key: String) = client.initiateMultipartUpload(new InitiateMultipartUploadRequest(bucket, key))
 
-      client.initiateMultipartUpload(new InitiateMultipartUploadRequest(bucket, key)) flatMap { initResponse =>
-        val uploadId = initResponse.getUploadId
-        val etagsFut: Future[Vector[PartETag]] =
-          Flow[ByteString]
-            .via(MFGFlow.rechunkByteString(defaultChunkSize))
-            .via(makeUploader(uploadId))
-            .to(Sink.fold(Vector.empty[PartETag])(_ :+ _.getPartETag))
-        etagsFut.flatMap { etags =>
-          val compRequest = new CompleteMultipartUploadRequest(bucket, key, uploadId, etags.toBuffer[PartETag])
-          client.completeMultipartUpload(compRequest).map { result =>
-            result
-          }.recoverWith { case e: Exception =>
-            client.abortMultipartUpload(new AbortMultipartUploadRequest(bucket, key, uploadId))
-            Future.failed(e)
+      Flow[ByteString]
+        .via(MFGFlow.rechunkByteString(defaultChunkSize))
+        .via(
+          MFGFlow.customStatefulProcessor(initiateUpload(bucket, key)) {
+            (futInitUpload, chunk) => (Some(futInitUpload), Vector((futInitUpload, chunk)))
           }
-        }
-      }
+        )
+        .mapAsync { case (futInitUpload, chunk) => futInitUpload.map(initUpload => (chunk, initUpload.getUploadId)) }
+        .via(MFGFlow.zipWithIndex)
+        .via(
+          MFGFlow.mapAsyncUnorderedWithBoundedConcurrency(chunkUploadConcurrency) { case ((bytes, uploadId), partNumber) =>
+            val uploadRequest = new UploadPartRequest()
+              .withBucketName(bucket)
+              .withKey(key)
+              .withPartNumber((partNumber + 1).toInt)
+              .withUploadId(uploadId)
+              .withInputStream(new ByteArrayInputStream(bytes.toArray))
+              .withPartSize(bytes.length)
+            client.uploadPart(uploadRequest).map((_, uploadId))
+          }
+        )
+        .via(
+          MFGFlow.customStatefulProcessor[(UploadPartResult, String), Vector[(PartETag, String)], Future[CompleteMultipartUploadResult]](Vector.empty)(
+            (etags, uploadResultAndUploadId) => {
+              (Some(etags :+ (uploadResultAndUploadId._1.getPartETag, uploadResultAndUploadId._2)), Vector.empty)
+            },
+            lastPushIfUpstreamEnds = { etags =>
+              val compRequest = new CompleteMultipartUploadRequest(bucket, key, uploadId, etags.toBuffer[PartETag])
+              val futResult = client.completeMultipartUpload(compRequest).map { result =>
+                result
+              }.recoverWith { case e: Exception =>
+                client.abortMultipartUpload(new AbortMultipartUploadRequest(bucket, key, uploadId))
+                Future.failed(e)
+              }
+              Vector(futResult)
+            }
+          )
+        )
+        .mapAsync(identity)
     }
 
     /**
