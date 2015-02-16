@@ -214,34 +214,27 @@ package object `s3` {
               .withUploadId(uploadId)
               .withInputStream(new ByteArrayInputStream(bytes.toArray))
               .withPartSize(bytes.length)
-            client.uploadPart(uploadRequest).map((_, uploadId)).recoverWith { case e: Exception =>
-              client.abortMultipartUpload(new AbortMultipartUploadRequest(bucket, key, uploadId))
-              Future.failed(e)
+            client.uploadPart(uploadRequest).map(r => (r.getPartETag, uploadId)).recoverWith {
+              case e: Exception =>
+                client.abortMultipartUpload(new AbortMultipartUploadRequest(bucket, key, uploadId))
+                Future.failed(e)
             }
           }
         )
-        .via(
-          MFGFlow[(UploadPartResult, String), Vector[(PartETag, String)],
-                                          Future[Option[CompleteMultipartUploadResult]]](Vector.empty)(
-            (etags, uploadResultAndUploadId) => {
-              (Some(etags :+ (uploadResultAndUploadId._1.getPartETag, uploadResultAndUploadId._2)), Vector.empty)
-            },
-            lastPushIfUpstreamEnds = { etags =>
-              etags.headOption match {
-                case Some(_, uploadId) =>
-                  val compRequest = new CompleteMultipartUploadRequest(bucket, key, uploadId, etags.toBuffer[PartETag])
-                  val futResult = client.completeMultipartUpload(compRequest).map(Option.apply).recoverWith { case e: Exception =>
-                    client.abortMultipartUpload(new AbortMultipartUploadRequest(bucket, key, uploadId))
-                    Future.failed(e)
-                  }
-                  Vector(futResult)
-
-                case None => Vector(Future.successful(None))
+        .via(MFGFlow.fold(Vector.empty)(_ :+ _))
+        .mapAsync { etags =>
+          etags.headOption match {
+            case Some(_, uploadId) =>
+              val compRequest = new CompleteMultipartUploadRequest(bucket, key, uploadId, etags.toBuffer[PartETag])
+              val futResult = client.completeMultipartUpload(compRequest).map(Option.apply).recoverWith { case e: Exception =>
+                client.abortMultipartUpload(new AbortMultipartUploadRequest(bucket, key, uploadId))
+                Future.failed(e)
               }
-            }
-          )
-        )
-        .mapAsync(identity)
+              futResult
+
+            case None => Future.successful(None)
+          }
+      }
     }
 
     /**
