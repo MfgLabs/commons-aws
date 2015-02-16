@@ -188,6 +188,7 @@ package object `s3` {
 
     /**
      * Flow that upload a stream of bytes as a S3 file and returns a CompleteMultipartUploadResult (or None if the stream was empty).
+     * Order is guaranteed even with chunkUploadConcurrency > 1.
      * An error during the S3 upload will result in a stream failure.
      * @param  bucket the bucket name
      * @param  key the key of file
@@ -234,26 +235,35 @@ package object `s3` {
 
             case None => Future.successful(None)
           }
-      }
+        }
     }
 
     /**
      * periodically upload a stream to S3. Data is chuncked on a min(time,size) basis. Files are stored in a folder, named by their upload date
      * @param bucket the bucket name
      * @param prefix the folder where files will be saved
-     * @param nbRecord maximum number of records to collect before dumping
+     * @param maxNbLinePerFile maximum number of records to collect before dumping
      * @param duration maximum time window before dumping
      * @return
      */
-    def uploadStreamMultipartFile(bucket: String, prefix: String, nbRecord: Int, duration: FiniteDuration, dateFormatter: DateFormat = new SimpleDateFormat("yyyyMMdd_HHmmss_SSS"))(implicit fm: FlowMaterializer): Flow[Array[Byte], Int] =
-      Flow[Array[Byte]].groupedWithin(nbRecord, duration)
+    def uploadStreamAsMultipartFile(bucket: String, prefix: String, maxNbChunkPerFile: Int,
+                                    concurrency: Int,
+                                    dateFormatter: DateFormat = new SimpleDateFormat("yyyyMMdd_HHmmss_SSS"))
+                                    : Flow[ByteString, Seq[CompleteMultipartUploadResult]] =
+      Flow[ByteString]
+        .via(MFGFlow.customStatefulProcessor[ByteString, (Long, String), (ByteString, String)])
+        .mapAsync { case (chunk, i) =>
+
+        }
+
+
         .via(
           MFGFlow.mapAsyncWithOrderedSideEffect { chunk => {
             val cleanPrefix = if (prefix.last.equals('/')) prefix else prefix + "/"
             val dStr = dateFormatter.format(new Date)
             uploadStream(bucket, cleanPrefix + dStr, Source(chunk))
           }
-          })
+        })
 
     /**
      * uploadStreamMultipartFile + manage an second associated object, for callback use cases (exemple : queue acknowledgment)
