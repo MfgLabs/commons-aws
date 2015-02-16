@@ -70,12 +70,12 @@ package object `s3` {
     def listFilesAsStream(bucket: String, path: Option[String] = None): Source[(String, Date)] = {
       import collection.JavaConversions._
 
-      val futFirstListing: Future[ObjectListing] = path match {
+      def getFirstListing: Future[ObjectListing] = path match {
         case Some(p) => client.listObjects(bucket, p)
         case None => client.listObjects(bucket)
       }
 
-      MFGSource.fromSeedAsync(futFirstListing) { firstListing =>
+      MFGSource.fromLazyAsyncSeed(getFirstListing) { firstListing =>
         MFGSource.unfoldPullerAsync(firstListing) { listing =>
           val files = listing.getObjectSummaries.to[scala.collection.immutable.Seq]
           if (listing.isTruncated)
@@ -187,27 +187,23 @@ package object `s3` {
     }
 
     /**
-     * Streamed upload of a akka stream
+     * Flow that upload a stream of bytes as a S3 file and returns a CompleteMultipartUploadResult (or None if the stream was empty).
+     * An error during the S3 upload will result in a stream failure.
      * @param  bucket the bucket name
      * @param  key the key of file
-     * @param  source a source of array of bytes
-     * @return a stream with only one element of type CompleteMultipartUploadResult if the upload was successful
-     *         (otherwise, of an error happened during the upload, the stream fails)
+     * @return a stream with only one element of type Option[CompleteMultipartUploadResult] if the upload was successful (None means that
+     *         the stream was empty)
      */
-    def uploadFileAsStream(bucket: String, key: String, chunkUploadConcurrency: Int = 1): Flow[ByteString, CompleteMultipartUploadResult] = {
+    def uploadFileAsStream(bucket: String, key: String, chunkUploadConcurrency: Int = 1): Flow[ByteString, Option[CompleteMultipartUploadResult]] = {
       import scala.collection.JavaConversions._
       import client.ec
 
-      def initiateUpload(bucket: String, key: String) = client.initiateMultipartUpload(new InitiateMultipartUploadRequest(bucket, key))
+      def initiateUpload(bucket: String, key: String): Future[String] =
+        client.initiateMultipartUpload(new InitiateMultipartUploadRequest(bucket, key)).map(_.getUploadId)
 
       Flow[ByteString]
         .via(MFGFlow.rechunkByteString(defaultChunkSize))
-        .via(
-          MFGFlow.customStatefulProcessor(initiateUpload(bucket, key)) {
-            (futInitUpload, chunk) => (Some(futInitUpload), Vector((futInitUpload, chunk)))
-          }
-        )
-        .mapAsync { case (futInitUpload, chunk) => futInitUpload.map(initUpload => (chunk, initUpload.getUploadId)) }
+        .via(MFGFlow.repeaterWithLazyAsyncSeed(initiateUpload(bucket, key)))
         .via(MFGFlow.zipWithIndex)
         .via(
           MFGFlow.mapAsyncUnorderedWithBoundedConcurrency(chunkUploadConcurrency) { case ((bytes, uploadId), partNumber) =>
@@ -218,23 +214,30 @@ package object `s3` {
               .withUploadId(uploadId)
               .withInputStream(new ByteArrayInputStream(bytes.toArray))
               .withPartSize(bytes.length)
-            client.uploadPart(uploadRequest).map((_, uploadId))
+            client.uploadPart(uploadRequest).map((_, uploadId)).recoverWith { case e: Exception =>
+              client.abortMultipartUpload(new AbortMultipartUploadRequest(bucket, key, uploadId))
+              Future.failed(e)
+            }
           }
         )
         .via(
-          MFGFlow.customStatefulProcessor[(UploadPartResult, String), Vector[(PartETag, String)], Future[CompleteMultipartUploadResult]](Vector.empty)(
+          MFGFlow[(UploadPartResult, String), Vector[(PartETag, String)],
+                                          Future[Option[CompleteMultipartUploadResult]]](Vector.empty)(
             (etags, uploadResultAndUploadId) => {
               (Some(etags :+ (uploadResultAndUploadId._1.getPartETag, uploadResultAndUploadId._2)), Vector.empty)
             },
             lastPushIfUpstreamEnds = { etags =>
-              val compRequest = new CompleteMultipartUploadRequest(bucket, key, uploadId, etags.toBuffer[PartETag])
-              val futResult = client.completeMultipartUpload(compRequest).map { result =>
-                result
-              }.recoverWith { case e: Exception =>
-                client.abortMultipartUpload(new AbortMultipartUploadRequest(bucket, key, uploadId))
-                Future.failed(e)
+              etags.headOption match {
+                case Some(_, uploadId) =>
+                  val compRequest = new CompleteMultipartUploadRequest(bucket, key, uploadId, etags.toBuffer[PartETag])
+                  val futResult = client.completeMultipartUpload(compRequest).map(Option.apply).recoverWith { case e: Exception =>
+                    client.abortMultipartUpload(new AbortMultipartUploadRequest(bucket, key, uploadId))
+                    Future.failed(e)
+                  }
+                  Vector(futResult)
+
+                case None => Vector(Future.successful(None))
               }
-              Vector(futResult)
             }
           )
         )
