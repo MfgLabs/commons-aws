@@ -187,15 +187,14 @@ package object `s3` {
     }
 
     /**
-     * Flow that upload a stream of bytes as a S3 file and returns a CompleteMultipartUploadResult (or None if the stream was empty).
+     * Flow that upload a stream of bytes as a S3 file and returns a CompleteMultipartUploadResult (or nothing if the stream was empty).
      * Order is guaranteed even with chunkUploadConcurrency > 1.
      * An error during the S3 upload will result in a stream failure.
      * @param  bucket the bucket name
      * @param  key the key of file
-     * @return a stream with only one element of type Option[CompleteMultipartUploadResult] if the upload was successful (None means that
-     *         the stream was empty)
+     * @return a stream with only one element of type CompleteMultipartUploadResult if the upload was successful
      */
-    def uploadFileAsStream(bucket: String, key: String, chunkUploadConcurrency: Int = 1): Flow[ByteString, Option[CompleteMultipartUploadResult]] = {
+    def uploadFileAsStream(bucket: String, key: String, chunkUploadConcurrency: Int = 1): Flow[ByteString, CompleteMultipartUploadResult] = {
       import scala.collection.JavaConversions._
       import client.ec
 
@@ -204,7 +203,7 @@ package object `s3` {
 
       Flow[ByteString]
         .via(MFGFlow.rechunkByteString(defaultChunkSize))
-        .via(MFGFlow.repeaterWithLazyAsyncSeed(initiateUpload(bucket, key)))
+        .via(MFGFlow.zipWithConstantLazyAsync(initiateUpload(bucket, key)))
         .via(MFGFlow.zipWithIndex)
         .via(
           MFGFlow.mapAsyncUnorderedWithBoundedConcurrency(chunkUploadConcurrency) { case ((bytes, uploadId), partNumber) =>
@@ -236,6 +235,7 @@ package object `s3` {
             case None => Future.successful(None)
           }
         }
+        .mapConcat(_.toSeq)
     }
 
     /**
@@ -246,24 +246,88 @@ package object `s3` {
      * @param duration maximum time window before dumping
      * @return
      */
-    def uploadStreamAsMultipartFile(bucket: String, prefix: String, maxNbChunkPerFile: Int,
-                                    concurrency: Int,
-                                    dateFormatter: DateFormat = new SimpleDateFormat("yyyyMMdd_HHmmss_SSS"))
-                                    : Flow[ByteString, Seq[CompleteMultipartUploadResult]] =
-      Flow[ByteString]
-        .via(MFGFlow.customStatefulProcessor[ByteString, (Long, String), (ByteString, String)])
-        .mapAsync { case (chunk, i) =>
+    def uploadStreamAsMultipartFile(bucket: String, prefix: String, nbChunkPerFile: Int = 16,
+                                    chunkUploadConcurrency: Int = 1) : Flow[ByteString, CompleteMultipartUploadResult] = {
+      import scala.collection.JavaConversions._
+      import client.ec
 
+      def initiateUpload(key: String): Future[InitiateMultipartUploadResult] =
+        client.initiateMultipartUpload(new InitiateMultipartUploadRequest(bucket, key))
+
+      def completeUpload(uploadId: InitiateMultipartUploadResult, etags: Vector[PartETag]): Future[CompleteMultipartUploadResult] = {
+        val compRequest = new CompleteMultipartUploadRequest(bucket, prefix, uploadId.getUploadId, etags.toBuffer[PartETag])
+        client.completeMultipartUpload(compRequest).recoverWith { case e: Exception =>
+          client.abortMultipartUpload(new AbortMultipartUploadRequest(bucket, prefix, uploadId.getUploadId))
+          Future.failed(e)
         }
+      }
 
+      def formatKey(fileNb: Long) = {
+        val pad = "%08d".format(fileNb)
+        s"$prefix.part.$pad"
+      }
 
+      Flow[ByteString]
+        .via(MFGFlow.zipWithIndex)
         .via(
-          MFGFlow.mapAsyncWithOrderedSideEffect { chunk => {
-            val cleanPrefix = if (prefix.last.equals('/')) prefix else prefix + "/"
-            val dStr = dateFormatter.format(new Date)
-            uploadStream(bucket, cleanPrefix + dStr, Source(chunk))
+          MFGFlow.customStatefulProcessor(initiateUpload(formatKey(0L))) {
+            case (currentUploadId, (chunk, i)) =>
+              val partNumber = i % nbChunkPerFile
+              val nextUploadId = if (i != 0 && partNumber == 0) {
+                val fileNb: Long = i / nbChunkPerFile
+                val nextKey = formatKey(fileNb)
+                initiateUpload(nextKey)
+              }
+              else currentUploadId
+              (Some(nextUploadId), Vector((chunk, i, nextUploadId)))
           }
-        })
+        )
+        .mapAsync { case (chunk, i, uploadId) => uploadId.map((chunk, i, _)) }
+        .via(
+          MFGFlow.mapAsyncUnorderedWithBoundedConcurrency(chunkUploadConcurrency) { case (chunk, i, uploadId) =>
+            val uploadRequest = new UploadPartRequest()
+              .withBucketName(bucket)
+              .withKey(prefix)
+              .withPartNumber((i + 1).toInt)
+              .withUploadId(uploadId.getUploadId)
+              .withInputStream(new ByteArrayInputStream(chunk.toArray))
+              .withPartSize(chunk.length)
+            client.uploadPart(uploadRequest).map(r => (r.getPartETag, uploadId)).recoverWith {
+              case e: Exception =>
+                client.abortMultipartUpload(new AbortMultipartUploadRequest(bucket, prefix, uploadId.getUploadId))
+                Future.failed(e)
+            }
+          }
+        )
+        .via(
+          MFGFlow.customStatefulProcessor(Vector.empty[(PartETag, InitiateMultipartUploadResult)])(
+            { case (etags, (etag, uploadId)) =>
+                etags.headOption match {
+                  case Some((_, currentUploadId)) if currentUploadId != uploadId =>
+                    // new upload
+                    val futResult = completeUpload(currentUploadId, etags.map(_._1))
+                    (Some(Vector((etag, uploadId))), Vector(futResult))
+
+                  case Some((_, currentUploadId)) if currentUploadId == uploadId =>
+                    (Some(etags :+ (etag, uploadId)), Vector.empty)
+
+                  case None =>
+                    (Some(Vector((etag, uploadId))), Vector.empty)
+                }
+            },
+            lastPushIfUpstreamEnds = { etags =>
+              etags.headOption match {
+                case Some(_, currentUploadId) =>
+                  val futResult = completeUpload(currentUploadId, etags.map(_._1))
+                  Vector(futResult)
+
+                case None => Vector.empty
+              }
+            }
+          )
+        )
+        .mapAsync(identity)
+    }
 
     /**
      * uploadStreamMultipartFile + manage an second associated object, for callback use cases (exemple : queue acknowledgment)
