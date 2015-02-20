@@ -72,7 +72,7 @@ trait PostgresStream {
   }
 
   /**
-   * Side-effecting flow that inserts a binary stream to a postgres table
+   * Inserts a stream to a postgres table
    * @param table
    * @param delimiter
    * @param chunkSize

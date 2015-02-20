@@ -1,7 +1,7 @@
 package com.mfglabs.commons.aws
 
 import akka.actor.ActorSystem
-import akka.stream.FlowMaterializer
+import akka.stream.{ActorFlowMaterializer, FlowMaterializer}
 import akka.stream.scaladsl.Flow
 import com.amazonaws.auth.{BasicAWSCredentials, AWSCredentials, AWSCredentialsProvider}
 import com.amazonaws.auth.profile.ProfileCredentialsProvider
@@ -28,7 +28,7 @@ class SQSSpec extends FlatSpec with Matchers with ScalaFutures {
 
 
   implicit val as = ActorSystem()
-  implicit val fm = FlowMaterializer()
+  implicit val fm = ActorFlowMaterializer()
 
   "SQS client" should "read data from a SQS queue" in {
     val nbMessages = 100

@@ -1,6 +1,8 @@
 package com.mfglabs.commons.aws
 package s3
 
+import akka.actor.ActorSystem
+import akka.stream.{FlowMaterializer, ActorFlowMaterializer}
 import com.mfglabs.commons.stream.ExecutionContextForBlockingOps
 
 import scala.concurrent.{ExecutionContext, Future, Promise}
@@ -38,6 +40,8 @@ class AmazonS3Client(
 
   implicit val ecForBlockingOps = ExecutionContextForBlockingOps(ExecutionContext.fromExecutorService(executorService))
   implicit val ec = ecForBlockingOps.value
+  implicit val system = ActorSystem("com-mfglabs-commons-aws-s3")
+  implicit val fm: FlowMaterializer = ActorFlowMaterializer()
 
   /**
     * make a client from a credentials provider, a config, and a default executor service.

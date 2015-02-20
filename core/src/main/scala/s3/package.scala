@@ -54,8 +54,12 @@ import scala.util.Try
  */
 package object `s3` {
 
+  // TODO: separate lazy methods (returning Source / Flow) from strict methods (returning Future)
+
   implicit class RichS3Client(val client: AmazonS3Client) extends AnyVal {
-    val defaultChunkSize = 5 * 1024 * 1024
+    import client.ec
+    import client.fm
+    import client.ecForBlockingOps
 
     /** List files in a bucket (& optional path)
       *
@@ -75,7 +79,7 @@ package object `s3` {
         case None => client.listObjects(bucket)
       }
 
-      MFGSource.fromLazyAsyncSeed(getFirstListing) { firstListing =>
+      MFGSource.seededLazyAsync(getFirstListing) { firstListing =>
         MFGSource.unfoldPullerAsync(firstListing) { listing =>
           val files = listing.getObjectSummaries.to[scala.collection.immutable.Seq]
           if (listing.isTruncated)
@@ -99,7 +103,6 @@ package object `s3` {
       * @return a successful future of PutObjectResult (or a failure)
       */
     def uploadFile(bucket: String, key: String, file: File): Future[PutObjectResult] = {
-
       val r = new PutObjectRequest(bucket, key, file)
       r.setCannedAcl(CannedAccessControlList.PublicReadWrite)
       client.putObject(r)
@@ -156,33 +159,26 @@ package object `s3` {
       * @param bucket the bucket name
       * @param key the key of file
       * @param inputStreamTransform transformation function (for ZIP, GZIP decompression, ...)
-      * @param chunkSize chunk size of the returned enumerator
       * @return an enumerator (stream) of the object
       */
-    def getFileAsStream(bucket: String, key: String, inputStreamTransform: InputStream => InputStream = identity,
-                             chunkSize: Int = defaultChunkSize): Source[ByteString] = {
-      Source(client.getObject(bucket, key))
-        .map(o => MFGSource.fromStream(inputStreamTransform(o.getObjectContent), chunkSize))
-        .flatten(FlattenStrategy.concat)
+    def getFileAsStream(bucket: String, key: String, inputStreamTransform: InputStream => InputStream = identity): Source[ByteString] = {
+      MFGSource.seededLazyAsync(client.getObject(bucket, key)) { o =>
+        MFGSource.fromStream(inputStreamTransform(o.getObjectContent))
+      }
     }
 
-    def uncompressGzippedFileAsStream(bucket: String, key: String, chunkSize: Int = defaultChunkSize) =
-      getFileAsStream(bucket, key, is => new GZIPInputStream(is), chunkSize)
+    def uncompressGzippedFileAsStream(bucket: String, key: String) =
+      getFileAsStream(bucket, key, is => new GZIPInputStream(is))
 
     /** Sequential download of a multipart file as a reactive stream
       *
       * @param bucket bucket name
       * @param path the common path of the parts of the file
-      * @param chunkSize
       * @return
       */
-    def getMultipartFileAsStream(bucket: String, path: String, inputStreamTransform: InputStream => InputStream = identity,
-                                 chunkSize: Int = defaultChunkSize): Source[ByteString] = {
-      import scala.collection.JavaConversions._
-      import client.ec
-
+    def getMultipartFileAsStream(bucket: String, path: String, inputStreamTransform: InputStream => InputStream = identity): Source[ByteString] = {
       listFilesAsStream(bucket, Some(path))
-        .map { case (key, _) => getFileAsStream(bucket, key, inputStreamTransform, chunkSize) }
+        .map { case (key, _) => getFileAsStream(bucket, key, inputStreamTransform) }
         .flatten(FlattenStrategy.concat)
     }
 
@@ -194,15 +190,17 @@ package object `s3` {
      * @param  key the key of file
      * @return a stream with only one element of type CompleteMultipartUploadResult if the upload was successful
      */
-    def uploadFileAsStream(bucket: String, key: String, chunkUploadConcurrency: Int = 1): Flow[ByteString, CompleteMultipartUploadResult] = {
+    def uploadStreamAsFile(bucket: String, key: String, chunkUploadConcurrency: Int = 1): Flow[ByteString, CompleteMultipartUploadResult] = {
       import scala.collection.JavaConversions._
       import client.ec
+
+      val uploadChunkSize = 8 * 1024 * 1024 // recommended by AWS
 
       def initiateUpload(bucket: String, key: String): Future[String] =
         client.initiateMultipartUpload(new InitiateMultipartUploadRequest(bucket, key)).map(_.getUploadId)
 
       Flow[ByteString]
-        .via(MFGFlow.rechunkByteString(defaultChunkSize))
+        .via(MFGFlow.rechunkByteString(uploadChunkSize))
         .via(MFGFlow.zipWithConstantLazyAsync(initiateUpload(bucket, key)))
         .via(MFGFlow.zipWithIndex)
         .via(
@@ -221,11 +219,11 @@ package object `s3` {
             }
           }
         )
-        .via(MFGFlow.fold(Vector.empty)(_ :+ _))
+        .via(MFGFlow.fold(Vector.empty[(PartETag, String)])(_ :+ _))
         .mapAsync { etags =>
           etags.headOption match {
-            case Some(_, uploadId) =>
-              val compRequest = new CompleteMultipartUploadRequest(bucket, key, uploadId, etags.toBuffer[PartETag])
+            case Some((_, uploadId)) =>
+              val compRequest = new CompleteMultipartUploadRequest(bucket, key, uploadId, etags.map(_._1).toBuffer[PartETag])
               val futResult = client.completeMultipartUpload(compRequest).map(Option.apply).recoverWith { case e: Exception =>
                 client.abortMultipartUpload(new AbortMultipartUploadRequest(bucket, key, uploadId))
                 Future.failed(e)
@@ -235,32 +233,21 @@ package object `s3` {
             case None => Future.successful(None)
           }
         }
-        .mapConcat(_.toSeq)
+        .mapConcat(_.to[scala.collection.immutable.Seq])
     }
 
     /**
-     * periodically upload a stream to S3. Data is chuncked on a min(time,size) basis. Files are stored in a folder, named by their upload date
-     * @param bucket the bucket name
-     * @param prefix the folder where files will be saved
-     * @param maxNbLinePerFile maximum number of records to collect before dumping
-     * @param duration maximum time window before dumping
+     * Upload a stream as a multipart file with a given number of upstream chunk per file. Part file are uploaded sequentially but
+     * chunk inside a part file can be uploaded concurrently (tuned with chunkUploadConcurrency).
+     * Order is guaranteed even with chunkUploadConcurrency > 1.
+     * @param bucket
+     * @param prefix
+     * @param nbChunkPerFile
+     * @param chunkUploadConcurrency
      * @return
      */
-    def uploadStreamAsMultipartFile(bucket: String, prefix: String, nbChunkPerFile: Int = 16,
-                                    chunkUploadConcurrency: Int = 1) : Flow[ByteString, CompleteMultipartUploadResult] = {
-      import scala.collection.JavaConversions._
-      import client.ec
-
-      def initiateUpload(key: String): Future[InitiateMultipartUploadResult] =
-        client.initiateMultipartUpload(new InitiateMultipartUploadRequest(bucket, key))
-
-      def completeUpload(uploadId: InitiateMultipartUploadResult, etags: Vector[PartETag]): Future[CompleteMultipartUploadResult] = {
-        val compRequest = new CompleteMultipartUploadRequest(bucket, prefix, uploadId.getUploadId, etags.toBuffer[PartETag])
-        client.completeMultipartUpload(compRequest).recoverWith { case e: Exception =>
-          client.abortMultipartUpload(new AbortMultipartUploadRequest(bucket, prefix, uploadId.getUploadId))
-          Future.failed(e)
-        }
-      }
+    def uploadStreamAsMultipartFile(bucket: String, prefix: String, nbChunkPerFile: Int,
+                                    chunkUploadConcurrency: Int = 1): Flow[ByteString, CompleteMultipartUploadResult] = {
 
       def formatKey(fileNb: Long) = {
         val pad = "%08d".format(fileNb)
@@ -269,86 +256,17 @@ package object `s3` {
 
       Flow[ByteString]
         .via(MFGFlow.zipWithIndex)
-        .via(
-          MFGFlow.customStatefulProcessor(initiateUpload(formatKey(0L))) {
-            case (currentUploadId, (chunk, i)) =>
-              val partNumber = i % nbChunkPerFile
-              val nextUploadId = if (i != 0 && partNumber == 0) {
-                val fileNb: Long = i / nbChunkPerFile
-                val nextKey = formatKey(fileNb)
-                initiateUpload(nextKey)
-              }
-              else currentUploadId
-              (Some(nextUploadId), Vector((chunk, i, nextUploadId)))
-          }
-        )
-        .mapAsync { case (chunk, i, uploadId) => uploadId.map((chunk, i, _)) }
-        .via(
-          MFGFlow.mapAsyncUnorderedWithBoundedConcurrency(chunkUploadConcurrency) { case (chunk, i, uploadId) =>
-            val uploadRequest = new UploadPartRequest()
-              .withBucketName(bucket)
-              .withKey(prefix)
-              .withPartNumber((i + 1).toInt)
-              .withUploadId(uploadId.getUploadId)
-              .withInputStream(new ByteArrayInputStream(chunk.toArray))
-              .withPartSize(chunk.length)
-            client.uploadPart(uploadRequest).map(r => (r.getPartETag, uploadId)).recoverWith {
-              case e: Exception =>
-                client.abortMultipartUpload(new AbortMultipartUploadRequest(bucket, prefix, uploadId.getUploadId))
-                Future.failed(e)
-            }
-          }
-        )
-        .via(
-          MFGFlow.customStatefulProcessor(Vector.empty[(PartETag, InitiateMultipartUploadResult)])(
-            { case (etags, (etag, uploadId)) =>
-                etags.headOption match {
-                  case Some((_, currentUploadId)) if currentUploadId != uploadId =>
-                    // new upload
-                    val futResult = completeUpload(currentUploadId, etags.map(_._1))
-                    (Some(Vector((etag, uploadId))), Vector(futResult))
-
-                  case Some((_, currentUploadId)) if currentUploadId == uploadId =>
-                    (Some(etags :+ (etag, uploadId)), Vector.empty)
-
-                  case None =>
-                    (Some(Vector((etag, uploadId))), Vector.empty)
-                }
-            },
-            lastPushIfUpstreamEnds = { etags =>
-              etags.headOption match {
-                case Some(_, currentUploadId) =>
-                  val futResult = completeUpload(currentUploadId, etags.map(_._1))
-                  Vector(futResult)
-
-                case None => Vector.empty
-              }
+        .splitWhen { case (_, i) => i != 0 && i % nbChunkPerFile == 0 }
+        .map { partFileStream =>
+          partFileStream.via(
+            MFGFlow.withHead(includeHeadInUpStream = true) { case (_, i) =>
+              val key = formatKey(i / nbChunkPerFile)
+              Flow[(ByteString, Long)].map(_._1).via(uploadStreamAsFile(bucket, key, chunkUploadConcurrency))
             }
           )
-        )
-        .mapAsync(identity)
-    }
-
-    /**
-     * uploadStreamMultipartFile + manage an second associated object, for callback use cases (exemple : queue acknowledgment)
-     * @param bucket
-     * @param prefix
-     * @param nbRecord
-     * @param duration
-     * @tparam T
-     * @return
-     */
-    def uploadStreamMultipartFileWithCompanion[T](bucket: String, prefix: String, nbRecord: Int, duration: FiniteDuration, dateFormatter: DateFormat = new SimpleDateFormat("yyyyMMdd_HHmmss_SSS"))(implicit fm: FlowMaterializer): Flow[(Array[Byte], T), T] = {
-      import scala.concurrent.ExecutionContext.Implicits.global
-      Flow[(Array[Byte], T)].groupedWithin(nbRecord, duration)
-        .via(
-          MFGFlow.mapAsyncWithOrderedSideEffect { chunk => {
-            val cleanPrefix = if (prefix.last.equals('/')) prefix else prefix + "/"
-            val dStr = dateFormatter.format(new Date)
-            val (data, companion) = chunk.unzip
-            uploadStream(bucket, cleanPrefix + dStr, Source(data)).map(res => companion)
-          }
-          }).map(xs => Source(xs)).flatten(FlattenStrategy.concat)
+        }
+        .flatten(FlattenStrategy.concat) // change to FlattenStrategy.merge if we want to allow concurrent upload of part files
     }
   }
+
 }
