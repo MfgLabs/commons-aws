@@ -2,7 +2,7 @@
 
 [Scaladoc](http://mfglabs.github.io/commons-aws/api/current/)
 
-> Current stable version is `"com.mfglabs" %% "commons-aws" % "0.1"`
+> Current stable version is `"com.mfglabs" %% "commons-aws" % "0.3-SNAPSHOT"`
 
 
 It enhances default AWS `AmazonS3Client` for Scala :
@@ -30,7 +30,7 @@ resolvers ++= Seq(
 
 libraryDependencies ++= Seq(
 ...
-  "com.mfglabs" %% "commons-aws" % "0.2-SNAPSHOT"
+  "com.mfglabs" %% "commons-aws" % "0.3-SNAPSHOT"
 ...
 )
 
@@ -105,7 +105,7 @@ It provides several utils to integrate AWS services with postgresql.
 Add in your build.sbt:
 ```scala
 libraryDependencies ++= Seq(
-  "com.mfglabs" %% "commons-aws-postgres" % "0.1-SNAPSHOT"
+  "com.mfglabs" %% "commons-aws-postgres" % "0.3-SNAPSHOT"
 )
 ```
 
