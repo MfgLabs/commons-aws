@@ -200,7 +200,7 @@ package object `s3` {
         client.initiateMultipartUpload(new InitiateMultipartUploadRequest(bucket, key)).map(_.getUploadId)
 
       Flow[ByteString]
-        .via(MFGFlow.rechunkByteString(uploadChunkSize))
+        .via(MFGFlow.rechunkByteStringBySize(uploadChunkSize))
         .via(MFGFlow.zipWithConstantLazyAsync(initiateUpload(bucket, key)))
         .via(MFGFlow.zipWithIndex)
         .via(

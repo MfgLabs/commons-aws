@@ -27,7 +27,6 @@ class S3Spec extends FlatSpec with Matchers with ScalaFutures {
   val bucket = "mfg-commons-aws"
   val keyPrefix = "test/core"
   val multipartkeyPrefix = "test/multipart-upload-core"
-  val resDir = "core/src/test/resources"
 
   implicit override val patienceConfig =
     PatienceConfig(timeout = Span(3, Minutes), interval = Span(20, Millis))
@@ -46,7 +45,7 @@ class S3Spec extends FlatSpec with Matchers with ScalaFutures {
     whenReady(
       for {
         _ <- S3.deleteFiles(bucket, s"$keyPrefix")
-        _ <- S3.uploadFile(bucket, s"$keyPrefix/small.txt", new java.io.File(s"$resDir/small.txt"))
+        _ <- S3.uploadFile(bucket, s"$keyPrefix/small.txt", new java.io.File(getClass.getResource("/small.txt").getPath))
         l <- S3.listFiles(bucket, Some(keyPrefix))
         _ <- S3.deleteFile(bucket, s"$keyPrefix/small.txt")
         l2 <- S3.listFiles(bucket, Some(keyPrefix))
@@ -59,14 +58,15 @@ class S3Spec extends FlatSpec with Matchers with ScalaFutures {
 
   it should "upload and download a big file as a single file" in {
     val futBytes = MFGSource
-      .fromFile(new java.io.File(s"$resDir/big.txt"))
+      .fromFile(new java.io.File(getClass.getResource("/big.txt").getPath))
       .via(S3.uploadStreamAsFile(bucket, s"$keyPrefix/big", chunkUploadConcurrency = 2))
       .map(_ => S3.getFileAsStream(bucket, s"$keyPrefix/big"))
       .flatten(FlattenStrategy.concat)
       .runFold(ByteString.empty)(_ ++ _)
       .map(_.compact)
 
-    val expectedBytes = MFGSource.fromFile(new java.io.File(s"$resDir/big.txt")).runFold(ByteString.empty)(_ ++ _).map(_.compact)
+    val expectedBytes = MFGSource.fromFile(new java.io.File(getClass.getResource("/big.txt").getPath))
+      .runFold(ByteString.empty)(_ ++ _).map(_.compact)
 
     whenReady(futBytes zip expectedBytes) { case (bytes, expectedBytes) =>
       bytes shouldEqual expectedBytes
@@ -75,12 +75,13 @@ class S3Spec extends FlatSpec with Matchers with ScalaFutures {
 
   it should "download a big file and chunk it by line" in {
     val futLines = S3.getFileAsStream(bucket, s"$keyPrefix/big")
-      .via(MFGFlow.rechunkByteString(2 * 1024 * 1024))
-      .via(MFGFlow.byteStringToLines(separator = "\n"))
+      .via(MFGFlow.rechunkByteStringBySize(2 * 1024 * 1024))
+      .via(MFGFlow.rechunkByteStringBySeparator())
+      .map(_.utf8String)
       .runWith(MFGSink.collect)
 
     val futExpectedLines =
-      MFGSource.fromFile(new File(s"$resDir/big.txt"))
+      MFGSource.fromFile(new java.io.File(getClass.getResource("/big.txt").getPath))
         .runFold(ByteString.empty)(_ ++ _)
         .map(_.compact.utf8String)
         .map(_.split("\n").to[scala.collection.immutable.Seq])
@@ -93,7 +94,7 @@ class S3Spec extends FlatSpec with Matchers with ScalaFutures {
 
   it should "upload and download a big file as a multipart file" in {
     val futBytes = MFGSource
-      .fromFile(new java.io.File(s"$resDir/big.txt"), maxChunkSize = 2 * 1024 * 1024)
+      .fromFile(new java.io.File(getClass.getResource("/big.txt").getPath), maxChunkSize = 2 * 1024 * 1024)
       .via(S3.uploadStreamAsMultipartFile(bucket, s"$keyPrefix/big", nbChunkPerFile = 1, chunkUploadConcurrency = 2))
       .via(MFGFlow.fold[CompleteMultipartUploadResult, Vector[CompleteMultipartUploadResult]](Vector.empty)(_ :+ _))
       .map(_ => S3.getMultipartFileAsStream(bucket, s"$keyPrefix/big.part"))
@@ -101,7 +102,8 @@ class S3Spec extends FlatSpec with Matchers with ScalaFutures {
       .runFold(ByteString.empty)(_ ++ _)
       .map(_.compact)
 
-   val futExpectedBytes = MFGSource.fromFile(new java.io.File(s"$resDir/big.txt")).runFold(ByteString.empty)(_ ++ _).map(_.compact)
+   val futExpectedBytes = MFGSource.fromFile(new java.io.File(getClass.getResource("/big.txt").getPath))
+     .runFold(ByteString.empty)(_ ++ _).map(_.compact)
 
     whenReady(futBytes zip futExpectedBytes) { case (bytes, expectedBytes) =>
       bytes shouldEqual expectedBytes

@@ -17,16 +17,6 @@ import com.amazonaws.internal.StaticCredentialsProvider
 import com.amazonaws.services.s3._
 import com.amazonaws.services.s3.model._
 
-// class S3ThreadFactory extends ThreadFactory {
-//   private val count = new AtomicLong(0L)
-//   private val backingThreadFactory: ThreadFactory = Executors.defaultThreadFactory()
-//   override def newThread(r: Runnable): Thread = {
-//     val thread = backingThreadFactory.newThread(r)
-//     thread.setName(s"aws.wrap.s3-${count.getAndIncrement()}")
-//     thread
-//   }
-// }
-
 /** Nastily hiding Pellucid client behind an MFG structure */
 class AmazonS3Client(
     awsCredentialsProvider: AWSCredentialsProvider,

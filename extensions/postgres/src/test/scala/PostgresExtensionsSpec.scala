@@ -1,12 +1,15 @@
-
-
 package com.mfglabs.commons.aws
 
+import java.io.File
 import java.sql.{Connection, DriverManager}
+import java.util.concurrent.atomic.AtomicLong
 
 import akka.actor.ActorSystem
-import akka.stream.FlowMaterializer
+import akka.stream._
+import akka.stream.scaladsl._
+import akka.util.ByteString
 import com.mfglabs.commons.aws.commons.DockerTmpDB
+import com.mfglabs.commons.stream.{MFGSink, ExecutionContextForBlockingOps, MFGFlow, MFGSource}
 import org.scalatest.time._
 import collection.mutable.Stack
 import org.scalatest._
@@ -19,38 +22,30 @@ import scala.concurrent.Future
 
 class PostgresExtensionsSpec extends FlatSpec with Matchers with ScalaFutures with BeforeAndAfterAll with DockerTmpDB {
 
-  import s3._
   import extensions.postgres._
-  import scala.concurrent.ExecutionContext.Implicits.global
 
   val bucket = "mfg-commons-aws"
 
   val keyPrefix = "test/extensions/postgres"
 
-  val resDir = "extensions/postgres/src/test/resources"
-
   implicit val as = ActorSystem()
-  implicit val fm = FlowMaterializer()
+  implicit val fm = ActorFlowMaterializer()
   implicit override val patienceConfig =
     PatienceConfig(timeout = Span(5, Minutes), interval = Span(5, Millis))
 
   Class.forName("org.postgresql.Driver")
-  val S3 = new s3.AmazonS3Client()
-  val pg = new PostgresExtensions(S3)
+  val pg = PgStream()
 
-  it should "stream a S3 multipart file to postgres" in {
-    implicit val pgConn = pg.sqlConnAsPgConnUnsafe(conn)
-
-    // create table
+  "PgStream" should "stream a file to a postgres table and stream a query from a postgre table" in {
     val stmt = conn.createStatement()
+    implicit val pgConn = pg.sqlConnAsPgConnUnsafe(conn)
+    import scala.concurrent.ExecutionContext.Implicits.global
+    implicit val blockingEc = ExecutionContextForBlockingOps(scala.concurrent.ExecutionContext.Implicits.global)
+
     stmt.execute(
       s"""
-         drop table if exists test_postgres_aws_s3
-       """
-    )
-    stmt.execute(
-      s"""
-         create table test_postgres_aws_s3(
+         create table public.test_postgres_aws_s3(
+          id serial primary key,
           io_id integer,
           dsp_name text,
           advertiser_id integer,
@@ -68,30 +63,44 @@ class PostgresExtensionsSpec extends FlatSpec with Matchers with ScalaFutures wi
        """
     )
 
-    whenReady(
-      for {
-      //        _ <- S3.uploadStream(bucket, s"$keyPrefix/report.csv0000_part_00",
-      //                        Enumerator.fromFile(new java.io.File(s"$resDir/report.csv0000_part_00")))
-      //        _ <- S3.uploadStream(bucket, s"$keyPrefix/report.csv0001_part_00",
-      //                        Enumerator.fromFile(new java.io.File(s"$resDir/report.csv0001_part_00")))
-      //        _ <- S3.uploadStream(bucket, s"$keyPrefix/report.csv0002_part_00",
-      //                        Enumerator.fromFile(new java.io.File(s"$resDir/report.csv0002_part_00")))
-      //        _ <- S3.uploadStream(bucket, s"$keyPrefix/report.csv0003_part_00",
-      //                          Enumerator.fromFile(new java.io.File(s"$resDir/report.csv0003_part_00")))
-        leftString <- pg.streamS3MultipartFileToTable(bucket, s"$keyPrefix/report.csv", Table("public", "test_postgres_aws_s3"))
-      //        _ <- S3.deleteFile(bucket, s"$keyPrefix/report.csv0000_part_00")
-      //        _ <- S3.deleteFile(bucket, s"$keyPrefix/report.csv0001_part_00")
-      //        _ <- S3.deleteFile(bucket, s"$keyPrefix/report.csv0002_part_00")
-      //        _ <- S3.deleteFile(bucket, s"$keyPrefix/report.csv0003_part_00")
-      } yield leftString
-    ) { leftString =>
-      val rs = stmt.executeQuery("select count(*) from test_postgres_aws_s3")
-      rs.next()
-      rs.getInt(1) should equal(1150907) // number of lines
-      leftString should equal({})
+    val insertTable = "test_postgres_aws_s3(io_id, dsp_name, advertiser_id, campaign_id, strategy_id, day, impressions, " +
+      "clicks, post_view_conversions, post_click_conversions, media_cost, total_ad_cost, total_cost)"
+
+    val nbLinesInserted = new AtomicLong(0L)
+
+    val futLines = MFGSource
+      .fromFile(new File(getClass.getResource("/report.csv0000_part_00").getPath), maxChunkSize = 5 * 1024 * 1024)
+      .via(MFGFlow.rechunkByteStringBySeparator())
+      .via(pg.insertStreamToTable("public", insertTable, chunkInsertionConcurrency = 2))
+      .via(MFGFlow.fold(0L)(_ + _))
+      .map { total =>
+        nbLinesInserted.set(total)
+        pg.getQueryResultAsStream("select * from public.test_postgres_aws_s3 order by id")
+      }
+      .flatten(FlattenStrategy.concat)
+      .via(MFGFlow.rechunkByteStringBySize(5 * 1024 * 1024))
+      .via(MFGFlow.rechunkByteStringBySeparator())
+      .map(_.utf8String)
+      .runWith(MFGSink.collect)
+
+    val futExpectedLines = MFGSource
+      .fromFile(new File(getClass.getResource("/report.csv0000_part_00").getPath), maxChunkSize = 5 * 1024 * 1024)
+      .via(MFGFlow.rechunkByteStringBySeparator())
+      .map(_.utf8String)
+      .runWith(MFGSink.collect)
+
+    whenReady(futLines zip futExpectedLines) { case (lines, expectedLines) =>
+      lines.length shouldEqual expectedLines.length
+      lines.length shouldEqual nbLinesInserted.get
+
+      lines.zip(expectedLines).foreach { case (line, expectedLine) =>
+        line.split(",")(1) shouldEqual expectedLine.split(",")(0) // comparing io_id
+      }
+
+      stmt.close()
     }
 
-    stmt.close()
+
   }
 }
 
