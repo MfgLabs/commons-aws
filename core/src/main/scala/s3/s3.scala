@@ -1,11 +1,14 @@
 package com.mfglabs.commons.aws
 package s3
 
+import akka.actor.ActorSystem
+import akka.stream.{FlowMaterializer, ActorFlowMaterializer}
+import com.mfglabs.commons.stream.ExecutionContextForBlockingOps
+
 import scala.concurrent.{ExecutionContext, Future, Promise}
 import scala.util.Try
 
 import java.util.concurrent.{Executors, ExecutorService, LinkedBlockingQueue, ThreadFactory, ThreadPoolExecutor, TimeUnit}
-import java.util.concurrent.atomic.AtomicLong
 
 import com.amazonaws.auth.{AWSCredentials, AWSCredentialsProvider, DefaultAWSCredentialsProviderChain}
 import com.amazonaws.{AmazonWebServiceRequest, ClientConfiguration}
@@ -13,16 +16,6 @@ import com.amazonaws.internal.StaticCredentialsProvider
 
 import com.amazonaws.services.s3._
 import com.amazonaws.services.s3.model._
-
-// class S3ThreadFactory extends ThreadFactory {
-//   private val count = new AtomicLong(0L)
-//   private val backingThreadFactory: ThreadFactory = Executors.defaultThreadFactory()
-//   override def newThread(r: Runnable): Thread = {
-//     val thread = backingThreadFactory.newThread(r)
-//     thread.setName(s"aws.wrap.s3-${count.getAndIncrement()}")
-//     thread
-//   }
-// }
 
 /** Nastily hiding Pellucid client behind an MFG structure */
 class AmazonS3Client(
@@ -35,7 +28,10 @@ class AmazonS3Client(
   executorService
 ) {
 
-  implicit val executionContext = ExecutionContext.fromExecutorService(executorService)
+  implicit val ecForBlockingOps = ExecutionContextForBlockingOps(ExecutionContext.fromExecutorService(executorService))
+  implicit val ec = ecForBlockingOps.value
+  implicit val system = ActorSystem("com-mfglabs-commons-aws-s3")
+  implicit val fm: FlowMaterializer = ActorFlowMaterializer()
 
   /**
     * make a client from a credentials provider, a config, and a default executor service.
@@ -95,8 +91,6 @@ class AmazonS3Client(
     *
     * @param awsCredentials
     *     AWS credentials.
-    * @param clientConfiguration
-    *     a client configuration.
     * @param executorService
     *     an executor service for synchronous calls to the underlying AmazonS3Client.
     */

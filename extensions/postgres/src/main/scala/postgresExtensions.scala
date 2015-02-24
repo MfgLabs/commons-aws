@@ -1,92 +1,80 @@
 package com.mfglabs.commons.aws
 package extensions.postgres
 
-import java.io.{PipedInputStream, PipedOutputStream, OutputStream, StringReader}
-import java.util.zip
+import java.io._
 
-import com.mfglabs.commons.aws.extensions.postgres.PostgresExtensions.PGCopyable
-import com.mfglabs.commons.aws.s3.AmazonS3Client
-import com.mfglabs.commons.aws.s3._
+import akka.actor.ActorSystem
+import akka.stream._
+import akka.stream.scaladsl._
+import akka.util.ByteString
+import com.mfglabs.commons.stream.{ExecutionContextForBlockingOps, MFGSource, MFGFlow}
 import org.postgresql.PGConnection
-import play.api.libs.iteratee._
 import scala.concurrent._
 import java.sql.{ Connection, DriverManager }
-object PostgresExtensions {
-  sealed trait PGCopyable {def copyStr : String}
-  case class Table(schema :String, table:String) extends PGCopyable{
-    def copyStr = s"$schema.$table"
-  }
-  case class Query(str:String) extends PGCopyable{
-    def copyStr = "(" + str + ")"
-  }
-}
-class PostgresExtensions(s3: AmazonS3Client) {
-  import s3.executionContext
 
-  /** Stream a multipart S3 file to a postgre db
-   *
-   * @param s3bucket
-   * @param s3path
-   * @param dbSchema
-   * @param dbTableName
-   * @param chunkSize
-   * @return remaining string if the stream does not end with a '\n'
-   */
-  def streamMultipartFileFromS3(s3bucket: String, s3path: String, dbSchema: String, dbTableName: String,
-                                delimiter: String = ",", chunkSize: Int = 5 * 1024 * 1024)
-                               (implicit sqlConnection: Connection): Future[String] = {
-    val cpManager = sqlConnection.asInstanceOf[PGConnection].getCopyAPI()
+import scala.util.{Failure, Try, Success}
 
-    val s3stream = s3.getStreamMultipartFile(s3bucket, s3path, chunkSize)
-
-    val dbSink = Iteratee.foldM[Array[Byte], String]("") { case (remaining, nextChunk) =>
-      val currentChunk = remaining ++ nextChunk.map(_.toChar).mkString
-      val (toInsert, newRemaining) = currentChunk.splitAt(currentChunk.lastIndexOf('\n'))
-
-      Future {
-        cpManager.copyIn(s"COPY $dbSchema.$dbTableName FROM STDIN WITH DELIMITER '$delimiter'", new StringReader(toInsert))
-      }.map(_ => if (newRemaining.head == '\n') newRemaining.tail else newRemaining)
-    }
-
-    s3stream |>>> dbSink
-  }
-
-  import com.mfglabs.commons.aws.s3.AmazonS3Client
-  import com.mfglabs.commons.aws.s3._
-  import scala.concurrent.ExecutionContext.Implicits.global
-
+trait PgStream { // TODO: Put outside common-aws !
   /**
-   * dump a table or a query result as a CSV to S3
-   * @param outputStreamTransformer inputStream transformation. (uncompress through a InflaterInputStream for instance).
-   * @param tableOrQuery table name + schema or sql query
-   * @param delimiter for the resulting CSV
-   * @param bucket
-   * @param key
-   * @param conn
-   * @return a successful future of the uploaded number of chunks (or a failure)
+   * Get a postgres table as a stream source (each line is separated with '\n')
    */
-  def copyToS3(outputStreamTransformer : OutputStream => OutputStream)
-              (tableOrQuery : PGCopyable, delimiter : String, bucket : String, key : String, chunkSize: Int = 81920)(implicit conn : PGConnection)
-  : Future[Int] = {
+  def getQueryResultAsStream(sqlQuery: String, delimiter: String = ",", outputStreamTransformer : OutputStream => OutputStream = identity)
+                      (implicit conn: PGConnection, ec: ExecutionContextForBlockingOps): Source[ByteString] = {
     val copyManager = conn.getCopyAPI()
     val os = new PipedOutputStream()
     val is = new PipedInputStream(os)
     val tos = outputStreamTransformer(os)
+
+    val p = Promise[ByteString]
+    val errorStream = Source(p.future) // hack to fail the stream if error in copyOut
+
     Future {
-      copyManager.copyOut(s"COPY ${tableOrQuery.copyStr} TO STDOUT DELIMITER E'$delimiter'", tos)
-      tos.close()
-    }
-    val en = Enumerator.fromStream(is,chunkSize)
-    s3.uploadStream(bucket, key, en)
+      Try(copyManager.copyOut(s"COPY ($sqlQuery) TO STDOUT DELIMITER E'$delimiter'", tos)) match {
+        case Success(_) =>
+          p.success(ByteString.empty)
+          tos.close()
+          os.close()
+        case Failure(err) =>
+          p.failure(err)
+          tos.close()
+          os.close()
+      }
+    }(ec.value)
+
+    Source.concat(MFGSource.fromStream(is), errorStream)
   }
 
-  def copyToS3AsFlatFile(tableOrQuery : PGCopyable , delimiter : String, bucket : String, key : String)(implicit conn : PGConnection) =
-    copyToS3(identity)(tableOrQuery,delimiter,bucket,key)
+  /**
+   * Inserts a stream as a postgres table (one chunk will correspond to one line).
+   * Insertion order is guaranteed even with chunkInsertionConcurrency > 1
+   * @return a stream of number of inserted lines by chunk
+   * @param schema
+   * @param table can be table_name or table_name(column1, column2) to insert data in specific columns
+   * @param delimiter
+   * @param insertChunkSize
+   * @param chunkInsertionConcurrency
+   * @param conn
+   * @param ec
+   * @return
+   */
+  def insertStreamToTable(schema: String, table: String, delimiter: String = ",", insertChunkSize: Int = 1 * 1024 * 1024,
+                          chunkInsertionConcurrency: Int = 1)
+                         (implicit conn: PGConnection, ec: ExecutionContextForBlockingOps): Flow[ByteString, Long] = {
+    val copyManager = conn.getCopyAPI()
+    Flow[ByteString]
+      .map(_.utf8String)
+      .grouped(insertChunkSize)
+      .via(MFGFlow.mapAsyncWithBoundedConcurrency(chunkInsertionConcurrency) { chunk =>
+        val query = s"COPY ${schema}.${table} FROM STDIN WITH DELIMITER '$delimiter'"
+        Future {
+          copyManager.copyIn(query, new StringReader(chunk.mkString("\n")))
+        }(ec.value)
+      })
+  }
 
-  def copyToS3AsGzip(tableOrQuery : PGCopyable, delimiter : String, bucket : String, key : String)(implicit conn : PGConnection) =
-    copyToS3(x => {
-      new zip.GZIPOutputStream(x)
-    })(tableOrQuery,delimiter,bucket,key)
+  def sqlConnAsPgConnUnsafe(conn: Connection) = conn.asInstanceOf[PGConnection]
+}
 
-
+object PgStream {
+  def apply(): PgStream = new PgStream {}
 }

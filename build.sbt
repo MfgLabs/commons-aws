@@ -2,16 +2,18 @@ import sbtunidoc.Plugin._
 
 organization in ThisBuild := "com.mfglabs"
 
-scalaVersion in ThisBuild := "2.11.2"
+scalaVersion in ThisBuild := "2.11.5"
 
-version in ThisBuild := "0.2-SNAPSHOT"
+version in ThisBuild := "0.3-SNAPSHOT"
 
 resolvers in ThisBuild ++= Seq(
-	  "Pellucid Deps" at "http://dl.bintray.com/content/pellucid/maven"
-  , "Typesafe repository" at "http://repo.typesafe.com/typesafe/releases/"
+	"Pellucid Deps" at "http://dl.bintray.com/content/pellucid/maven",
+  "Typesafe repository" at "http://repo.typesafe.com/typesafe/releases/",
+  "MFG releases" at "s3://mfg-mvn-repo/releases",
+  "MFG snapshots" at "s3://mfg-mvn-repo/snapshots"
 )
 
-scalacOptions in ThisBuild ++= Seq("-feature", "-deprecation", "-unchecked")
+scalacOptions in ThisBuild ++= Seq("-feature", "-deprecation", "-unchecked", "-language:postfixOps")
 
 publishTo in ThisBuild := {
   val s3Repo = "s3://mfg-mvn-repo"
@@ -38,10 +40,10 @@ lazy val core = project.in(file("core"))
   .settings   (
     name := "commons-aws",
     libraryDependencies ++= Seq(
-        Dependencies.Compile.awsJavaSDK
-      , Dependencies.Compile.pellucidAwsWrap
-      , Dependencies.Compile.playIteratees
-      , Dependencies.Test.scalaTest
+      Dependencies.Compile.awsJavaSDK,
+      Dependencies.Compile.pellucidAwsWrap,
+      Dependencies.Compile.commonsStream,
+      Dependencies.Test.scalaTest
     )
   )
 
