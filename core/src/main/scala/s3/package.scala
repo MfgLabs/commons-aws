@@ -12,7 +12,7 @@ package com.mfglabs.commons.aws
  *
  *   val fileStream: Source[ByteString] = builder.getFileAsStream(bucket, key)
  *
- *   val ops = new builder.Ops() // contains materialized methods on top of S3Stream.
+ *   val ops = new builder.MaterializedOps() // contains materialized methods on top of S3Stream.
  *                                 // you can optionnaly provide your own FlowMaterializer in Ops() constructor
  *
  *   val file: Future[ByteString] = ops.getFile(bucket, key)
