@@ -1,21 +1,17 @@
-## MFG Commons AWS Scala API
+# MFG Commons AWS Scala API
 
 [Scaladoc](http://mfglabs.github.io/commons-aws/api/current/)
 
 > Current stable version is `"com.mfglabs" %% "commons-aws" % "0.3-SNAPSHOT"`
 
+Asynchronous Scala client for common AWS services on top of the [Opensource Pellucid wrapper](https://github.com/pellucidanalytics/aws-wrap)
+. When possible, clients expose methods that return Akka Stream's Sources / Flows / Sinks to provide streaming facilities.
 
-It enhances default AWS `AmazonS3Client` for Scala :
-  - asynchronous/non-blocking wrapper using an external pool of threads managed internally.
-  - Some custom extensions:
-      - S3 to Postgres streaming facilities based on Play Iteratees
-      - Cloudwatch heartbeat metric + alarm to provide simple server health monitoring.
-
-> It is based on [Opensource Pellucid wrapper](https://github.com/pellucidanalytics/aws-wrap).
+Clients use a pool of threads managed internally and optimized for blocking IO operations.
 
 <br/>
 <br/>
-## Common
+## Commons
 
 To use rich MFGLabs AWS wrapper, you just have to add the following to your `build.sbt` (plus the classic `~/.sbt/.s3credentials`):
 
@@ -23,7 +19,6 @@ To use rich MFGLabs AWS wrapper, you just have to add the following to your `bui
 resolvers ++= Seq(
   "MFG releases" at "s3://mfg-mvn-repo/releases",
   "MFG snapshots" at "s3://mfg-mvn-repo/snapshots",
-  "MFG thirdparty" at "s3://mfg-mvn-repo/thirdparty",
   "Pellucid public" at "http://dl.bintray.com/content/pellucid/maven"
 )
 
@@ -40,23 +35,22 @@ For now, it proposes out-of-the-box the following services:
 
 <br/>
 <br/>
-## S3
+### S3
 
 In your code:
 
 ```scala
-import com.mfglabs.commons.aws.s3
-import s3._ // brings implicit extensions
+import com.mfglabs.commons.aws.s3._
 
-// Create the client
-val S3 = new AmazonS3Client()
-// Use it
-for {
-  _   <- S3.uploadStream(bucket, "big.txt", Enumerator.fromFile(new java.io.File(s"big.txt")))
-  l   <- S3.listFiles(bucket)
-  _   <- S3.deleteFile(bucket, "big.txt")
-  l2  <- S3.listFiles(bucket)
-} yield (l, l2)
+val builder = S3StreamBuilder(new AmazonS3AsyncClient()) // contains un-materialized composable Source / Flow / Sink
+
+val fileStream: Source[ByteString] = builder.getFileAsStream(bucket, key)
+
+val ops = new builder.MaterializedOps() // contains materialized methods on top of S3Stream.
+                                        // you can optionnaly provide your own FlowMaterializer in Ops() constructor
+
+val file: Future[ByteString] = ops.getFile(bucket, key)
+val deletedFile: Future[Unit] = ops.deleteFile(bucket, key)
 ```
 
 Please remark that you don't need any implicit `scala.concurrent.ExecutionContext` as it's directly provided
@@ -67,7 +61,7 @@ There are also smart `AmazonS3Client` constructors that can be provided with cus
 
 <br/>
 <br/>
-## Cloudwatch
+### Cloudwatch
 
 In your code:
 
@@ -93,40 +87,9 @@ There are also smart `AmazonCloudwatchClient` constructors that can be provided 
 
 <br/>
 <br/>
+
 ## Extensions
 
-
-<br/>
-<br/>
-### Postgres extensions
-
-It provides several utils to integrate AWS services with postgresql.
-
-Add in your build.sbt:
-```scala
-libraryDependencies ++= Seq(
-  "com.mfglabs" %% "commons-aws-postgres" % "0.3-SNAPSHOT"
-)
-```
-
-You can for instance stream a multipart file from S3 directly to a postgres table:
-```scala
-val pgConnection = PostgresConnectionInfo("jdbc:postgresql:metadsp", "atamborrino", "password")
-val S3 = new s3.AmazonS3Client()
-val pg = new PostgresExtensions(pgConnection, S3)
-
-val s3bucket = "mfg-test"
-val s3path = "report.csv" // will stream sequentially report.csv.part0001, report.csv.part0002, ...
-
-pg.streamMultipartFileFromS3(s3bucket, s3path, dbSchema = "public", dbTableName = "test_postgres_aws_s3")
-```
-
-#### Testing
-You must have Docker installed (via boot2docker if you're using OSX) to run the tests (as a Postgres table is launched in a docker container
-to perform the tests).
-
-<br/>
-<br/>
 ### Cloudwatch heartbeat
 
 It provides a simple mechanism that sends periodically a heartbeat metric to AWS Cloudwatch.
