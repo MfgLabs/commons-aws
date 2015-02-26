@@ -14,7 +14,7 @@ import com.amazonaws.ClientConfiguration
 import com.amazonaws.auth.AWSCredentialsProvider
 import com.amazonaws.services.sqs.{AmazonSQSAsyncClient, AmazonSQSClient}
 import com.amazonaws.services.sqs.model.{ReceiveMessageRequest, Message}
-import com.mfglabs.commons.stream.MFGSource
+import com.mfglabs.stream._
 import scala.annotation.tailrec
 import scala.concurrent.{Future, ExecutionContext}
 import scala.concurrent.ExecutionContext.Implicits.global
@@ -30,6 +30,6 @@ object MFGSQS {
   }
 
   def source(sqsC : AmazonSQSClient,sqsUrl : String)(implicit executor: ExecutionContext) : Source[Message] =
-    MFGSource.bulkPullerAsync[Message](0)(receiveAndEmit(sqsC,sqsUrl,executor))
+    SourceExt.bulkPullerAsync[Message](0)(receiveAndEmit(sqsC,sqsUrl,executor))
 
 }
