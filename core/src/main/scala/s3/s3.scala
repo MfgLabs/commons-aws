@@ -1,9 +1,7 @@
 package com.mfglabs.commons.aws
 package s3
 
-import akka.actor.ActorSystem
-import akka.stream.{FlowMaterializer, ActorFlowMaterializer}
-import com.mfglabs.commons.stream.ExecutionContextForBlockingOps
+import java.io.File
 
 import scala.concurrent.{ExecutionContext, Future, Promise}
 import scala.util.Try
@@ -17,10 +15,13 @@ import com.amazonaws.internal.StaticCredentialsProvider
 import com.amazonaws.services.s3._
 import com.amazonaws.services.s3.model._
 
-/** Nastily hiding Pellucid client behind an MFG structure */
-class AmazonS3Client(
-    awsCredentialsProvider: AWSCredentialsProvider,
-    clientConfiguration:    ClientConfiguration,
+/**
+  * Asynchronous S3 Scala client on top of Pellucid's one.
+  * Manage its own thread pool for blocking ops.
+  */
+class AmazonS3AsyncClient(
+    val awsCredentialsProvider: AWSCredentialsProvider,
+    val clientConfiguration:    ClientConfiguration,
     override val executorService: ExecutorService
 ) extends com.pellucid.wrap.s3.AmazonS3ScalaClient (
   awsCredentialsProvider,
@@ -28,10 +29,7 @@ class AmazonS3Client(
   executorService
 ) {
 
-  implicit val ecForBlockingOps = ExecutionContextForBlockingOps(ExecutionContext.fromExecutorService(executorService))
-  implicit val ec = ecForBlockingOps.value
-  implicit val system = ActorSystem("com-mfglabs-commons-aws-s3")
-  implicit val fm: FlowMaterializer = ActorFlowMaterializer()
+  implicit val ec = ExecutionContext.fromExecutorService(executorService)
 
   /**
     * make a client from a credentials provider, a config, and a default executor service.
@@ -143,7 +141,11 @@ class AmazonS3Client(
     p.future
   }
 
-  /** More mirrored functions added just for MFG */
+
+  /**
+   * Asynchronous methods
+   */
+
   def completeMultipartUpload(req: CompleteMultipartUploadRequest): Future[CompleteMultipartUploadResult] =
     wrapMethod[CompleteMultipartUploadRequest, CompleteMultipartUploadResult](client.completeMultipartUpload _, req)
 
@@ -170,6 +172,41 @@ class AmazonS3Client(
 
   def getObject(req: GetObjectRequest, destinationFile: java.io.File): Future[ObjectMetadata] =
     wrapMethod[GetObjectRequest, ObjectMetadata]({ req => client.getObject(req, destinationFile) }, req)
+
+  /** Upload file to bucket
+    *
+    * @param  bucket the bucket name
+    * @param  key the key of file into which it is uploaded
+    * @param  file the File from which to pump data
+    * @return a successful future of PutObjectResult (or a failure)
+    */
+  def uploadFile(bucket: String, key: String, file: File): Future[PutObjectResult] = {
+    val r = new PutObjectRequest(bucket, key, file)
+    r.setCannedAcl(CannedAccessControlList.PublicReadWrite)
+    putObject(r)
+  }
+
+  /** Delete file from bucket
+    *
+    * @param  bucket the bucket name
+    * @param  key the key of file to delete
+    * @return a successful future (no content) (or a failure)
+    */
+  def deleteFile(bucket: String, key: String): Future[Unit] = {
+    val r = new DeleteObjectRequest(bucket, key)
+    deleteObject(r)
+  }
+
+  def deleteFiles(bucket: String, commonPrefix: String): Future[Seq[Unit]] = {
+    import collection.JavaConversions._
+
+    listObjects(bucket, commonPrefix).flatMap { objListing =>
+      val allKeys = objListing.getObjectSummaries.listIterator().toList.map(_.getKey)
+      Future.sequence(allKeys.map { key =>
+        deleteFile(bucket, key)
+      })
+    }
+  }
 
 }
 

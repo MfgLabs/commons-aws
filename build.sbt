@@ -26,7 +26,7 @@ publishTo in ThisBuild := {
 publishMavenStyle in ThisBuild := true
 
 lazy val all = (project in file("."))
-  .aggregate  (core, postgresExtensions, cloudwatchHeartbeat)
+  .aggregate  (core, cloudwatchHeartbeat)
   .settings   (name := "commons-aws-all")
   .settings   (site.settings ++ ghpages.settings: _*)
   .settings   (
@@ -42,7 +42,7 @@ lazy val core = project.in(file("core"))
     libraryDependencies ++= Seq(
       Dependencies.Compile.awsJavaSDK,
       Dependencies.Compile.pellucidAwsWrap,
-      Dependencies.Compile.commonsStream,
+      Dependencies.Compile.akkaStreamExt,
       Dependencies.Test.scalaTest
     )
   )
@@ -51,19 +51,8 @@ lazy val core = project.in(file("core"))
 // EXTENSIONS GO HERE
 //
 
-
 // If you want to add an extension, put it in directory "extensions"
 // and add it to build as following.
-
-lazy val postgresExtensions = project.in(file("extensions/postgres"))
-  .dependsOn(core)
-  .settings(
-    name := "commons-aws-postgres",
-    libraryDependencies ++= Seq(
-      Dependencies.Compile.postgresDriver,
-      Dependencies.Test.scalaTest
-    )
-  )
 
 lazy val cloudwatchHeartbeat = project.in(file("extensions/cloudwatch-heartbeat"))
   .dependsOn(core)

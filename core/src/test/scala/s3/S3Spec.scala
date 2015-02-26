@@ -1,24 +1,14 @@
 package com.mfglabs.commons.aws
 package s3
 
-import java.io.File
-import java.nio.charset.Charset
-
-import akka.actor.ActorSystem
 import akka.stream.{FlattenStrategy, FlowMaterializer}
 import akka.stream.scaladsl.{FoldSink, Flow, Source}
 import akka.util.ByteString
 import com.amazonaws.services.s3.model.{CompleteMultipartUploadResult, DeleteObjectsRequest}
-import com.mfglabs.commons.stream.MFGSink
-import com.mfglabs.commons.stream.{MFGFlow, MFGSource}
-
-import collection.mutable.Stack
+import com.mfglabs.stream._
 import org.scalatest._
 import concurrent.ScalaFutures
 import org.scalatest.time.{Minutes, Millis, Seconds, Span}
-import scala.concurrent.Future
-import scala.concurrent.duration._
-import scala.collection.JavaConversions._
 
 class S3Spec extends FlatSpec with Matchers with ScalaFutures {
   import s3._
@@ -32,23 +22,20 @@ class S3Spec extends FlatSpec with Matchers with ScalaFutures {
     PatienceConfig(timeout = Span(3, Minutes), interval = Span(20, Millis))
 
   // val cred = new com.amazonaws.auth.BasicAWSCredentials("AWS_ACCESS_KEY_ID", "AWS_SECRET_ACCESS_KEY")
-  val S3 = new s3.AmazonS3Client()
+  val streamBuilder = S3StreamBuilder(new s3.AmazonS3AsyncClient())
+  val ops = new streamBuilder.Ops()
 
-  import S3.ecForBlockingOps
-  import S3.fm
-
-  "S3 client" should "accept default constructor" in {
-    whenReady(S3.getBucketLocation(bucket)) { s => s should equal("eu-west-1")}
-  }
+  import streamBuilder.ecForBlockingOps
+  import ops.fm
 
   it should "upload/list/delete small files" in {
     whenReady(
       for {
-        _ <- S3.deleteFiles(bucket, s"$keyPrefix")
-        _ <- S3.uploadFile(bucket, s"$keyPrefix/small.txt", new java.io.File(getClass.getResource("/small.txt").getPath))
-        l <- S3.listFiles(bucket, Some(keyPrefix))
-        _ <- S3.deleteFile(bucket, s"$keyPrefix/small.txt")
-        l2 <- S3.listFiles(bucket, Some(keyPrefix))
+        _ <- ops.deleteFiles(bucket, s"$keyPrefix")
+        _ <- ops.uploadFile(bucket, s"$keyPrefix/small.txt", new java.io.File(getClass.getResource("/small.txt").getPath))
+        l <- ops.listFiles(bucket, Some(keyPrefix))
+        _ <- ops.deleteFile(bucket, s"$keyPrefix/small.txt")
+        l2 <- ops.listFiles(bucket, Some(keyPrefix))
       } yield (l, l2)
     ) { case (l, l2) =>
       (l map (_._1)) should equal(List(s"$keyPrefix/small.txt"))
@@ -57,15 +44,15 @@ class S3Spec extends FlatSpec with Matchers with ScalaFutures {
   }
 
   it should "upload and download a big file as a single file" in {
-    val futBytes = MFGSource
+    val futBytes = SourceExt
       .fromFile(new java.io.File(getClass.getResource("/big.txt").getPath))
-      .via(S3.uploadStreamAsFile(bucket, s"$keyPrefix/big", chunkUploadConcurrency = 2))
-      .map(_ => S3.getFileAsStream(bucket, s"$keyPrefix/big"))
+      .via(streamBuilder.uploadStreamAsFile(bucket, s"$keyPrefix/big", chunkUploadConcurrency = 2))
+      .map(_ => streamBuilder.getFileAsStream(bucket, s"$keyPrefix/big"))
       .flatten(FlattenStrategy.concat)
       .runFold(ByteString.empty)(_ ++ _)
       .map(_.compact)
 
-    val expectedBytes = MFGSource.fromFile(new java.io.File(getClass.getResource("/big.txt").getPath))
+    val expectedBytes = SourceExt.fromFile(new java.io.File(getClass.getResource("/big.txt").getPath))
       .runFold(ByteString.empty)(_ ++ _).map(_.compact)
 
     whenReady(futBytes zip expectedBytes) { case (bytes, expectedBytes) =>
@@ -74,14 +61,14 @@ class S3Spec extends FlatSpec with Matchers with ScalaFutures {
   }
 
   it should "download a big file and chunk it by line" in {
-    val futLines = S3.getFileAsStream(bucket, s"$keyPrefix/big")
-      .via(MFGFlow.rechunkByteStringBySize(2 * 1024 * 1024))
-      .via(MFGFlow.rechunkByteStringBySeparator())
+    val futLines = streamBuilder.getFileAsStream(bucket, s"$keyPrefix/big")
+      .via(FlowExt.rechunkByteStringBySize(2 * 1024 * 1024))
+      .via(FlowExt.rechunkByteStringBySeparator())
       .map(_.utf8String)
-      .runWith(MFGSink.collect)
+      .runWith(SinkExt.collect)
 
     val futExpectedLines =
-      MFGSource.fromFile(new java.io.File(getClass.getResource("/big.txt").getPath))
+      SourceExt.fromFile(new java.io.File(getClass.getResource("/big.txt").getPath))
         .runFold(ByteString.empty)(_ ++ _)
         .map(_.compact.utf8String)
         .map(_.split("\n").to[scala.collection.immutable.Seq])
@@ -93,16 +80,16 @@ class S3Spec extends FlatSpec with Matchers with ScalaFutures {
 
 
   it should "upload and download a big file as a multipart file" in {
-    val futBytes = MFGSource
+    val futBytes = SourceExt
       .fromFile(new java.io.File(getClass.getResource("/big.txt").getPath), maxChunkSize = 2 * 1024 * 1024)
-      .via(S3.uploadStreamAsMultipartFile(bucket, s"$keyPrefix/big", nbChunkPerFile = 1, chunkUploadConcurrency = 2))
-      .via(MFGFlow.fold[CompleteMultipartUploadResult, Vector[CompleteMultipartUploadResult]](Vector.empty)(_ :+ _))
-      .map(_ => S3.getMultipartFileAsStream(bucket, s"$keyPrefix/big.part"))
+      .via(streamBuilder.uploadStreamAsMultipartFile(bucket, s"$keyPrefix/big", nbChunkPerFile = 1, chunkUploadConcurrency = 2))
+      .via(FlowExt.fold[CompleteMultipartUploadResult, Vector[CompleteMultipartUploadResult]](Vector.empty)(_ :+ _))
+      .map(_ => streamBuilder.getMultipartFileAsStream(bucket, s"$keyPrefix/big.part"))
       .flatten(FlattenStrategy.concat)
       .runFold(ByteString.empty)(_ ++ _)
       .map(_.compact)
 
-   val futExpectedBytes = MFGSource.fromFile(new java.io.File(getClass.getResource("/big.txt").getPath))
+   val futExpectedBytes = SourceExt.fromFile(new java.io.File(getClass.getResource("/big.txt").getPath))
      .runFold(ByteString.empty)(_ ++ _).map(_.compact)
 
     whenReady(futBytes zip futExpectedBytes) { case (bytes, expectedBytes) =>
