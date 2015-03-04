@@ -46,8 +46,7 @@ val builder = S3StreamBuilder(new AmazonS3AsyncClient()) // contains un-material
 
 val fileStream: Source[ByteString] = builder.getFileAsStream(bucket, key)
 
-val ops = new builder.MaterializedOps() // contains materialized methods on top of S3Stream.
-                                        // you can optionnaly provide your own FlowMaterializer in Ops() constructor
+val ops = new builder.MaterializedOps(flowMaterializer) // contains materialized methods on top of S3Stream
 
 val file: Future[ByteString] = ops.getFile(bucket, key)
 val deletedFile: Future[Unit] = ops.deleteFile(bucket, key)
