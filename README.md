@@ -73,7 +73,15 @@ import com.mfglabs.commons.aws.sqs._
 val sqs = new AmazonSQSScalaClient(new AmazonSQSAsyncClient(), ec)
 val builder = SQSStreamBuilder(sqs)
 
-val sender: Flow[String, SendMessageResult] = builder.sendMessageAsStream(queueUrl)
+val sender: Flow[String, SendMessageResult] =
+  Flow[String].map { body =>
+    val req = new SendMessageRequest()
+    req.setMessageBody(body)
+    req.setQueueUrl(queueUrl)
+    req
+  }
+  .via(builder.sendMessageAsStream)
+
 val receiver: Source[Message] = builder.receiveMessageAsStream(queueUrl, autoAck = true)
 ```
 
