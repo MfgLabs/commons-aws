@@ -1,3 +1,4 @@
+package com.mfglabs.commons.aws
 package sqs
 
 import akka.actor._

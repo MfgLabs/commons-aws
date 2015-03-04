@@ -1,4 +1,5 @@
 package com.mfglabs.commons.aws
+package sqs
 
 import akka.actor._
 import akka.stream._
@@ -7,17 +8,14 @@ import akka.stream.scaladsl._
 import com.amazonaws.auth.{BasicAWSCredentials, AWSCredentials, AWSCredentialsProvider}
 import com.amazonaws.auth.profile.ProfileCredentialsProvider
 import com.amazonaws.regions.{Regions, Region}
-import com.amazonaws.services.sqs.{AmazonSQSAsyncClient, AmazonSQSClient}
+import com.amazonaws.services.sqs.AmazonSQSAsyncClient
 import com.amazonaws.services.sqs.model.{Message, CreateQueueRequest}
-import com.mfglabs.commons.stream.MFGSink
 import com.mfglabs.stream.{FlowExt, SinkExt}
 import com.pellucid.wrap.sqs.AmazonSQSScalaClient
-import org.apache.http.impl.client.BasicCredentialsProvider
 
 import org.scalatest.concurrent.{AsyncAssertions, ScalaFutures}
 import org.scalatest.time.{Seconds, Millis, Minutes, Span}
 import org.scalatest.{Matchers, FlatSpec}
-import sqs.SQSStreamBuilder
 
 import scala.concurrent._
 import scala.concurrent.duration._

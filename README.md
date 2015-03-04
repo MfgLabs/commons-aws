@@ -61,6 +61,23 @@ There are also smart `AmazonS3Client` constructors that can be provided with cus
 
 <br/>
 <br/>
+
+### SQS
+
+In your code:
+
+```scala
+import com.amazonaws.services.sqs.AmazonSQSAsyncClient 
+import com.pellucid.wrap.sqs.AmazonSQSScalaClient
+import com.mfglabs.commons.aws.sqs._
+
+val sqs = new AmazonSQSScalaClient(new AmazonSQSAsyncClient(), ec)
+val builder = SQSStreamBuilder(sqs)
+
+val sender: Flow[String, SendMessageResult] = builder.sendMessageAsStream(queueUrl)
+val receiver: Source[Message] = builder.receiveMessageAsStream(queueUrl, autoAck = true)
+```
+
 ### Cloudwatch
 
 In your code:
