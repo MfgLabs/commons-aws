@@ -1,7 +1,8 @@
 package com.mfglabs.commons.aws
 package s3
 
-import akka.stream.{FlattenStrategy, FlowMaterializer}
+import akka.actor.ActorSystem
+import akka.stream.{ActorFlowMaterializer, FlattenStrategy, FlowMaterializer}
 import akka.stream.scaladsl.{FoldSink, Flow, Source}
 import akka.util.ByteString
 import com.amazonaws.services.s3.model.{CompleteMultipartUploadResult, DeleteObjectsRequest}
@@ -21,12 +22,14 @@ class S3Spec extends FlatSpec with Matchers with ScalaFutures {
   implicit override val patienceConfig =
     PatienceConfig(timeout = Span(3, Minutes), interval = Span(20, Millis))
 
+  implicit val system = ActorSystem()
+  implicit val fm = ActorFlowMaterializer()
+
   // val cred = new com.amazonaws.auth.BasicAWSCredentials("AWS_ACCESS_KEY_ID", "AWS_SECRET_ACCESS_KEY")
   val streamBuilder = S3StreamBuilder(new s3.AmazonS3AsyncClient())
-  val ops = new streamBuilder.MaterializedOps()
+  val ops = new streamBuilder.MaterializedOps(fm)
 
   import streamBuilder.ecForBlockingOps
-  import ops.fm
 
   it should "upload/list/delete small files" in {
     whenReady(
