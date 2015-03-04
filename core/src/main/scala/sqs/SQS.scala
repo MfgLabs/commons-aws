@@ -21,11 +21,11 @@ trait SQSStreamBuilder {
 
   import sqs.execCtx
 
-  def sendMessageAsStream(queueUrl: String): Flow[String, SendMessageResult] = {
+  def sendMessageAsStream: Flow[SendMessageRequest, SendMessageResult] = {
     // note: SQS does not guarantee ordering with high-throughput,
     // so using FlowExt.mapAsyncWithOrderedSideEffect to try to guarantee ordering is useless
-    Flow[String].mapAsync { body =>
-      sqs.sendMessage(queueUrl, body)
+    Flow[SendMessageRequest].mapAsync { msg =>
+      sqs.sendMessage(msg)
     }
   }
 

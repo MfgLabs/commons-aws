@@ -9,7 +9,7 @@ import com.amazonaws.auth.{BasicAWSCredentials, AWSCredentials, AWSCredentialsPr
 import com.amazonaws.auth.profile.ProfileCredentialsProvider
 import com.amazonaws.regions.{Regions, Region}
 import com.amazonaws.services.sqs.AmazonSQSAsyncClient
-import com.amazonaws.services.sqs.model.{Message, CreateQueueRequest}
+import com.amazonaws.services.sqs.model.{SendMessageRequest, Message, CreateQueueRequest}
 import com.mfglabs.stream.{FlowExt, SinkExt}
 import com.pellucid.wrap.sqs.AmazonSQSScalaClient
 
@@ -48,7 +48,16 @@ class SQSSpec extends FlatSpec with Matchers with ScalaFutures {
     val queueUrl = sqs.createQueue(newQueueReq).futureValue.getQueueUrl
 
     val msgs = for (i <- 1 to 200) yield s"Message $i"
-    val futSent = Source(msgs).via(builder.sendMessageAsStream(queueUrl)).take(200).runWith(SinkExt.collect)
+    val futSent = Source(msgs)
+      .map { body =>
+        val req = new SendMessageRequest()
+        req.setMessageBody(body)
+        req.setQueueUrl(queueUrl)
+        req
+      }
+      .via(builder.sendMessageAsStream)
+      .take(200)
+      .runWith(SinkExt.collect)
     val futReceived = builder.receiveMessageAsStream(queueUrl, autoAck = true).take(200).runWith(SinkExt.collect)
 
     val (sent, received) = futSent.zip(futReceived).futureValue
