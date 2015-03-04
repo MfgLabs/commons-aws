@@ -6,7 +6,7 @@ import java.io.File
 import scala.concurrent.{ExecutionContext, Future, Promise}
 import scala.util.Try
 
-import java.util.concurrent.{Executors, ExecutorService, LinkedBlockingQueue, ThreadFactory, ThreadPoolExecutor, TimeUnit}
+import java.util.concurrent._
 
 import com.amazonaws.auth.{AWSCredentials, AWSCredentialsProvider, DefaultAWSCredentialsProviderChain}
 import com.amazonaws.{AmazonWebServiceRequest, ClientConfiguration}

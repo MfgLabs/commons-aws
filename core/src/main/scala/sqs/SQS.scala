@@ -1,35 +1,54 @@
+package com.mfglabs.commons.aws
 package sqs
 
-
-import java.io.InputStream
-import java.util.concurrent.ExecutorService
-
-import akka.actor.Status.Failure
-import akka.actor.{Props, ActorLogging, Stash}
-import akka.stream.actor.ActorPublisher
-import akka.stream.actor.ActorPublisherMessage.Cancel
-import akka.stream.actor.ActorPublisherMessage.Request
-import akka.stream.scaladsl.Source
-import com.amazonaws.ClientConfiguration
-import com.amazonaws.auth.AWSCredentialsProvider
+import akka.actor._
+import akka.stream._
+import akka.stream.scaladsl._
 import com.amazonaws.services.sqs.{AmazonSQSAsyncClient, AmazonSQSClient}
-import com.amazonaws.services.sqs.model.{ReceiveMessageRequest, Message}
+import com.amazonaws.services.sqs.model._
+import com.pellucid.wrap.sqs.AmazonSQSScalaClient
+import scala.concurrent._
+import scala.concurrent.duration._
+
 import com.mfglabs.stream._
-import scala.annotation.tailrec
-import scala.concurrent.{Future, ExecutionContext}
-import scala.concurrent.ExecutionContext.Implicits.global
-import scala.collection.JavaConversions._
 
+import scala.concurrent.duration.FiniteDuration
 
-object MFGSQS {
+trait SQSStreamBuilder {
+  import scala.collection.JavaConversions._
 
-  def receiveAndEmit(sqsC : AmazonSQSClient,sqsUrl:String,executor: ExecutionContext)(counter: Long, demand: Int) : Future[(Seq[Message],Boolean)] = {
-    val rcvMsgReq = new ReceiveMessageRequest(sqsUrl)
-    rcvMsgReq.setMaxNumberOfMessages(demand)
-    Future{(sqsC.receiveMessage(rcvMsgReq).getMessages().toList,false)}(executor) //TODO accepter un executionContext en parametre
+  val sqs: AmazonSQSScalaClient
+
+  import sqs.execCtx
+
+  def sendMessageAsStream: Flow[SendMessageRequest, SendMessageResult] = {
+    // note: SQS does not guarantee ordering with high-throughput,
+    // so using FlowExt.mapAsyncWithOrderedSideEffect to try to guarantee ordering is useless
+    Flow[SendMessageRequest].mapAsync { msg =>
+      sqs.sendMessage(msg)
+    }
   }
 
-  def source(sqsC : AmazonSQSClient,sqsUrl : String)(implicit executor: ExecutionContext) : Source[Message] =
-    SourceExt.bulkPullerAsync[Message](0)(receiveAndEmit(sqsC,sqsUrl,executor))
+  def receiveMessageAsStream(queueUrl: String, longPollingMaxWait: FiniteDuration = 20 seconds, autoAck: Boolean = false): Source[Message] = {
+    val source = SourceExt.bulkPullerAsync(0L) { (total, currentDemand) =>
+      val msg = new ReceiveMessageRequest(queueUrl)
+      msg.setWaitTimeSeconds(longPollingMaxWait.toSeconds.toInt) // > 0 seconds allow long-polling. 20 seconds is the maximum
+      msg.setMaxNumberOfMessages(Math.min(currentDemand, 10)) // 10 is SQS limit
 
+      sqs.receiveMessage(msg).map(res => (res.getMessages.toSeq, false))
+    }
+
+    if (autoAck)
+      source.mapAsync { msg =>
+        sqs.deleteMessage(queueUrl, msg.getReceiptHandle).map(_ => msg)
+      }
+    else source
+  }
+
+}
+
+object SQSStreamBuilder {
+  def apply(sqsClient: AmazonSQSScalaClient) = new SQSStreamBuilder {
+    override val sqs: AmazonSQSScalaClient = sqsClient
+  }
 }
