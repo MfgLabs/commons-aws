@@ -42,7 +42,7 @@ trait S3StreamBuilder {
 
   } // end Ops
 
-  def listFilesAsStream(bucket: String, path: Option[String] = None): Source[(String, Date)] = {
+  def listFilesAsStream(bucket: String, path: Option[String] = None): Source[(String, Date), Unit] = {
     import collection.JavaConversions._
 
     def getFirstListing: Future[ObjectListing] = path match {
@@ -73,7 +73,7 @@ trait S3StreamBuilder {
     * @param inputStreamTransform transformation function (for ZIP, GZIP decompression, ...)
     * @return an enumerator (stream) of the object
     */
-  def getFileAsStream(bucket: String, key: String, inputStreamTransform: InputStream => InputStream = identity): Source[ByteString] = {
+  def getFileAsStream(bucket: String, key: String, inputStreamTransform: InputStream => InputStream = identity): Source[ByteString, Unit] = {
     SourceExt.seededLazyAsync(client.getObject(bucket, key)) { o =>
       SourceExt.fromStream(inputStreamTransform(o.getObjectContent))
     }
@@ -88,7 +88,7 @@ trait S3StreamBuilder {
     * @param path the common path of the parts of the file
     * @return
     */
-  def getMultipartFileAsStream(bucket: String, path: String, inputStreamTransform: InputStream => InputStream = identity): Source[ByteString] = {
+  def getMultipartFileAsStream(bucket: String, path: String, inputStreamTransform: InputStream => InputStream = identity): Source[ByteString, Unit] = {
     listFilesAsStream(bucket, Some(path))
       .map { case (key, _) => getFileAsStream(bucket, key, inputStreamTransform) }
       .flatten(FlattenStrategy.concat)
@@ -102,7 +102,7 @@ trait S3StreamBuilder {
    * @param  key the key of file
    * @return a stream with only one element of type CompleteMultipartUploadResult if the upload was successful
    */
-  def uploadStreamAsFile(bucket: String, key: String, chunkUploadConcurrency: Int = 1): Flow[ByteString, CompleteMultipartUploadResult] = {
+  def uploadStreamAsFile(bucket: String, key: String, chunkUploadConcurrency: Int = 1): Flow[ByteString, CompleteMultipartUploadResult, Unit] = {
     import scala.collection.JavaConversions._
 
     val uploadChunkSize = 8 * 1024 * 1024 // recommended by AWS
@@ -158,7 +158,7 @@ trait S3StreamBuilder {
    * @return
    */
   def uploadStreamAsMultipartFile(bucket: String, prefix: String, nbChunkPerFile: Int,
-                                  chunkUploadConcurrency: Int = 1): Flow[ByteString, CompleteMultipartUploadResult] = {
+                                  chunkUploadConcurrency: Int = 1): Flow[ByteString, CompleteMultipartUploadResult, Unit] = {
 
     def formatKey(fileNb: Long) = {
       val pad = "%08d".format(fileNb)

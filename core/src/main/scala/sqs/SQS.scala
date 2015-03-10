@@ -21,7 +21,7 @@ trait SQSStreamBuilder {
 
   import sqs.execCtx
 
-  def sendMessageAsStream: Flow[SendMessageRequest, SendMessageResult] = {
+  def sendMessageAsStream: Flow[SendMessageRequest, SendMessageResult, Unit] = {
     // note: SQS does not guarantee ordering with high-throughput,
     // so using FlowExt.mapAsyncWithOrderedSideEffect to try to guarantee ordering is useless
     Flow[SendMessageRequest].mapAsync { msg =>
@@ -29,7 +29,7 @@ trait SQSStreamBuilder {
     }
   }
 
-  def receiveMessageAsStream(queueUrl: String, longPollingMaxWait: FiniteDuration = 20 seconds, autoAck: Boolean = false): Source[Message] = {
+  def receiveMessageAsStream(queueUrl: String, longPollingMaxWait: FiniteDuration = 20 seconds, autoAck: Boolean = false): Source[Message, ActorRef] = {
     val source = SourceExt.bulkPullerAsync(0L) { (total, currentDemand) =>
       val msg = new ReceiveMessageRequest(queueUrl)
       msg.setWaitTimeSeconds(longPollingMaxWait.toSeconds.toInt) // > 0 seconds allow long-polling. 20 seconds is the maximum

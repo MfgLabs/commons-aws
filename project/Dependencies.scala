@@ -5,7 +5,7 @@ object Dependencies {
   object V {
     val awsJavaSDK        = "1.8.10"
     val pellucidAwsWrap   = "0.6.1"
-    val akkaStreamExt     = "0.4-SNAPSHOT"
+    val akkaStreamExt     = "0.5-SNAPSHOT"
     val scalaTest         = "2.2.1"
     val postgresDriver    = "9.3-1102-jdbc4"
     val grizzled          = "1.0.2"

@@ -3,7 +3,6 @@ package s3
 
 import akka.actor.ActorSystem
 import akka.stream.{ActorFlowMaterializer, FlattenStrategy, FlowMaterializer}
-import akka.stream.scaladsl.{FoldSink, Flow, Source}
 import akka.util.ByteString
 import com.amazonaws.services.s3.model.{CompleteMultipartUploadResult, DeleteObjectsRequest}
 import com.mfglabs.stream._
