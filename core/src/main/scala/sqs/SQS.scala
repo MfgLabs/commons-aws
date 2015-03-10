@@ -29,11 +29,13 @@ trait SQSStreamBuilder {
     }
   }
 
-  def receiveMessageAsStream(queueUrl: String, longPollingMaxWait: FiniteDuration = 20 seconds, autoAck: Boolean = false): Source[Message, ActorRef] = {
+  def receiveMessageAsStream(queueUrl: String, longPollingMaxWait: FiniteDuration = 20 seconds, autoAck: Boolean = false,
+                             attributes: Seq[String] = Seq("VisibilityTimeout")): Source[Message, ActorRef] = {
     val source = SourceExt.bulkPullerAsync(0L) { (total, currentDemand) =>
       val msg = new ReceiveMessageRequest(queueUrl)
       msg.setWaitTimeSeconds(longPollingMaxWait.toSeconds.toInt) // > 0 seconds allow long-polling. 20 seconds is the maximum
       msg.setMaxNumberOfMessages(Math.min(currentDemand, 10)) // 10 is SQS limit
+      msg.setAttributeNames(attributes)
 
       sqs.receiveMessage(msg).map(res => (res.getMessages.toSeq, false))
     }
