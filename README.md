@@ -27,7 +27,7 @@ resolvers ++= Seq(
 
 libraryDependencies ++= Seq(
 ...
-  "com.mfglabs" %% "commons-aws" % "0.3-SNAPSHOT"
+  "com.mfglabs" %% "commons-aws" % "0.5.1-SNAPSHOT"
 ...
 )
 
