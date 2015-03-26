@@ -2,7 +2,7 @@
 
 [Scaladoc](http://mfglabs.github.io/commons-aws/api/current/)
 
-> Current stable version is `"com.mfglabs" %% "commons-aws" % "0.5-SNAPSHOT"`
+> Current stable version is `"com.mfglabs" %% "commons-aws" % "0.5.1-SNAPSHOT"`
 
 Asynchronous Scala client for common AWS services on top of the [Opensource Pellucid wrapper](https://github.com/pellucidanalytics/aws-wrap)
 . When possible, clients expose methods that return Akka Stream's Sources / Flows / Sinks to provide streaming facilities.
