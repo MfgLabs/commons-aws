@@ -82,7 +82,7 @@ val sender: Flow[String, SendMessageResult] =
     req.setQueueUrl(queueUrl)
     req
   }
-  .via(builder.sendMessageAsStream)
+  .via(builder.sendMessageAsStreamUnsafe)
 
 val receiver: Source[Message] = builder.receiveMessageAsStream(queueUrl, autoAck = true)
 ```
