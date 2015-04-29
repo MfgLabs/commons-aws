@@ -52,6 +52,8 @@ someBinaryStream.via(
 val ops = new builder.MaterializedOps(flowMaterializer) // contains materialized methods on top of S3Stream
 
 val file: Future[ByteString] = ops.getFile(bucket, key)
+
+// More methods, check the source code
 ```
 
 Please remark that you don't need any implicit `scala.concurrent.ExecutionContext` as it's directly provided
