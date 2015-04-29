@@ -5,8 +5,6 @@ Streaming / asynchronous Scala client for common AWS services on top of [dwhjame
 
 Clients use a pool of threads managed internally and optimized for blocking IO operations.
 
-Current Akka-stream version is 1.0-M5.
-
 ## Resolver
 
 ```scala
@@ -38,10 +36,22 @@ val builder = S3StreamBuilder(new AmazonS3AsyncClient()) // contains un-material
 
 val fileStream: Source[ByteString] = builder.getFileAsStream(bucket, key)
 
+someBinaryStream.via(
+  builder.uploadStreamAsFile(bucket, key, chunkUploadConcurrency = 2)
+)
+
+someBinaryStream.via(
+  builder.uploadStreamAsMultipartFile(
+    bucket, 
+    prefix, 
+    nbChunkPerFile = 10000, 
+    chunkUploadConcurrency = 2
+  )
+)
+
 val ops = new builder.MaterializedOps(flowMaterializer) // contains materialized methods on top of S3Stream
 
 val file: Future[ByteString] = ops.getFile(bucket, key)
-val deletedFile: Future[Unit] = ops.deleteFile(bucket, key)
 ```
 
 Please remark that you don't need any implicit `scala.concurrent.ExecutionContext` as it's directly provided
@@ -68,9 +78,9 @@ val sender: Flow[String, SendMessageResult] =
     req.setQueueUrl(queueUrl)
     req
   }
-  .via(builder.sendMessageAsStreamUnsafe)
+  .via(builder.sendMessageAsStream)
 
-val receiver: Source[Message] = builder.receiveMessageAsStream(queueUrl, autoAck = true)
+val receiver: Source[Message] = builder.receiveMessageAsStream(queueUrl, autoAck = false)
 ```
 
 #### Cloudwatch
