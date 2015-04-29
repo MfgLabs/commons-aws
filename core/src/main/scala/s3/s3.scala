@@ -23,7 +23,7 @@ class AmazonS3AsyncClient(
     val awsCredentialsProvider: AWSCredentialsProvider,
     val clientConfiguration:    ClientConfiguration,
     override val executorService: ExecutorService
-) extends com.pellucid.wrap.s3.AmazonS3ScalaClient (
+) extends com.github.dwhjames.awswrap.s3.AmazonS3ScalaClient (
   awsCredentialsProvider,
   clientConfiguration,
   executorService
@@ -146,12 +146,6 @@ class AmazonS3AsyncClient(
    * Asynchronous methods
    */
 
-  def completeMultipartUpload(req: CompleteMultipartUploadRequest): Future[CompleteMultipartUploadResult] =
-    wrapMethod[CompleteMultipartUploadRequest, CompleteMultipartUploadResult](client.completeMultipartUpload _, req)
-
-  def initiateMultipartUpload(req: InitiateMultipartUploadRequest): Future[InitiateMultipartUploadResult] =
-    wrapMethod[InitiateMultipartUploadRequest, InitiateMultipartUploadResult](client.initiateMultipartUpload _, req)
-
   def uploadPart(req: UploadPartRequest): Future[UploadPartResult] =
     wrapMethod[UploadPartRequest, UploadPartResult](client.uploadPart _, req)
 
@@ -160,18 +154,6 @@ class AmazonS3AsyncClient(
 
   def listNextBatchOfObjects(req: ObjectListing): Future[ObjectListing] =
     wrapMethod[ObjectListing, ObjectListing](client.listNextBatchOfObjects _, req)
-
-  def putObject(req: PutObjectRequest): Future[PutObjectResult] =
-    wrapMethod[PutObjectRequest, PutObjectResult](client.putObject _, req)
-
-  def getObject(bucket: String, key: String): Future[S3Object] =
-    wrapMethod[String, S3Object]({ bucket => client.getObject(bucket, key) }, bucket)
-
-  def getObject(req: GetObjectRequest): Future[S3Object] =
-    wrapMethod[GetObjectRequest, S3Object](client.getObject _, req)
-
-  def getObject(req: GetObjectRequest, destinationFile: java.io.File): Future[ObjectMetadata] =
-    wrapMethod[GetObjectRequest, ObjectMetadata]({ req => client.getObject(req, destinationFile) }, req)
 
   /** Upload file to bucket
     *

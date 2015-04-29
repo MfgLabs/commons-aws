@@ -6,7 +6,7 @@ import akka.stream._
 import akka.stream.scaladsl._
 import com.amazonaws.services.sqs.{AmazonSQSAsyncClient, AmazonSQSClient}
 import com.amazonaws.services.sqs.model._
-import com.pellucid.wrap.sqs.AmazonSQSScalaClient
+import com.github.dwhjames.awswrap.sqs.AmazonSQSScalaClient
 import scala.concurrent._
 import scala.concurrent.duration._
 

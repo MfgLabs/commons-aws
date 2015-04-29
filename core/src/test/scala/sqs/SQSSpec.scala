@@ -11,7 +11,7 @@ import com.amazonaws.regions.{Regions, Region}
 import com.amazonaws.services.sqs.AmazonSQSAsyncClient
 import com.amazonaws.services.sqs.model.{SendMessageRequest, Message, CreateQueueRequest}
 import com.mfglabs.stream.{FlowExt, SinkExt}
-import com.pellucid.wrap.sqs.AmazonSQSScalaClient
+import com.github.dwhjames.awswrap.sqs.AmazonSQSScalaClient
 
 import org.scalatest.concurrent.{AsyncAssertions, ScalaFutures}
 import org.scalatest.time.{Seconds, Millis, Minutes, Span}

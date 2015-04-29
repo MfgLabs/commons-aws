@@ -4,8 +4,8 @@ object Dependencies {
 
   object V {
     val awsJavaSDK        = "1.8.10"
-    val pellucidAwsWrap   = "0.6.1"
-    val akkaStreamExt     = "0.5-SNAPSHOT"
+    val pellucidAwsWrap   = "0.7.2"
+    val akkaStreamExt     = "0.7-SNAPSHOT"
     val scalaTest         = "2.2.1"
     val postgresDriver    = "9.3-1102-jdbc4"
     val grizzled          = "1.0.2"
@@ -15,7 +15,7 @@ object Dependencies {
 
   object Compile {
     val awsJavaSDK        = "com.amazonaws"       %   "aws-java-sdk"                  % V.awsJavaSDK
-    val pellucidAwsWrap   = "com.pellucid"        %%  "aws-wrap"                      % V.pellucidAwsWrap
+    val pellucidAwsWrap   = "com.github.dwhjames" %%  "aws-wrap"                      % V.pellucidAwsWrap
     val akkaStreamExt     = "com.mfglabs"         %%  "akka-stream-extensions"        % V.akkaStreamExt
     val akka              = "com.typesafe.akka"   %%  "akka-actor"                    % V.akka
     val grizzled          = "org.clapper"         %%  "grizzled-slf4j"                % V.grizzled

@@ -2,12 +2,12 @@ import sbtunidoc.Plugin._
 
 organization in ThisBuild := "com.mfglabs"
 
-scalaVersion in ThisBuild := "2.11.5"
+scalaVersion in ThisBuild := "2.11.6"
 
 version in ThisBuild := "0.7-SNAPSHOT"
 
 resolvers in ThisBuild ++= Seq(
-	"Pellucid Deps" at "http://dl.bintray.com/content/pellucid/maven",
+	"dwhjames repository" at "http://dl.bintray.com/content/dwhjames/maven",
   "Typesafe repository" at "http://repo.typesafe.com/typesafe/releases/",
   "MFG releases" at "s3://mfg-mvn-repo/releases",
   "MFG snapshots" at "s3://mfg-mvn-repo/snapshots"

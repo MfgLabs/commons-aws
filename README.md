@@ -1,45 +1,35 @@
-# MFG Commons AWS Scala API
+# Streaming / asynchronous Scala client for common AWS services
 
-[Scaladoc](http://mfglabs.github.io/commons-aws/api/current/)
-
-> Current stable version is `"com.mfglabs" %% "commons-aws" % "0.5.1-SNAPSHOT"`
-
-Asynchronous Scala client for common AWS services on top of the [Opensource Pellucid wrapper](https://github.com/pellucidanalytics/aws-wrap)
+Streaming / asynchronous Scala client for common AWS services on top of [dwhjames/aws-wrap](https://github.com/dwhjames/aws-wrap)
 . When possible, clients expose methods that return Akka Stream's Sources / Flows / Sinks to provide streaming facilities.
 
 Clients use a pool of threads managed internally and optimized for blocking IO operations.
 
-Current Akka-stream version is 1.0-M4.
+Current Akka-stream version is 1.0-M5.
 
-<br/>
-<br/>
-## Commons
-
-To use rich MFGLabs AWS wrapper, you just have to add the following to your `build.sbt` (plus the classic `~/.sbt/.s3credentials`):
+## Resolver
 
 ```scala
 resolvers ++= Seq(
   "MFG releases" at "s3://mfg-mvn-repo/releases",
   "MFG snapshots" at "s3://mfg-mvn-repo/snapshots",
-  "Pellucid public" at "http://dl.bintray.com/content/pellucid/maven"
+  "dwhjames repository" at "http://dl.bintray.com/content/dwhjames/maven",
 )
-
-
-libraryDependencies ++= Seq(
-...
-  "com.mfglabs" %% "commons-aws" % "0.5.1-SNAPSHOT"
-...
-)
-
 ```
 
-For now, it proposes out-of-the-box the following services:
+## Dependencies
 
-<br/>
-<br/>
-### S3
+```scala
+libraryDependencies ++= Seq(
+  "com.mfglabs" %% "commons-aws" % "0.7"
+)
+```
 
-In your code:
+## Use
+
+### Commons
+
+#### S3
 
 ```scala
 import com.mfglabs.commons.aws.s3._
@@ -60,12 +50,8 @@ and managed by [[AmazonS3Client]] itself.
 There are also smart `AmazonS3Client` constructors that can be provided with custom.
 `java.util.concurrent.ExecutorService` if you want to manage your pools of threads.
 
-<br/>
-<br/>
 
-### SQS
-
-In your code:
+#### SQS
 
 ```scala
 import com.amazonaws.services.sqs.AmazonSQSAsyncClient 
@@ -87,7 +73,7 @@ val sender: Flow[String, SendMessageResult] =
 val receiver: Source[Message] = builder.receiveMessageAsStream(queueUrl, autoAck = true)
 ```
 
-### Cloudwatch
+#### Cloudwatch
 
 In your code:
 
@@ -110,13 +96,9 @@ and managed by [[AmazonCloudwatchClient]] itself.
 There are also smart `AmazonCloudwatchClient` constructors that can be provided with custom.
 `java.util.concurrent.ExecutorService` if you want to manage your pools of threads.
 
+### Extensions
 
-<br/>
-<br/>
-
-## Extensions
-
-### Cloudwatch heartbeat
+#### Cloudwatch heartbeat
 
 It provides a simple mechanism that sends periodically a heartbeat metric to AWS Cloudwatch.
 
@@ -124,13 +106,12 @@ If the heartbeat rate on a _configurable_ period falls under a _configurable_ th
 
 When the rate goes above threshold again, an `OK` status is triggered & sent to the same SQS endpoint.
 
-
 > **IMPORTANT**: the alarm is created by the API itself but due to a limitation (or a bug) in Amazon API, the status of this alarm will stay at `INSUFFICIENT_DATA` until you manually update it in the AWS console.
 For that, wait 1/2 minutes after start so that Cloudwatch receives enough heartbeats and then select the alarm, click on `modify` and then click on `save`. The alarm should pass to `OK` status.
 
 _Cloudwatch heartbeat is based on Cloudwatch service & Akka scheduler._
 
-#### Low-level client
+##### Low-level client
 
 ```scala
 import com.mfglabs.commons.aws.cloudwatch
@@ -153,18 +134,15 @@ val hb = new CloudwatchAkkaHeartbeat(
 hb.start() // to start the heartbeat
 
 hb.stop() // to stop the heartbeat
-
 ```
 
 > Please note that you need to provide an implicit `ExecutionContext` for `CloudwatchAkkaHeartbeat.start/stop`
 
-<br/>
-#### Cakable client
+##### Cakable client
 
 `CloudwatchHeartbeatLayer` is ready to be used in a cake pattern
 
 ```scala
-
 object MyAkkaService extends CloudwatchHeartbeatLayer {
   override val system = myAkkaSystem
 
@@ -183,5 +161,4 @@ object MyAkkaService extends CloudwatchHeartbeatLayer {
   // start the heartbeat
   heartbeat.start()(myExeCtx)
 }
-
 ```
