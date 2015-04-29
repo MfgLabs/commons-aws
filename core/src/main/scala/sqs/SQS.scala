@@ -21,29 +21,28 @@ trait SQSStreamBuilder {
 
   import sqs.execCtx
 
-  def sendMessageAsStreamUnsafe: Flow[SendMessageRequest, SendMessageResult, Unit] = {
-    // note: SQS does not guarantee ordering with high-throughput,
-    // so using FlowExt.mapAsyncWithOrderedSideEffect to try to guarantee ordering is useless
+  /**
+   * Send SQS messages as a stream
+   */
+  def sendMessageAsStream: Flow[SendMessageRequest, SendMessageResult, Unit] = {
     Flow[SendMessageRequest].mapAsync { msg =>
       sqs.sendMessage(msg)
     }
   }
 
-  def sendMessageAsStream: Flow[SendMessageRequest, Future[SendMessageResult], Unit] = {
-    // note: SQS does not guarantee ordering with high-throughput,
-    // so using FlowExt.mapAsyncWithOrderedSideEffect to try to guarantee ordering is useless
-    Flow[SendMessageRequest].map { msg =>
-      sqs.sendMessage(msg)
-    }
-  }
-
-  def receiveMessageAsStream(queueUrl: String, longPollingMaxWait: FiniteDuration = 20 seconds, autoAck: Boolean = false,
-                             attributes: Seq[String] = Seq("VisibilityTimeout")): Source[Message, ActorRef] = {
+  /**
+   * Receive messages from a SQS queue as a stream.
+   * @param queueUrl SQS queue url
+   * @param longPollingMaxWait SQS long-polling parameter.
+   * @param autoAck If true, the SQS messages will be automatically ack once they are received. If false, you must call
+   *                sqs.deleteMessage yourself when you want to ack the message.
+   */
+  def receiveMessageAsStream(queueUrl: String, longPollingMaxWait: FiniteDuration = 20 seconds,
+                             autoAck: Boolean = false): Source[Message, ActorRef] = {
     val source = SourceExt.bulkPullerAsync(0L) { (total, currentDemand) =>
       val msg = new ReceiveMessageRequest(queueUrl)
       msg.setWaitTimeSeconds(longPollingMaxWait.toSeconds.toInt) // > 0 seconds allow long-polling. 20 seconds is the maximum
       msg.setMaxNumberOfMessages(Math.min(currentDemand, 10)) // 10 is SQS limit
-      msg.setAttributeNames(attributes)
 
       sqs.receiveMessage(msg).map(res => (res.getMessages.toSeq, false))
     }

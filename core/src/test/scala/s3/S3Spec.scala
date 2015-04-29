@@ -24,7 +24,6 @@ class S3Spec extends FlatSpec with Matchers with ScalaFutures {
   implicit val system = ActorSystem()
   implicit val fm = ActorFlowMaterializer()
 
-  // val cred = new com.amazonaws.auth.BasicAWSCredentials("AWS_ACCESS_KEY_ID", "AWS_SECRET_ACCESS_KEY")
   val streamBuilder = S3StreamBuilder(new s3.AmazonS3AsyncClient())
   val ops = new streamBuilder.MaterializedOps(fm)
 

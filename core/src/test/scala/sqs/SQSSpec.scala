@@ -39,7 +39,7 @@ class SQSSpec extends FlatSpec with Matchers with ScalaFutures {
   val testQueueName = "commons-aws-sqs-test-" + Random.nextInt()
   val testQueueName2 = "commons-aws-sqs-test-" + Random.nextInt()
 
-  "SQS client" should "send message and receive them as streams unsafe" in {
+  "SQS client" should "send message and receive them as streams" in {
     sqs.client.setRegion(Region.getRegion(Regions.EU_WEST_1))
 
     sqs.listQueues("commons-aws-sqs-test-").futureValue.headOption.foreach(queueUrl => sqs.deleteQueue(queueUrl).futureValue)
@@ -56,45 +56,7 @@ class SQSSpec extends FlatSpec with Matchers with ScalaFutures {
         req.setQueueUrl(queueUrl)
         req
       }
-      .via(builder.sendMessageAsStreamUnsafe)
-      .take(200)
-      .runWith(SinkExt.collect)
-    val futReceived = builder.receiveMessageAsStream(queueUrl, autoAck = true).take(200).runWith(SinkExt.collect)
-
-    val (sent, received) = futSent.zip(futReceived).futureValue
-
-    received.map(_.getBody).sorted shouldEqual msgs.sorted
-
-    // testing auto-ack (queue must be empty)
-    val res = builder
-      .receiveMessageAsStream(queueUrl, longPollingMaxWait = 1 second)
-      .takeWithin(10 seconds)
-      .runWith(SinkExt.collect)
-      .futureValue
-    res shouldBe empty
-
-    sqs.deleteQueue(queueUrl).futureValue
-  }
-
-  "SQS client" should "send message and receive them as streams safe" in {
-    sqs.client.setRegion(Region.getRegion(Regions.EU_WEST_1))
-
-    sqs.listQueues("commons-aws-sqs-test-").futureValue.headOption.foreach(queueUrl => sqs.deleteQueue(queueUrl).futureValue)
-    val newQueueReq = new CreateQueueRequest()
-    newQueueReq.setAttributes(Map("VisibilityTimeout" -> 10.toString)) // 10 seconds
-    newQueueReq.setQueueName(testQueueName2)
-    val queueUrl = sqs.createQueue(newQueueReq).futureValue.getQueueUrl
-
-    val msgs = for (i <- 1 to 200) yield s"Message $i"
-    val futSent = Source(msgs)
-      .map { body =>
-        val req = new SendMessageRequest()
-        req.setMessageBody(body)
-        req.setQueueUrl(queueUrl)
-        req
-      }
       .via(builder.sendMessageAsStream)
-      .mapAsync(identity)
       .take(200)
       .runWith(SinkExt.collect)
     val futReceived = builder.receiveMessageAsStream(queueUrl, autoAck = true).take(200).runWith(SinkExt.collect)
@@ -113,5 +75,6 @@ class SQSSpec extends FlatSpec with Matchers with ScalaFutures {
 
     sqs.deleteQueue(queueUrl).futureValue
   }
+
 }
 
