@@ -13,17 +13,9 @@ import com.amazonaws.services.cloudwatch.model._
 import com.amazonaws.services.cloudwatch.AmazonCloudWatchAsyncClient
 
 class AmazonCloudwatchClient(
-    // awsCredentialsProvider: AWSCredentialsProvider,
-    // clientConfiguration:    ClientConfiguration,
-    // executorService: ExecutorService
     client: AmazonCloudWatchAsyncClient
-) extends com.pellucid.wrap.cloudwatch.AmazonCloudWatchScalaClient (
+) extends com.github.dwhjames.awswrap.cloudwatch.AmazonCloudWatchScalaClient (
   client
-  // new com.amazonaws.services.cloudwatch.AmazonCloudWatchAsyncClient(
-  //   awsCredentialsProvider,
-  //   clientConfiguration,
-  //   executorService
-  // )
 ) {
 
   /**
@@ -91,8 +83,6 @@ class AmazonCloudwatchClient(
     *
     * @param awsCredentials
     *     AWS credentials.
-    * @param clientConfiguration
-    *     a client configuration.
     * @param executorService
     *     an executor service for synchronous calls to the underlying AmazonS3Client.
     */

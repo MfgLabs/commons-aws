@@ -24,7 +24,6 @@ class S3Spec extends FlatSpec with Matchers with ScalaFutures {
   implicit val system = ActorSystem()
   implicit val fm = ActorFlowMaterializer()
 
-  // val cred = new com.amazonaws.auth.BasicAWSCredentials("AWS_ACCESS_KEY_ID", "AWS_SECRET_ACCESS_KEY")
   val streamBuilder = S3StreamBuilder(new s3.AmazonS3AsyncClient())
   val ops = new streamBuilder.MaterializedOps(fm)
 
@@ -65,7 +64,7 @@ class S3Spec extends FlatSpec with Matchers with ScalaFutures {
   it should "download a big file and chunk it by line" in {
     val futLines = streamBuilder.getFileAsStream(bucket, s"$keyPrefix/big")
       .via(FlowExt.rechunkByteStringBySize(2 * 1024 * 1024))
-      .via(FlowExt.rechunkByteStringBySeparator())
+      .via(FlowExt.rechunkByteStringBySeparator(ByteString("\n"), 8 * 1024))
       .map(_.utf8String)
       .runWith(SinkExt.collect)
 

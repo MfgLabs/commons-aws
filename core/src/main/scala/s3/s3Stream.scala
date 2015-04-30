@@ -26,7 +26,7 @@ trait S3StreamBuilder {
 
     implicit val fm = flowMaterializer
 
-    /** List files in a bucket (& optional path)
+    /** List all files with a given prefix of a S3 bucket.
       *
       * @param  bucket the bucket name
       * @param  path an optional path to search in bucket
@@ -36,17 +36,27 @@ trait S3StreamBuilder {
       listFilesAsStream(bucket, path).runWith(SinkExt.collect)
     }
 
+    /**
+     * Get a S3 file.
+     * @param bucket
+     * @param key
+     * @return binary file
+     */
     def getFile(bucket: String, key: String): Future[ByteString] = {
       getFileAsStream(bucket, key).runFold(ByteString.empty)(_ ++ _).map(_.compact)
     }
 
   } // end Ops
 
-  def listFilesAsStream(bucket: String, path: Option[String] = None): Source[(String, Date), Unit] = {
+  /** List all files with a given prefix of a S3 bucket.
+   * @param bucket S3 bucket
+   * @param maybePrefix S3 prefix. If not present, all the files of the bucket will be returned.
+   */
+  def listFilesAsStream(bucket: String, maybePrefix: Option[String] = None): Source[(String, Date), Unit] = {
     import collection.JavaConversions._
 
-    def getFirstListing: Future[ObjectListing] = path match {
-      case Some(p) => client.listObjects(bucket, p)
+    def getFirstListing: Future[ObjectListing] = maybePrefix match {
+      case Some(prefix) => client.listObjects(bucket, prefix)
       case None => client.listObjects(bucket)
     }
 
@@ -66,12 +76,10 @@ trait S3StreamBuilder {
     }
   }
 
-  /** Download of file as a stream with an optional inputstream transformation.
-    *
+  /** Stream a S3 file.
     * @param bucket the bucket name
     * @param key the key of file
-    * @param inputStreamTransform transformation function (for ZIP, GZIP decompression, ...)
-    * @return an enumerator (stream) of the object
+    * @param inputStreamTransform optional inputstream transformation (for example GZIP decompression, ...)
     */
   def getFileAsStream(bucket: String, key: String, inputStreamTransform: InputStream => InputStream = identity): Source[ByteString, Unit] = {
     SourceExt.seededLazyAsync(client.getObject(bucket, key)) { o =>
@@ -79,28 +87,32 @@ trait S3StreamBuilder {
     }
   }
 
+  /**
+   * Stream a gzipped S3 file and decompress it on the fly.
+   * @param bucket S3 bucket
+   * @param key S3 key
+   * @return
+   */
   def uncompressGzippedFileAsStream(bucket: String, key: String) =
     getFileAsStream(bucket, key, is => new GZIPInputStream(is))
 
-  /** Sequential download of a multipart file as a reactive stream
-    *
-    * @param bucket bucket name
-    * @param path the common path of the parts of the file
-    * @return
-    */
-  def getMultipartFileAsStream(bucket: String, path: String, inputStreamTransform: InputStream => InputStream = identity): Source[ByteString, Unit] = {
-    listFilesAsStream(bucket, Some(path))
+  /**
+   * Stream sequentially a SE multipart file.
+   * @param bucket S3 bucket
+   * @param prefix S3 prefix. Files of path prefix* will be taken into account.
+   * @param inputStreamTransform optional inputstream transformation (for example GZIP decompression, ...)
+   */
+  def getMultipartFileAsStream(bucket: String, prefix: String, inputStreamTransform: InputStream => InputStream = identity): Source[ByteString, Unit] = {
+    listFilesAsStream(bucket, Some(prefix))
       .map { case (key, _) => getFileAsStream(bucket, key, inputStreamTransform) }
       .flatten(FlattenStrategy.concat)
   }
 
   /**
-   * Flow that upload a stream of bytes as a S3 file and returns a CompleteMultipartUploadResult (or nothing if the stream was empty).
-   * Order is guaranteed even with chunkUploadConcurrency > 1.
-   * An error during the S3 upload will result in a stream failure.
-   * @param  bucket the bucket name
-   * @param  key the key of file
-   * @return a stream with only one element of type CompleteMultipartUploadResult if the upload was successful
+   * Upload a stream of bytes as a S3 file and returns an element of type CompleteMultipartUploadResult (or nothing if upstream was empty).
+   * @param bucket S3 bucket
+   * @param key S3 key
+   * @param chunkUploadConcurrency chunk upload concurrency. Order is guaranteed even with chunkUploadConcurrency > 1.
    */
   def uploadStreamAsFile(bucket: String, key: String, chunkUploadConcurrency: Int = 1): Flow[ByteString, CompleteMultipartUploadResult, Unit] = {
     import scala.collection.JavaConversions._
@@ -132,30 +144,29 @@ trait S3StreamBuilder {
       )
       .via(FlowExt.fold(Vector.empty[(PartETag, String)])(_ :+ _))
       .mapAsync { etags =>
-      etags.headOption match {
-        case Some((_, uploadId)) =>
-          val compRequest = new CompleteMultipartUploadRequest(bucket, key, uploadId, etags.map(_._1).toBuffer[PartETag])
-          val futResult = client.completeMultipartUpload(compRequest).map(Option.apply).recoverWith { case e: Exception =>
-            client.abortMultipartUpload(new AbortMultipartUploadRequest(bucket, key, uploadId))
-            Future.failed(e)
-          }
-          futResult
+        etags.headOption match {
+          case Some((_, uploadId)) =>
+            val compRequest = new CompleteMultipartUploadRequest(bucket, key, uploadId, etags.map(_._1).toBuffer[PartETag])
+            val futResult = client.completeMultipartUpload(compRequest).map(Option.apply).recoverWith { case e: Exception =>
+              client.abortMultipartUpload(new AbortMultipartUploadRequest(bucket, key, uploadId))
+              Future.failed(e)
+            }
+            futResult
 
-        case None => Future.successful(None)
+          case None => Future.successful(None)
+        }
       }
-    }
       .mapConcat(_.to[scala.collection.immutable.Seq])
   }
 
   /**
    * Upload a stream as a multipart file with a given number of upstream chunk per file. Part file are uploaded sequentially but
    * chunk inside a part file can be uploaded concurrently (tuned with chunkUploadConcurrency).
-   * Order is guaranteed even with chunkUploadConcurrency > 1.
-   * @param bucket
-   * @param prefix
-   * @param nbChunkPerFile
-   * @param chunkUploadConcurrency
-   * @return
+   * The Flow returns a CompleteMultipartUploadResult for each part file uploaded.
+   * @param bucket S3 bucket
+   * @param prefix S3 prefix. The actual part files will be named prefix.part.00000001, prefix.part.00000002, ...
+   * @param nbChunkPerFile the number of upstream chunks (for example lines) to include in each part file
+   * @param chunkUploadConcurrency chunk upload concurrency. Order is guaranteed even with chunkUploadConcurrency > 1.
    */
   def uploadStreamAsMultipartFile(bucket: String, prefix: String, nbChunkPerFile: Int,
                                   chunkUploadConcurrency: Int = 1): Flow[ByteString, CompleteMultipartUploadResult, Unit] = {
@@ -169,14 +180,14 @@ trait S3StreamBuilder {
       .via(FlowExt.zipWithIndex)
       .splitWhen { case (_, i) => i != 0 && i % nbChunkPerFile == 0 }
       .map { partFileStream =>
-      partFileStream.via(
-        FlowExt.withHead(includeHeadInUpStream = true) { case (_, i) =>
-          val key = formatKey(i / nbChunkPerFile)
-          Flow[(ByteString, Long)].map(_._1).via(uploadStreamAsFile(bucket, key, chunkUploadConcurrency))
-        }
-      )
-    }
-      .flatten(FlattenStrategy.concat) // change to FlattenStrategy.merge if we want to allow concurrent upload of part files
+        partFileStream.via(
+          FlowExt.withHead(includeHeadInUpStream = true) { case (_, i) =>
+            val key = formatKey(i / nbChunkPerFile)
+            Flow[(ByteString, Long)].map(_._1).via(uploadStreamAsFile(bucket, key, chunkUploadConcurrency))
+          }
+        )
+      }
+      .flatten(FlattenStrategy.concat)
   }
 
 }
