@@ -20,7 +20,7 @@ resolvers ++= Seq(
 ## Dependencies
 
 ```scala
-libraryDependencies += "com.mfglabs" %% "commons-aws" % "0.7.0"
+libraryDependencies += "com.mfglabs" %% "commons-aws" % "0.7.1"
 ```
 
 ## Usage
@@ -85,9 +85,10 @@ val sender: Flow[String, SendMessageResult] =
     req.setQueueUrl(queueUrl)
     req
   }
-  .via(builder.sendMessageAsStream)
+  .via(builder.sendMessageAsStream())
 
-val receiver: Source[Message] = builder.receiveMessageAsStream(queueUrl, autoAck = false)
+val receiver: Source[Message] = 
+    builder.receiveMessageAsStream(queueUrl, autoAck = false)
 ```
 
 #### Cloudwatch

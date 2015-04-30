@@ -5,7 +5,7 @@ organization in ThisBuild := "com.mfglabs"
 
 scalaVersion in ThisBuild := "2.11.6"
 
-version in ThisBuild := "0.7.0"
+version in ThisBuild := "0.7.1"
 
 resolvers in ThisBuild ++= Seq(
   "Typesafe repository" at "http://repo.typesafe.com/typesafe/releases/",
@@ -15,7 +15,7 @@ resolvers in ThisBuild ++= Seq(
   Resolver.bintrayRepo("mfglabs", "maven")
 )
 
-scalacOptions in ThisBuild ++= Seq("-feature", "-deprecation", "-unchecked", "-language:postfixOps")
+scalacOptions in ThisBuild ++= Seq("-feature", "-unchecked", "-language:postfixOps")
 
 publishMavenStyle in ThisBuild := true
 

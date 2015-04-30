@@ -21,11 +21,16 @@ trait SQSStreamBuilder {
 
   import sqs.execCtx
 
+  val defaultMessageOpsConcurrency = 16
+
   /**
    * Send SQS messages as a stream
+   * Important note: SQS does not ensure message ordering, so setting messageSendingConcurrency parameter equal to 1 does not
+   * guarantee total message ordering.
+   * @param messageSendingConcurrency
    */
-  def sendMessageAsStream: Flow[SendMessageRequest, SendMessageResult, Unit] = {
-    Flow[SendMessageRequest].mapAsync { msg =>
+  def sendMessageAsStream(messageSendingConcurrency: Int = defaultMessageOpsConcurrency): Flow[SendMessageRequest, SendMessageResult, Unit] = {
+    Flow[SendMessageRequest].mapAsync(messageSendingConcurrency) { msg =>
       sqs.sendMessage(msg)
     }
   }
@@ -37,8 +42,8 @@ trait SQSStreamBuilder {
    * @param autoAck If true, the SQS messages will be automatically ack once they are received. If false, you must call
    *                sqs.deleteMessage yourself when you want to ack the message.
    */
-  def receiveMessageAsStream(queueUrl: String, longPollingMaxWait: FiniteDuration = 20 seconds,
-                             autoAck: Boolean = false): Source[Message, ActorRef] = {
+  def receiveMessageAsStream(queueUrl: String, messageAckingConcurrency: Int = defaultMessageOpsConcurrency,
+                             longPollingMaxWait: FiniteDuration = 20 seconds, autoAck: Boolean = false): Source[Message, ActorRef] = {
     val source = SourceExt.bulkPullerAsync(0L) { (total, currentDemand) =>
       val msg = new ReceiveMessageRequest(queueUrl)
       msg.setWaitTimeSeconds(longPollingMaxWait.toSeconds.toInt) // > 0 seconds allow long-polling. 20 seconds is the maximum
@@ -48,7 +53,7 @@ trait SQSStreamBuilder {
     }
 
     if (autoAck)
-      source.mapAsync { msg =>
+      source.mapAsync(messageAckingConcurrency) { msg =>
         sqs.deleteMessage(queueUrl, msg.getReceiptHandle).map(_ => msg)
       }
     else source

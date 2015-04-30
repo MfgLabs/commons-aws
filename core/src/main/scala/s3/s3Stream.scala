@@ -6,8 +6,8 @@ import java.util.Date
 import java.util.zip.GZIPInputStream
 
 import akka.actor.ActorSystem
-import akka.stream.{ActorFlowMaterializer, FlowMaterializer, FlattenStrategy}
-import akka.stream.scaladsl.{Flow, Source}
+import akka.stream._
+import akka.stream.scaladsl._
 import akka.util.ByteString
 import com.amazonaws.services.s3.model._
 import com.mfglabs.stream.{ExecutionContextForBlockingOps, SinkExt, FlowExt, SourceExt}
@@ -70,8 +70,8 @@ trait S3StreamBuilder {
         else Future.successful(Option(files), None)
       }
     }
-      .mapConcat(identity)
-      .map { file =>
+    .mapConcat(identity)
+    .map { file =>
       (file.getKey, file.getLastModified)
     }
   }
@@ -126,24 +126,22 @@ trait S3StreamBuilder {
       .via(FlowExt.rechunkByteStringBySize(uploadChunkSize))
       .via(FlowExt.zipWithConstantLazyAsync(initiateUpload(bucket, key)))
       .via(FlowExt.zipWithIndex)
-      .via(
-        FlowExt.mapAsyncUnorderedWithBoundedConcurrency(chunkUploadConcurrency) { case ((bytes, uploadId), partNumber) =>
-          val uploadRequest = new UploadPartRequest()
-            .withBucketName(bucket)
-            .withKey(key)
-            .withPartNumber((partNumber + 1).toInt)
-            .withUploadId(uploadId)
-            .withInputStream(new ByteArrayInputStream(bytes.toArray))
-            .withPartSize(bytes.length)
-          client.uploadPart(uploadRequest).map(r => (r.getPartETag, uploadId)).recoverWith {
-            case e: Exception =>
-              client.abortMultipartUpload(new AbortMultipartUploadRequest(bucket, key, uploadId))
-              Future.failed(e)
-          }
+      .mapAsyncUnordered(chunkUploadConcurrency) { case ((bytes, uploadId), partNumber) =>
+        val uploadRequest = new UploadPartRequest()
+          .withBucketName(bucket)
+          .withKey(key)
+          .withPartNumber((partNumber + 1).toInt)
+          .withUploadId(uploadId)
+          .withInputStream(new ByteArrayInputStream(bytes.toArray))
+          .withPartSize(bytes.length)
+        client.uploadPart(uploadRequest).map(r => (r.getPartETag, uploadId)).recoverWith {
+          case e: Exception =>
+            client.abortMultipartUpload(new AbortMultipartUploadRequest(bucket, key, uploadId))
+            Future.failed(e)
         }
-      )
+      }
       .via(FlowExt.fold(Vector.empty[(PartETag, String)])(_ :+ _))
-      .mapAsync { etags =>
+      .mapAsync(1) { etags =>
         etags.headOption match {
           case Some((_, uploadId)) =>
             val compRequest = new CompleteMultipartUploadRequest(bucket, key, uploadId, etags.map(_._1).toBuffer[PartETag])

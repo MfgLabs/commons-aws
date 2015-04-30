@@ -56,7 +56,7 @@ class SQSSpec extends FlatSpec with Matchers with ScalaFutures {
         req.setQueueUrl(queueUrl)
         req
       }
-      .via(builder.sendMessageAsStream)
+      .via(builder.sendMessageAsStream())
       .take(200)
       .runWith(SinkExt.collect)
     val futReceived = builder.receiveMessageAsStream(queueUrl, autoAck = true).take(200).runWith(SinkExt.collect)

@@ -2,7 +2,8 @@ package com.mfglabs.commons.aws
 package s3
 
 import akka.actor.ActorSystem
-import akka.stream.{ActorFlowMaterializer, FlattenStrategy, FlowMaterializer}
+import akka.stream._
+import akka.stream.scaladsl._
 import akka.util.ByteString
 import com.amazonaws.services.s3.model.{CompleteMultipartUploadResult, DeleteObjectsRequest}
 import com.mfglabs.stream._
