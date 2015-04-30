@@ -5,6 +5,9 @@ Streaming / asynchronous Scala client for common AWS services on top of [dwhjame
 
 Clients use a pool of threads managed internally and optimized for blocking IO operations.
 
+This library makes heavy use of our extension library for Akka Stream 
+[MfgLabs/akka-stream-extensions](https://github.com/MfgLabs/akka-stream-extensions).
+
 ## Resolver
 
 ```scala
