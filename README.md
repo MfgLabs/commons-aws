@@ -20,12 +20,13 @@ resolvers ++= Seq(
 ## Dependencies
 
 ```scala
-libraryDependencies += "com.mfglabs" %% "commons-aws" % "0.7"
+libraryDependencies += "com.mfglabs" %% "commons-aws" % "0.7.0"
 ```
 
-## Use
+## Usage
 
-[Scaladoc](http://mfglabs.github.io/commons-aws/api/current/)
+> Scaladoc is available [there](http://mfglabs.github.io/commons-aws/api/current/)
+
 
 ### Commons
 
