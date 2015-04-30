@@ -33,6 +33,8 @@ val builder = S3StreamBuilder(new AmazonS3AsyncClient()) // contains un-material
 
 val fileStream: Source[ByteString] = builder.getFileAsStream(bucket, key)
 
+val multipartfileStream: Source[ByteString] = builder.getMultipartFileAsStream(bucket, prefix)
+
 someBinaryStream.via(
   builder.uploadStreamAsFile(bucket, key, chunkUploadConcurrency = 2)
 )
