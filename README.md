@@ -22,6 +22,8 @@ libraryDependencies += "com.mfglabs" %% "commons-aws" % "0.7"
 
 ## Use
 
+[Scaladoc](http://mfglabs.github.io/commons-aws/api/current/)
+
 ### Commons
 
 #### S3
