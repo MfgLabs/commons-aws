@@ -9,18 +9,15 @@ Clients use a pool of threads managed internally and optimized for blocking IO o
 
 ```scala
 resolvers ++= Seq(
-  "MFG releases" at "s3://mfg-mvn-repo/releases",
-  "MFG snapshots" at "s3://mfg-mvn-repo/snapshots",
-  "dwhjames repository" at "http://dl.bintray.com/content/dwhjames/maven",
+  Resolver.bintrayRepo("mfglabs", "maven"),
+  Resolver.bintrayRepo("dwhjames", "maven")
 )
 ```
 
 ## Dependencies
 
 ```scala
-libraryDependencies ++= Seq(
-  "com.mfglabs" %% "commons-aws" % "0.7"
-)
+libraryDependencies += "com.mfglabs" %% "commons-aws" % "0.7"
 ```
 
 ## Use
