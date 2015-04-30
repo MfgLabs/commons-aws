@@ -30,7 +30,7 @@
       <div id="definition">
         <img src="../../../../lib/package_big.png" />
         <p id="owner"><a href="../../../package.html" class="extype" name="com">com</a>.<a href="../../package.html" class="extype" name="com.mfglabs">mfglabs</a>.<a href="../package.html" class="extype" name="com.mfglabs.commons">commons</a></p>
-        <h1>aws</h1> <span class="permalink">
+        <h1>aws</h1><span class="permalink">
       <a href="../../../../index.html#com.mfglabs.commons.aws.package" title="Permalink" target="_top">
         <img src="../../../../lib/permalink.png" />
       </a>
@@ -47,9 +47,9 @@
       </span>
       </h4>
       
-          <div id="comment" class="fullcommenttop"><dl class="attributes block"> <dt>Source</dt><dd><a href="https://github.com/MfgLabs/commons-aws/tree/v0.1/core/src/main/scala/common/package.scala" target="_blank">package.scala</a></dd></dl><div class="toggleContainer block">
+          <div id="comment" class="fullcommenttop"><dl class="attributes block"> <dt>Source</dt><dd><a href="https://github.com/MfgLabs/commons-aws/tree/v0.7/core/src/main/scala/common/package.scala" target="_blank">package.scala</a></dd></dl><div class="toggleContainer block">
           <span class="toggle">Linear Supertypes</span>
-          <div class="superTypes hiddenContent"><a href="http://www.scala-lang.org/api/2.11.2/index.html#scala.AnyRef" class="extype" target="_top">AnyRef</a>, <a href="http://www.scala-lang.org/api/2.11.2/index.html#scala.Any" class="extype" target="_top">Any</a></div>
+          <div class="superTypes hiddenContent"><a href="http://www.scala-lang.org/api/2.11.6/index.html#scala.AnyRef" class="extype" target="_top">AnyRef</a>, <a href="http://www.scala-lang.org/api/2.11.6/index.html#scala.Any" class="extype" target="_top">Any</a></div>
         </div></div>
         
 
@@ -98,7 +98,7 @@
         <span class="kind">class</span>
       </span>
       <span class="symbol">
-        <a href="package$$AWSThreadFactory.html"><span class="name">AWSThreadFactory</span></a><span class="result"> extends <a href="http://docs.oracle.com/javase/7/docs/api/index.html#java.util.concurrent.ThreadFactory" class="extype" target="_top">ThreadFactory</a></span>
+        <a href="package$$AWSThreadFactory.html"><span class="name">AWSThreadFactory</span></a><span class="result"> extends <span class="extype" name="java.util.concurrent.ThreadFactory">ThreadFactory</span></span>
       </span>
       </h4><span class="permalink">
       <a href="../../../../index.html#com.mfglabs.commons.aws.package@AWSThreadFactoryextendsThreadFactory" title="Permalink" target="_top">
@@ -147,7 +147,7 @@
       </a>
     </span>
       
-    </li><li name="com.mfglabs.commons.aws.s3" visbl="pub" data-isabs="false" fullComment="yes" group="Ungrouped">
+    </li><li name="com.mfglabs.commons.aws.s3" visbl="pub" data-isabs="false" fullComment="no" group="Ungrouped">
       <a id="s3"></a>
       <a id="s3:s3"></a>
       <h4 class="signature">
@@ -163,22 +163,24 @@
         <img src="../../../../lib/permalink.png" />
       </a>
     </span>
-      <p class="shortcomment cmt">Enhances default AWS AmazonS3Client for Scala :</p><div class="fullcomment"><div class="comment cmt"><p>Enhances default AWS AmazonS3Client for Scala :</p><ul><li>asynchronous/non-blocking wrapper using an external pool of threads managed internally.</li><li>a few file management/streaming facilities.</li></ul><p>It is based on Opensource Pellucid wrapper.</p><h4>Overview</h4><p>To use rich MFGLabs AWS S3 wrapper, you just have to add the following:</p><pre><span class="kw">import</span> com.mfglabs.commons.aws.s3
-<span class="kw">import</span> s3._ <span class="cmt">// brings implicit extensions</span>
-
-<span class="cmt">// Create the client</span>
-<span class="kw">val</span> S3 = <span class="kw">new</span> AmazonS3Client()
-<span class="cmt">// Use it</span>
-<span class="kw">for</span> {
-  _   <span class="kw">&lt;-</span> S3.uploadStream(bucket, <span class="lit">"big.txt"</span>, Enumerator.fromFile(<span class="kw">new</span> java.io.File(s<span class="lit">"big.txt"</span>)))
-  l   <span class="kw">&lt;-</span> S3.listFiles(bucket)
-  _   <span class="kw">&lt;-</span> S3.deleteFile(bucket, <span class="lit">"big.txt"</span>)
-  l2  <span class="kw">&lt;-</span> S3.listFiles(bucket)
-} <span class="kw">yield</span> (l, l2)</pre><p>Please remark that you don't need any implicit <span class="extype" name="scala.concurrent.ExecutionContext">scala.concurrent.ExecutionContext</span> as it's directly provided
-and managed by <a href="s3/AmazonS3Client.html" class="extype" name="com.mfglabs.commons.aws.s3.AmazonS3Client">AmazonS3Client</a> itself.
-There are smart <a href="s3/AmazonS3Client.html" class="extype" name="com.mfglabs.commons.aws.s3.AmazonS3Client">AmazonS3Client</a> constructors that can be provided with custom.
-<a href="http://docs.oracle.com/javase/7/docs/api/index.html#java.util.concurrent.ExecutorService" class="extype" target="_top">java.util.concurrent.ExecutorService</a> if you want to manage your pools of threads.
-</p></div></div>
+      
+    </li><li name="com.mfglabs.commons.aws.sqs" visbl="pub" data-isabs="false" fullComment="no" group="Ungrouped">
+      <a id="sqs"></a>
+      <a id="sqs:sqs"></a>
+      <h4 class="signature">
+      <span class="modifier_kind">
+        <span class="modifier"></span>
+        <span class="kind">package</span>
+      </span>
+      <span class="symbol">
+        <a href="sqs/package.html"><span class="name">sqs</span></a>
+      </span>
+      </h4><span class="permalink">
+      <a href="../../../../index.html#com.mfglabs.commons.aws.package@sqs" title="Permalink" target="_top">
+        <img src="../../../../lib/permalink.png" />
+      </a>
+    </span>
+      
     </li></ol>
             </div>
 
@@ -189,9 +191,9 @@ There are smart <a href="s3/AmazonS3Client.html" class="extype" name="com.mfglab
 
         <div id="inheritedMembers">
         <div class="parent" name="scala.AnyRef">
-              <h3>Inherited from <a href="http://www.scala-lang.org/api/2.11.2/index.html#scala.AnyRef" class="extype" target="_top">AnyRef</a></h3>
+              <h3>Inherited from <a href="http://www.scala-lang.org/api/2.11.6/index.html#scala.AnyRef" class="extype" target="_top">AnyRef</a></h3>
             </div><div class="parent" name="scala.Any">
-              <h3>Inherited from <a href="http://www.scala-lang.org/api/2.11.2/index.html#scala.Any" class="extype" target="_top">Any</a></h3>
+              <h3>Inherited from <a href="http://www.scala-lang.org/api/2.11.6/index.html#scala.Any" class="extype" target="_top">Any</a></h3>
             </div>
         
         </div>

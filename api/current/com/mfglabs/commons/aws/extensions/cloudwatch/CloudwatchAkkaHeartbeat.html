@@ -30,7 +30,9 @@
       <div id="definition">
         <img src="../../../../../../lib/class_big.png" />
         <p id="owner"><a href="../../../../../package.html" class="extype" name="com">com</a>.<a href="../../../../package.html" class="extype" name="com.mfglabs">mfglabs</a>.<a href="../../../package.html" class="extype" name="com.mfglabs.commons">commons</a>.<a href="../../package.html" class="extype" name="com.mfglabs.commons.aws">aws</a>.<a href="../package.html" class="extype" name="com.mfglabs.commons.aws.extensions">extensions</a>.<a href="package.html" class="extype" name="com.mfglabs.commons.aws.extensions.cloudwatch">cloudwatch</a></p>
-        <h1>CloudwatchAkkaHeartbeat</h1> <span class="permalink">
+        <h1>CloudwatchAkkaHeartbeat</h1><h3><span class="morelinks"><div>Related Doc:
+            <a href="package.html" class="extype" name="com.mfglabs.commons.aws.extensions.cloudwatch">package cloudwatch</a>
+          </div></span></h3><span class="permalink">
       <a href="../../../../../../index.html#com.mfglabs.commons.aws.extensions.cloudwatch.CloudwatchAkkaHeartbeat" title="Permalink" target="_top">
         <img src="../../../../../../lib/permalink.png" />
       </a>
@@ -47,9 +49,9 @@
       </span>
       </h4>
       
-          <div id="comment" class="fullcommenttop"><dl class="attributes block"> <dt>Source</dt><dd><a href="https://github.com/MfgLabs/commons-aws/tree/v0.1/extensions/cloudwatch-heartbeat/src/main/scala/heartbeat.scala" target="_blank">heartbeat.scala</a></dd></dl><div class="toggleContainer block">
+          <div id="comment" class="fullcommenttop"><dl class="attributes block"> <dt>Source</dt><dd><a href="https://github.com/MfgLabs/commons-aws/tree/v0.7/extensions/cloudwatch-heartbeat/src/main/scala/heartbeat.scala" target="_blank">heartbeat.scala</a></dd></dl><div class="toggleContainer block">
           <span class="toggle">Linear Supertypes</span>
-          <div class="superTypes hiddenContent"><span class="extype" name="grizzled.slf4j.Logging">Logging</span>, <a href="HeartBeat.html" class="extype" name="com.mfglabs.commons.aws.extensions.cloudwatch.HeartBeat">HeartBeat</a>, <a href="http://www.scala-lang.org/api/2.11.2/index.html#scala.AnyRef" class="extype" target="_top">AnyRef</a>, <a href="http://www.scala-lang.org/api/2.11.2/index.html#scala.Any" class="extype" target="_top">Any</a></div>
+          <div class="superTypes hiddenContent"><span class="extype" name="grizzled.slf4j.Logging">Logging</span>, <a href="HeartBeat.html" class="extype" name="com.mfglabs.commons.aws.extensions.cloudwatch.HeartBeat">HeartBeat</a>, <a href="http://www.scala-lang.org/api/2.11.6/index.html#scala.AnyRef" class="extype" target="_top">AnyRef</a>, <a href="http://www.scala-lang.org/api/2.11.6/index.html#scala.Any" class="extype" target="_top">Any</a></div>
         </div></div>
         
 
@@ -101,7 +103,7 @@
         <span class="kind">new</span>
       </span>
       <span class="symbol">
-        <span class="name">CloudwatchAkkaHeartbeat</span><span class="params">(<span name="namespace">namespace: <span class="extype" name="scala.Predef.String">String</span></span>, <span name="name">name: <span class="extype" name="scala.Predef.String">String</span></span>, <span name="beatPeriod">beatPeriod: <a href="http://www.scala-lang.org/api/2.11.2/index.html#scala.concurrent.duration.FiniteDuration" class="extype" target="_top">FiniteDuration</a></span>, <span name="alarmPeriod">alarmPeriod: <a href="http://www.scala-lang.org/api/2.11.2/index.html#scala.concurrent.duration.FiniteDuration" class="extype" target="_top">FiniteDuration</a></span>, <span name="alarmPeriodNb">alarmPeriodNb: <a href="http://www.scala-lang.org/api/2.11.2/index.html#scala.Int" class="extype" target="_top">Int</a></span>, <span name="alarmThreshold">alarmThreshold: <a href="http://www.scala-lang.org/api/2.11.2/index.html#scala.Int" class="extype" target="_top">Int</a></span>, <span name="system">system: <span class="extype" name="akka.actor.ActorSystem">ActorSystem</span></span>, <span name="client">client: <a href="../../cloudwatch/AmazonCloudwatchClient.html" class="extype" name="com.mfglabs.commons.aws.cloudwatch.AmazonCloudwatchClient">AmazonCloudwatchClient</a></span>, <span name="actionEndpoint">actionEndpoint: <span class="extype" name="scala.Predef.String">String</span></span>, <span name="launchTimeout">launchTimeout: <a href="http://www.scala-lang.org/api/2.11.2/index.html#scala.concurrent.duration.FiniteDuration" class="extype" target="_top">FiniteDuration</a> = <span class="symbol">5 seconds</span></span>)</span>
+        <span class="name">CloudwatchAkkaHeartbeat</span><span class="params">(<span name="namespace">namespace: <span class="extype" name="scala.Predef.String">String</span></span>, <span name="name">name: <span class="extype" name="scala.Predef.String">String</span></span>, <span name="beatPeriod">beatPeriod: <a href="http://www.scala-lang.org/api/2.11.6/index.html#scala.concurrent.duration.FiniteDuration" class="extype" target="_top">FiniteDuration</a></span>, <span name="alarmPeriod">alarmPeriod: <a href="http://www.scala-lang.org/api/2.11.6/index.html#scala.concurrent.duration.FiniteDuration" class="extype" target="_top">FiniteDuration</a></span>, <span name="alarmPeriodNb">alarmPeriodNb: <a href="http://www.scala-lang.org/api/2.11.6/index.html#scala.Int" class="extype" target="_top">Int</a></span>, <span name="alarmThreshold">alarmThreshold: <a href="http://www.scala-lang.org/api/2.11.6/index.html#scala.Int" class="extype" target="_top">Int</a></span>, <span name="system">system: <span class="extype" name="akka.actor.ActorSystem">ActorSystem</span></span>, <span name="client">client: <a href="../../cloudwatch/AmazonCloudwatchClient.html" class="extype" name="com.mfglabs.commons.aws.cloudwatch.AmazonCloudwatchClient">AmazonCloudwatchClient</a></span>, <span name="actionEndpoint">actionEndpoint: <span class="extype" name="scala.Predef.String">String</span></span>, <span name="launchTimeout">launchTimeout: <a href="http://www.scala-lang.org/api/2.11.6/index.html#scala.concurrent.duration.FiniteDuration" class="extype" target="_top">FiniteDuration</a> = <span class="symbol">5 seconds</span></span>)</span>
       </span>
       </h4><span class="permalink">
       <a href="../../../../../../index.html#com.mfglabs.commons.aws.extensions.cloudwatch.CloudwatchAkkaHeartbeat@&lt;init&gt;(namespace:String,name:String,beatPeriod:scala.concurrent.duration.FiniteDuration,alarmPeriod:scala.concurrent.duration.FiniteDuration,alarmPeriodNb:Int,alarmThreshold:Int,system:akka.actor.ActorSystem,client:com.mfglabs.commons.aws.cloudwatch.AmazonCloudwatchClient,actionEndpoint:String,launchTimeout:scala.concurrent.duration.FiniteDuration):com.mfglabs.commons.aws.extensions.cloudwatch.CloudwatchAkkaHeartbeat" title="Permalink" target="_top">
@@ -147,7 +149,7 @@
         <span class="kind">def</span>
       </span>
       <span class="symbol">
-        <span title="gt4s: $bang$eq" class="name">!=</span><span class="params">(<span name="arg0">arg0: <a href="http://www.scala-lang.org/api/2.11.2/index.html#scala.Any" class="extype" target="_top">Any</a></span>)</span><span class="result">: <a href="http://www.scala-lang.org/api/2.11.2/index.html#scala.Boolean" class="extype" target="_top">Boolean</a></span>
+        <span title="gt4s: $bang$eq" class="name">!=</span><span class="params">(<span name="arg0">arg0: <a href="http://www.scala-lang.org/api/2.11.6/index.html#scala.Any" class="extype" target="_top">Any</a></span>)</span><span class="result">: <a href="http://www.scala-lang.org/api/2.11.6/index.html#scala.Boolean" class="extype" target="_top">Boolean</a></span>
       </span>
       </h4><span class="permalink">
       <a href="../../../../../../index.html#com.mfglabs.commons.aws.extensions.cloudwatch.CloudwatchAkkaHeartbeat@!=(x$1:Any):Boolean" title="Permalink" target="_top">
@@ -164,7 +166,7 @@
         <span class="kind">def</span>
       </span>
       <span class="symbol">
-        <span title="gt4s: $hash$hash" class="name">##</span><span class="params">()</span><span class="result">: <a href="http://www.scala-lang.org/api/2.11.2/index.html#scala.Int" class="extype" target="_top">Int</a></span>
+        <span title="gt4s: $hash$hash" class="name">##</span><span class="params">()</span><span class="result">: <a href="http://www.scala-lang.org/api/2.11.6/index.html#scala.Int" class="extype" target="_top">Int</a></span>
       </span>
       </h4><span class="permalink">
       <a href="../../../../../../index.html#com.mfglabs.commons.aws.extensions.cloudwatch.CloudwatchAkkaHeartbeat@##():Int" title="Permalink" target="_top">
@@ -226,7 +228,7 @@
         <span class="kind">def</span>
       </span>
       <span class="symbol">
-        <span title="gt4s: $eq$eq" class="name">==</span><span class="params">(<span name="arg0">arg0: <a href="http://www.scala-lang.org/api/2.11.2/index.html#scala.Any" class="extype" target="_top">Any</a></span>)</span><span class="result">: <a href="http://www.scala-lang.org/api/2.11.2/index.html#scala.Boolean" class="extype" target="_top">Boolean</a></span>
+        <span title="gt4s: $eq$eq" class="name">==</span><span class="params">(<span name="arg0">arg0: <a href="http://www.scala-lang.org/api/2.11.6/index.html#scala.Any" class="extype" target="_top">Any</a></span>)</span><span class="result">: <a href="http://www.scala-lang.org/api/2.11.6/index.html#scala.Boolean" class="extype" target="_top">Boolean</a></span>
       </span>
       </h4><span class="permalink">
       <a href="../../../../../../index.html#com.mfglabs.commons.aws.extensions.cloudwatch.CloudwatchAkkaHeartbeat@==(x$1:Any):Boolean" title="Permalink" target="_top">
@@ -243,7 +245,7 @@
         <span class="kind">object</span>
       </span>
       <span class="symbol">
-        <a href="CloudwatchAkkaHeartbeat$HeartBeatCancel$.html"><span class="name">HeartBeatCancel</span></a><span class="result"> extends <a href="http://www.scala-lang.org/api/2.11.2/index.html#scala.Product" class="extype" target="_top">Product</a> with <a href="http://www.scala-lang.org/api/2.11.2/index.html#scala.Serializable" class="extype" target="_top">Serializable</a></span>
+        <a href="CloudwatchAkkaHeartbeat$HeartBeatCancel$.html"><span class="name">HeartBeatCancel</span></a><span class="result"> extends <a href="http://www.scala-lang.org/api/2.11.6/index.html#scala.Product" class="extype" target="_top">Product</a> with <a href="http://www.scala-lang.org/api/2.11.6/index.html#scala.Serializable" class="extype" target="_top">Serializable</a></span>
       </span>
       </h4><span class="permalink">
       <a href="../../../../../../index.html#com.mfglabs.commons.aws.extensions.cloudwatch.CloudwatchAkkaHeartbeat@HeartBeatCancel" title="Permalink" target="_top">
@@ -260,7 +262,7 @@
         <span class="kind">object</span>
       </span>
       <span class="symbol">
-        <a href="CloudwatchAkkaHeartbeat$HeartBeatLaunch$.html"><span class="name">HeartBeatLaunch</span></a><span class="result"> extends <a href="http://www.scala-lang.org/api/2.11.2/index.html#scala.Product" class="extype" target="_top">Product</a> with <a href="http://www.scala-lang.org/api/2.11.2/index.html#scala.Serializable" class="extype" target="_top">Serializable</a></span>
+        <a href="CloudwatchAkkaHeartbeat$HeartBeatLaunch$.html"><span class="name">HeartBeatLaunch</span></a><span class="result"> extends <a href="http://www.scala-lang.org/api/2.11.6/index.html#scala.Product" class="extype" target="_top">Product</a> with <a href="http://www.scala-lang.org/api/2.11.6/index.html#scala.Serializable" class="extype" target="_top">Serializable</a></span>
       </span>
       </h4><span class="permalink">
       <a href="../../../../../../index.html#com.mfglabs.commons.aws.extensions.cloudwatch.CloudwatchAkkaHeartbeat@HeartBeatLaunch" title="Permalink" target="_top">
@@ -277,7 +279,7 @@
         <span class="kind">object</span>
       </span>
       <span class="symbol">
-        <a href="CloudwatchAkkaHeartbeat$HeartBeatMsg$.html"><span class="name">HeartBeatMsg</span></a><span class="result"> extends <a href="http://www.scala-lang.org/api/2.11.2/index.html#scala.Product" class="extype" target="_top">Product</a> with <a href="http://www.scala-lang.org/api/2.11.2/index.html#scala.Serializable" class="extype" target="_top">Serializable</a></span>
+        <a href="CloudwatchAkkaHeartbeat$HeartBeatMsg$.html"><span class="name">HeartBeatMsg</span></a><span class="result"> extends <a href="http://www.scala-lang.org/api/2.11.6/index.html#scala.Product" class="extype" target="_top">Product</a> with <a href="http://www.scala-lang.org/api/2.11.6/index.html#scala.Serializable" class="extype" target="_top">Serializable</a></span>
       </span>
       </h4><span class="permalink">
       <a href="../../../../../../index.html#com.mfglabs.commons.aws.extensions.cloudwatch.CloudwatchAkkaHeartbeat@HeartBeatMsg" title="Permalink" target="_top">
@@ -328,7 +330,7 @@
         <span class="kind">val</span>
       </span>
       <span class="symbol">
-        <span class="name">alarmDesc</span><span class="result">: <a href="http://docs.oracle.com/javase/7/docs/api/index.html#java.lang.String" class="extype" target="_top">String</a></span>
+        <span class="name">alarmDesc</span><span class="result">: <span class="extype" name="java.lang.String">String</span></span>
       </span>
       </h4><span class="permalink">
       <a href="../../../../../../index.html#com.mfglabs.commons.aws.extensions.cloudwatch.CloudwatchAkkaHeartbeat@alarmDesc:String" title="Permalink" target="_top">
@@ -345,7 +347,7 @@
         <span class="kind">val</span>
       </span>
       <span class="symbol">
-        <span class="name">alarmName</span><span class="result">: <a href="http://docs.oracle.com/javase/7/docs/api/index.html#java.lang.String" class="extype" target="_top">String</a></span>
+        <span class="name">alarmName</span><span class="result">: <span class="extype" name="java.lang.String">String</span></span>
       </span>
       </h4><span class="permalink">
       <a href="../../../../../../index.html#com.mfglabs.commons.aws.extensions.cloudwatch.CloudwatchAkkaHeartbeat@alarmName:String" title="Permalink" target="_top">
@@ -362,7 +364,7 @@
         <span class="kind">val</span>
       </span>
       <span class="symbol">
-        <span class="name">alarmPeriod</span><span class="result">: <a href="http://www.scala-lang.org/api/2.11.2/index.html#scala.concurrent.duration.FiniteDuration" class="extype" target="_top">FiniteDuration</a></span>
+        <span class="name">alarmPeriod</span><span class="result">: <a href="http://www.scala-lang.org/api/2.11.6/index.html#scala.concurrent.duration.FiniteDuration" class="extype" target="_top">FiniteDuration</a></span>
       </span>
       </h4><span class="permalink">
       <a href="../../../../../../index.html#com.mfglabs.commons.aws.extensions.cloudwatch.CloudwatchAkkaHeartbeat@alarmPeriod:scala.concurrent.duration.FiniteDuration" title="Permalink" target="_top">
@@ -379,7 +381,7 @@
         <span class="kind">val</span>
       </span>
       <span class="symbol">
-        <span class="name">alarmPeriodNb</span><span class="result">: <a href="http://www.scala-lang.org/api/2.11.2/index.html#scala.Int" class="extype" target="_top">Int</a></span>
+        <span class="name">alarmPeriodNb</span><span class="result">: <a href="http://www.scala-lang.org/api/2.11.6/index.html#scala.Int" class="extype" target="_top">Int</a></span>
       </span>
       </h4><span class="permalink">
       <a href="../../../../../../index.html#com.mfglabs.commons.aws.extensions.cloudwatch.CloudwatchAkkaHeartbeat@alarmPeriodNb:Int" title="Permalink" target="_top">
@@ -396,7 +398,7 @@
         <span class="kind">val</span>
       </span>
       <span class="symbol">
-        <span class="name">alarmThreshold</span><span class="result">: <a href="http://www.scala-lang.org/api/2.11.2/index.html#scala.Int" class="extype" target="_top">Int</a></span>
+        <span class="name">alarmThreshold</span><span class="result">: <a href="http://www.scala-lang.org/api/2.11.6/index.html#scala.Int" class="extype" target="_top">Int</a></span>
       </span>
       </h4><span class="permalink">
       <a href="../../../../../../index.html#com.mfglabs.commons.aws.extensions.cloudwatch.CloudwatchAkkaHeartbeat@alarmThreshold:Int" title="Permalink" target="_top">
@@ -430,7 +432,7 @@
         <span class="kind">val</span>
       </span>
       <span class="symbol">
-        <span class="name">beatPeriod</span><span class="result">: <a href="http://www.scala-lang.org/api/2.11.2/index.html#scala.concurrent.duration.FiniteDuration" class="extype" target="_top">FiniteDuration</a></span>
+        <span class="name">beatPeriod</span><span class="result">: <a href="http://www.scala-lang.org/api/2.11.6/index.html#scala.concurrent.duration.FiniteDuration" class="extype" target="_top">FiniteDuration</a></span>
       </span>
       </h4><span class="permalink">
       <a href="../../../../../../index.html#com.mfglabs.commons.aws.extensions.cloudwatch.CloudwatchAkkaHeartbeat@beatPeriod:scala.concurrent.duration.FiniteDuration" title="Permalink" target="_top">
@@ -464,7 +466,7 @@
         <span class="kind">def</span>
       </span>
       <span class="symbol">
-        <span class="name">clone</span><span class="params">()</span><span class="result">: <a href="http://www.scala-lang.org/api/2.11.2/index.html#scala.AnyRef" class="extype" target="_top">AnyRef</a></span>
+        <span class="name">clone</span><span class="params">()</span><span class="result">: <a href="http://www.scala-lang.org/api/2.11.6/index.html#scala.AnyRef" class="extype" target="_top">AnyRef</a></span>
       </span>
       </h4><span class="permalink">
       <a href="../../../../../../index.html#com.mfglabs.commons.aws.extensions.cloudwatch.CloudwatchAkkaHeartbeat@clone():Object" title="Permalink" target="_top">
@@ -487,7 +489,7 @@
         <span class="kind">def</span>
       </span>
       <span class="symbol">
-        <span class="name">debug</span><span class="params">(<span name="msg">msg: ⇒ <a href="http://www.scala-lang.org/api/2.11.2/index.html#scala.Any" class="extype" target="_top">Any</a></span>, <span name="t">t: ⇒ <span class="extype" name="scala.Throwable">Throwable</span></span>)</span><span class="result">: <a href="http://www.scala-lang.org/api/2.11.2/index.html#scala.Unit" class="extype" target="_top">Unit</a></span>
+        <span class="name">debug</span><span class="params">(<span name="msg">msg: ⇒ <a href="http://www.scala-lang.org/api/2.11.6/index.html#scala.Any" class="extype" target="_top">Any</a></span>, <span name="t">t: ⇒ <span class="extype" name="scala.Throwable">Throwable</span></span>)</span><span class="result">: <a href="http://www.scala-lang.org/api/2.11.6/index.html#scala.Unit" class="extype" target="_top">Unit</a></span>
       </span>
       </h4><span class="permalink">
       <a href="../../../../../../index.html#com.mfglabs.commons.aws.extensions.cloudwatch.CloudwatchAkkaHeartbeat@debug(msg:=&gt;Any,t:=&gt;Throwable):Unit" title="Permalink" target="_top">
@@ -504,7 +506,7 @@
         <span class="kind">def</span>
       </span>
       <span class="symbol">
-        <span class="name">debug</span><span class="params">(<span name="msg">msg: ⇒ <a href="http://www.scala-lang.org/api/2.11.2/index.html#scala.Any" class="extype" target="_top">Any</a></span>)</span><span class="result">: <a href="http://www.scala-lang.org/api/2.11.2/index.html#scala.Unit" class="extype" target="_top">Unit</a></span>
+        <span class="name">debug</span><span class="params">(<span name="msg">msg: ⇒ <a href="http://www.scala-lang.org/api/2.11.6/index.html#scala.Any" class="extype" target="_top">Any</a></span>)</span><span class="result">: <a href="http://www.scala-lang.org/api/2.11.6/index.html#scala.Unit" class="extype" target="_top">Unit</a></span>
       </span>
       </h4><span class="permalink">
       <a href="../../../../../../index.html#com.mfglabs.commons.aws.extensions.cloudwatch.CloudwatchAkkaHeartbeat@debug(msg:=&gt;Any):Unit" title="Permalink" target="_top">
@@ -538,7 +540,7 @@
         <span class="kind">def</span>
       </span>
       <span class="symbol">
-        <span class="implicit">ensuring</span><span class="params">(<span name="cond">cond: (<a href="" class="extype" name="com.mfglabs.commons.aws.extensions.cloudwatch.CloudwatchAkkaHeartbeat">CloudwatchAkkaHeartbeat</a>) ⇒ <a href="http://www.scala-lang.org/api/2.11.2/index.html#scala.Boolean" class="extype" target="_top">Boolean</a></span>, <span name="msg">msg: ⇒ <a href="http://www.scala-lang.org/api/2.11.2/index.html#scala.Any" class="extype" target="_top">Any</a></span>)</span><span class="result">: <a href="" class="extype" name="com.mfglabs.commons.aws.extensions.cloudwatch.CloudwatchAkkaHeartbeat">CloudwatchAkkaHeartbeat</a></span>
+        <span class="implicit">ensuring</span><span class="params">(<span name="cond">cond: (<a href="" class="extype" name="com.mfglabs.commons.aws.extensions.cloudwatch.CloudwatchAkkaHeartbeat">CloudwatchAkkaHeartbeat</a>) ⇒ <a href="http://www.scala-lang.org/api/2.11.6/index.html#scala.Boolean" class="extype" target="_top">Boolean</a></span>, <span name="msg">msg: ⇒ <a href="http://www.scala-lang.org/api/2.11.6/index.html#scala.Any" class="extype" target="_top">Any</a></span>)</span><span class="result">: <a href="" class="extype" name="com.mfglabs.commons.aws.extensions.cloudwatch.CloudwatchAkkaHeartbeat">CloudwatchAkkaHeartbeat</a></span>
       </span>
       </h4><span class="permalink">
       <a href="../../../../../../index.html#com.mfglabs.commons.aws.extensions.cloudwatch.CloudwatchAkkaHeartbeat@ensuring(cond:A=&gt;Boolean,msg:=&gt;Any):A" title="Permalink" target="_top">
@@ -559,7 +561,7 @@
         <span class="kind">def</span>
       </span>
       <span class="symbol">
-        <span class="implicit">ensuring</span><span class="params">(<span name="cond">cond: (<a href="" class="extype" name="com.mfglabs.commons.aws.extensions.cloudwatch.CloudwatchAkkaHeartbeat">CloudwatchAkkaHeartbeat</a>) ⇒ <a href="http://www.scala-lang.org/api/2.11.2/index.html#scala.Boolean" class="extype" target="_top">Boolean</a></span>)</span><span class="result">: <a href="" class="extype" name="com.mfglabs.commons.aws.extensions.cloudwatch.CloudwatchAkkaHeartbeat">CloudwatchAkkaHeartbeat</a></span>
+        <span class="implicit">ensuring</span><span class="params">(<span name="cond">cond: (<a href="" class="extype" name="com.mfglabs.commons.aws.extensions.cloudwatch.CloudwatchAkkaHeartbeat">CloudwatchAkkaHeartbeat</a>) ⇒ <a href="http://www.scala-lang.org/api/2.11.6/index.html#scala.Boolean" class="extype" target="_top">Boolean</a></span>)</span><span class="result">: <a href="" class="extype" name="com.mfglabs.commons.aws.extensions.cloudwatch.CloudwatchAkkaHeartbeat">CloudwatchAkkaHeartbeat</a></span>
       </span>
       </h4><span class="permalink">
       <a href="../../../../../../index.html#com.mfglabs.commons.aws.extensions.cloudwatch.CloudwatchAkkaHeartbeat@ensuring(cond:A=&gt;Boolean):A" title="Permalink" target="_top">
@@ -580,7 +582,7 @@
         <span class="kind">def</span>
       </span>
       <span class="symbol">
-        <span class="implicit">ensuring</span><span class="params">(<span name="cond">cond: <a href="http://www.scala-lang.org/api/2.11.2/index.html#scala.Boolean" class="extype" target="_top">Boolean</a></span>, <span name="msg">msg: ⇒ <a href="http://www.scala-lang.org/api/2.11.2/index.html#scala.Any" class="extype" target="_top">Any</a></span>)</span><span class="result">: <a href="" class="extype" name="com.mfglabs.commons.aws.extensions.cloudwatch.CloudwatchAkkaHeartbeat">CloudwatchAkkaHeartbeat</a></span>
+        <span class="implicit">ensuring</span><span class="params">(<span name="cond">cond: <a href="http://www.scala-lang.org/api/2.11.6/index.html#scala.Boolean" class="extype" target="_top">Boolean</a></span>, <span name="msg">msg: ⇒ <a href="http://www.scala-lang.org/api/2.11.6/index.html#scala.Any" class="extype" target="_top">Any</a></span>)</span><span class="result">: <a href="" class="extype" name="com.mfglabs.commons.aws.extensions.cloudwatch.CloudwatchAkkaHeartbeat">CloudwatchAkkaHeartbeat</a></span>
       </span>
       </h4><span class="permalink">
       <a href="../../../../../../index.html#com.mfglabs.commons.aws.extensions.cloudwatch.CloudwatchAkkaHeartbeat@ensuring(cond:Boolean,msg:=&gt;Any):A" title="Permalink" target="_top">
@@ -601,7 +603,7 @@
         <span class="kind">def</span>
       </span>
       <span class="symbol">
-        <span class="implicit">ensuring</span><span class="params">(<span name="cond">cond: <a href="http://www.scala-lang.org/api/2.11.2/index.html#scala.Boolean" class="extype" target="_top">Boolean</a></span>)</span><span class="result">: <a href="" class="extype" name="com.mfglabs.commons.aws.extensions.cloudwatch.CloudwatchAkkaHeartbeat">CloudwatchAkkaHeartbeat</a></span>
+        <span class="implicit">ensuring</span><span class="params">(<span name="cond">cond: <a href="http://www.scala-lang.org/api/2.11.6/index.html#scala.Boolean" class="extype" target="_top">Boolean</a></span>)</span><span class="result">: <a href="" class="extype" name="com.mfglabs.commons.aws.extensions.cloudwatch.CloudwatchAkkaHeartbeat">CloudwatchAkkaHeartbeat</a></span>
       </span>
       </h4><span class="permalink">
       <a href="../../../../../../index.html#com.mfglabs.commons.aws.extensions.cloudwatch.CloudwatchAkkaHeartbeat@ensuring(cond:Boolean):A" title="Permalink" target="_top">
@@ -622,7 +624,7 @@
         <span class="kind">def</span>
       </span>
       <span class="symbol">
-        <span class="name">eq</span><span class="params">(<span name="arg0">arg0: <a href="http://www.scala-lang.org/api/2.11.2/index.html#scala.AnyRef" class="extype" target="_top">AnyRef</a></span>)</span><span class="result">: <a href="http://www.scala-lang.org/api/2.11.2/index.html#scala.Boolean" class="extype" target="_top">Boolean</a></span>
+        <span class="name">eq</span><span class="params">(<span name="arg0">arg0: <a href="http://www.scala-lang.org/api/2.11.6/index.html#scala.AnyRef" class="extype" target="_top">AnyRef</a></span>)</span><span class="result">: <a href="http://www.scala-lang.org/api/2.11.6/index.html#scala.Boolean" class="extype" target="_top">Boolean</a></span>
       </span>
       </h4><span class="permalink">
       <a href="../../../../../../index.html#com.mfglabs.commons.aws.extensions.cloudwatch.CloudwatchAkkaHeartbeat@eq(x$1:AnyRef):Boolean" title="Permalink" target="_top">
@@ -639,7 +641,7 @@
         <span class="kind">def</span>
       </span>
       <span class="symbol">
-        <span class="name">equals</span><span class="params">(<span name="arg0">arg0: <a href="http://www.scala-lang.org/api/2.11.2/index.html#scala.Any" class="extype" target="_top">Any</a></span>)</span><span class="result">: <a href="http://www.scala-lang.org/api/2.11.2/index.html#scala.Boolean" class="extype" target="_top">Boolean</a></span>
+        <span class="name">equals</span><span class="params">(<span name="arg0">arg0: <a href="http://www.scala-lang.org/api/2.11.6/index.html#scala.Any" class="extype" target="_top">Any</a></span>)</span><span class="result">: <a href="http://www.scala-lang.org/api/2.11.6/index.html#scala.Boolean" class="extype" target="_top">Boolean</a></span>
       </span>
       </h4><span class="permalink">
       <a href="../../../../../../index.html#com.mfglabs.commons.aws.extensions.cloudwatch.CloudwatchAkkaHeartbeat@equals(x$1:Any):Boolean" title="Permalink" target="_top">
@@ -656,7 +658,7 @@
         <span class="kind">def</span>
       </span>
       <span class="symbol">
-        <span class="name">error</span><span class="params">(<span name="msg">msg: ⇒ <a href="http://www.scala-lang.org/api/2.11.2/index.html#scala.Any" class="extype" target="_top">Any</a></span>, <span name="t">t: ⇒ <span class="extype" name="scala.Throwable">Throwable</span></span>)</span><span class="result">: <a href="http://www.scala-lang.org/api/2.11.2/index.html#scala.Unit" class="extype" target="_top">Unit</a></span>
+        <span class="name">error</span><span class="params">(<span name="msg">msg: ⇒ <a href="http://www.scala-lang.org/api/2.11.6/index.html#scala.Any" class="extype" target="_top">Any</a></span>, <span name="t">t: ⇒ <span class="extype" name="scala.Throwable">Throwable</span></span>)</span><span class="result">: <a href="http://www.scala-lang.org/api/2.11.6/index.html#scala.Unit" class="extype" target="_top">Unit</a></span>
       </span>
       </h4><span class="permalink">
       <a href="../../../../../../index.html#com.mfglabs.commons.aws.extensions.cloudwatch.CloudwatchAkkaHeartbeat@error(msg:=&gt;Any,t:=&gt;Throwable):Unit" title="Permalink" target="_top">
@@ -673,7 +675,7 @@
         <span class="kind">def</span>
       </span>
       <span class="symbol">
-        <span class="name">error</span><span class="params">(<span name="msg">msg: ⇒ <a href="http://www.scala-lang.org/api/2.11.2/index.html#scala.Any" class="extype" target="_top">Any</a></span>)</span><span class="result">: <a href="http://www.scala-lang.org/api/2.11.2/index.html#scala.Unit" class="extype" target="_top">Unit</a></span>
+        <span class="name">error</span><span class="params">(<span name="msg">msg: ⇒ <a href="http://www.scala-lang.org/api/2.11.6/index.html#scala.Any" class="extype" target="_top">Any</a></span>)</span><span class="result">: <a href="http://www.scala-lang.org/api/2.11.6/index.html#scala.Unit" class="extype" target="_top">Unit</a></span>
       </span>
       </h4><span class="permalink">
       <a href="../../../../../../index.html#com.mfglabs.commons.aws.extensions.cloudwatch.CloudwatchAkkaHeartbeat@error(msg:=&gt;Any):Unit" title="Permalink" target="_top">
@@ -690,7 +692,7 @@
         <span class="kind">def</span>
       </span>
       <span class="symbol">
-        <span class="name">finalize</span><span class="params">()</span><span class="result">: <a href="http://www.scala-lang.org/api/2.11.2/index.html#scala.Unit" class="extype" target="_top">Unit</a></span>
+        <span class="name">finalize</span><span class="params">()</span><span class="result">: <a href="http://www.scala-lang.org/api/2.11.6/index.html#scala.Unit" class="extype" target="_top">Unit</a></span>
       </span>
       </h4><span class="permalink">
       <a href="../../../../../../index.html#com.mfglabs.commons.aws.extensions.cloudwatch.CloudwatchAkkaHeartbeat@finalize():Unit" title="Permalink" target="_top">
@@ -737,7 +739,7 @@
         <span class="kind">def</span>
       </span>
       <span class="symbol">
-        <span class="name">getAlarm</span><span class="params">()</span><span class="params">(<span class="implicit">implicit </span><span name="ec">ec: <span class="extype" name="scala.concurrent.ExecutionContext">ExecutionContext</span></span>)</span><span class="result">: <a href="http://www.scala-lang.org/api/2.11.2/index.html#scala.concurrent.Future" class="extype" target="_top">Future</a>[<a href="http://www.scala-lang.org/api/2.11.2/index.html#scala.Option" class="extype" target="_top">Option</a>[<span class="extype" name="com.amazonaws.services.cloudwatch.model.MetricAlarm">MetricAlarm</span>]]</span>
+        <span class="name">getAlarm</span><span class="params">()</span><span class="params">(<span class="implicit">implicit </span><span name="ec">ec: <span class="extype" name="scala.concurrent.ExecutionContext">ExecutionContext</span></span>)</span><span class="result">: <a href="http://www.scala-lang.org/api/2.11.6/index.html#scala.concurrent.Future" class="extype" target="_top">Future</a>[<a href="http://www.scala-lang.org/api/2.11.6/index.html#scala.Option" class="extype" target="_top">Option</a>[<span class="extype" name="com.amazonaws.services.cloudwatch.model.MetricAlarm">MetricAlarm</span>]]</span>
       </span>
       </h4><span class="permalink">
       <a href="../../../../../../index.html#com.mfglabs.commons.aws.extensions.cloudwatch.CloudwatchAkkaHeartbeat@getAlarm()(implicitec:scala.concurrent.ExecutionContext):scala.concurrent.Future[Option[com.amazonaws.services.cloudwatch.model.MetricAlarm]]" title="Permalink" target="_top">
@@ -754,7 +756,7 @@
         <span class="kind">def</span>
       </span>
       <span class="symbol">
-        <span class="name">getClass</span><span class="params">()</span><span class="result">: <a href="http://docs.oracle.com/javase/7/docs/api/index.html#java.lang.Class" class="extype" target="_top">Class</a>[_]</span>
+        <span class="name">getClass</span><span class="params">()</span><span class="result">: <span class="extype" name="java.lang.Class">Class</span>[_]</span>
       </span>
       </h4><span class="permalink">
       <a href="../../../../../../index.html#com.mfglabs.commons.aws.extensions.cloudwatch.CloudwatchAkkaHeartbeat@getClass():Class[_]" title="Permalink" target="_top">
@@ -771,7 +773,7 @@
         <span class="kind">def</span>
       </span>
       <span class="symbol">
-        <span class="name">getMetric</span><span class="params">()</span><span class="params">(<span class="implicit">implicit </span><span name="ec">ec: <span class="extype" name="scala.concurrent.ExecutionContext">ExecutionContext</span></span>)</span><span class="result">: <a href="http://www.scala-lang.org/api/2.11.2/index.html#scala.concurrent.Future" class="extype" target="_top">Future</a>[<a href="http://www.scala-lang.org/api/2.11.2/index.html#scala.Option" class="extype" target="_top">Option</a>[<span class="extype" name="com.amazonaws.services.cloudwatch.model.Metric">Metric</span>]]</span>
+        <span class="name">getMetric</span><span class="params">()</span><span class="params">(<span class="implicit">implicit </span><span name="ec">ec: <span class="extype" name="scala.concurrent.ExecutionContext">ExecutionContext</span></span>)</span><span class="result">: <a href="http://www.scala-lang.org/api/2.11.6/index.html#scala.concurrent.Future" class="extype" target="_top">Future</a>[<a href="http://www.scala-lang.org/api/2.11.6/index.html#scala.Option" class="extype" target="_top">Option</a>[<span class="extype" name="com.amazonaws.services.cloudwatch.model.Metric">Metric</span>]]</span>
       </span>
       </h4><span class="permalink">
       <a href="../../../../../../index.html#com.mfglabs.commons.aws.extensions.cloudwatch.CloudwatchAkkaHeartbeat@getMetric()(implicitec:scala.concurrent.ExecutionContext):scala.concurrent.Future[Option[com.amazonaws.services.cloudwatch.model.Metric]]" title="Permalink" target="_top">
@@ -788,7 +790,7 @@
         <span class="kind">def</span>
       </span>
       <span class="symbol">
-        <span class="name">getMetrics</span><span class="params">()</span><span class="params">(<span class="implicit">implicit </span><span name="ec">ec: <span class="extype" name="scala.concurrent.ExecutionContext">ExecutionContext</span></span>)</span><span class="result">: <a href="http://www.scala-lang.org/api/2.11.2/index.html#scala.concurrent.Future" class="extype" target="_top">Future</a>[<span class="extype" name="scala.List">List</span>[<span class="extype" name="com.amazonaws.services.cloudwatch.model.Metric">Metric</span>]]</span>
+        <span class="name">getMetrics</span><span class="params">()</span><span class="params">(<span class="implicit">implicit </span><span name="ec">ec: <span class="extype" name="scala.concurrent.ExecutionContext">ExecutionContext</span></span>)</span><span class="result">: <a href="http://www.scala-lang.org/api/2.11.6/index.html#scala.concurrent.Future" class="extype" target="_top">Future</a>[<span class="extype" name="scala.List">List</span>[<span class="extype" name="com.amazonaws.services.cloudwatch.model.Metric">Metric</span>]]</span>
       </span>
       </h4><span class="permalink">
       <a href="../../../../../../index.html#com.mfglabs.commons.aws.extensions.cloudwatch.CloudwatchAkkaHeartbeat@getMetrics()(implicitec:scala.concurrent.ExecutionContext):scala.concurrent.Future[List[com.amazonaws.services.cloudwatch.model.Metric]]" title="Permalink" target="_top">
@@ -805,7 +807,7 @@
         <span class="kind">def</span>
       </span>
       <span class="symbol">
-        <span class="name">hashCode</span><span class="params">()</span><span class="result">: <a href="http://www.scala-lang.org/api/2.11.2/index.html#scala.Int" class="extype" target="_top">Int</a></span>
+        <span class="name">hashCode</span><span class="params">()</span><span class="result">: <a href="http://www.scala-lang.org/api/2.11.6/index.html#scala.Int" class="extype" target="_top">Int</a></span>
       </span>
       </h4><span class="permalink">
       <a href="../../../../../../index.html#com.mfglabs.commons.aws.extensions.cloudwatch.CloudwatchAkkaHeartbeat@hashCode():Int" title="Permalink" target="_top">
@@ -822,7 +824,7 @@
         <span class="kind">def</span>
       </span>
       <span class="symbol">
-        <span class="name">info</span><span class="params">(<span name="msg">msg: ⇒ <a href="http://www.scala-lang.org/api/2.11.2/index.html#scala.Any" class="extype" target="_top">Any</a></span>, <span name="t">t: ⇒ <span class="extype" name="scala.Throwable">Throwable</span></span>)</span><span class="result">: <a href="http://www.scala-lang.org/api/2.11.2/index.html#scala.Unit" class="extype" target="_top">Unit</a></span>
+        <span class="name">info</span><span class="params">(<span name="msg">msg: ⇒ <a href="http://www.scala-lang.org/api/2.11.6/index.html#scala.Any" class="extype" target="_top">Any</a></span>, <span name="t">t: ⇒ <span class="extype" name="scala.Throwable">Throwable</span></span>)</span><span class="result">: <a href="http://www.scala-lang.org/api/2.11.6/index.html#scala.Unit" class="extype" target="_top">Unit</a></span>
       </span>
       </h4><span class="permalink">
       <a href="../../../../../../index.html#com.mfglabs.commons.aws.extensions.cloudwatch.CloudwatchAkkaHeartbeat@info(msg:=&gt;Any,t:=&gt;Throwable):Unit" title="Permalink" target="_top">
@@ -839,7 +841,7 @@
         <span class="kind">def</span>
       </span>
       <span class="symbol">
-        <span class="name">info</span><span class="params">(<span name="msg">msg: ⇒ <a href="http://www.scala-lang.org/api/2.11.2/index.html#scala.Any" class="extype" target="_top">Any</a></span>)</span><span class="result">: <a href="http://www.scala-lang.org/api/2.11.2/index.html#scala.Unit" class="extype" target="_top">Unit</a></span>
+        <span class="name">info</span><span class="params">(<span name="msg">msg: ⇒ <a href="http://www.scala-lang.org/api/2.11.6/index.html#scala.Any" class="extype" target="_top">Any</a></span>)</span><span class="result">: <a href="http://www.scala-lang.org/api/2.11.6/index.html#scala.Unit" class="extype" target="_top">Unit</a></span>
       </span>
       </h4><span class="permalink">
       <a href="../../../../../../index.html#com.mfglabs.commons.aws.extensions.cloudwatch.CloudwatchAkkaHeartbeat@info(msg:=&gt;Any):Unit" title="Permalink" target="_top">
@@ -856,7 +858,7 @@
         <span class="kind">def</span>
       </span>
       <span class="symbol">
-        <span class="name">initMetricAlarm</span><span class="params">()</span><span class="params">(<span class="implicit">implicit </span><span name="ec">ec: <span class="extype" name="scala.concurrent.ExecutionContext">ExecutionContext</span></span>)</span><span class="result">: <a href="http://www.scala-lang.org/api/2.11.2/index.html#scala.concurrent.Future" class="extype" target="_top">Future</a>[<a href="http://www.scala-lang.org/api/2.11.2/index.html#scala.Unit" class="extype" target="_top">Unit</a>]</span>
+        <span class="name">initMetricAlarm</span><span class="params">()</span><span class="params">(<span class="implicit">implicit </span><span name="ec">ec: <span class="extype" name="scala.concurrent.ExecutionContext">ExecutionContext</span></span>)</span><span class="result">: <a href="http://www.scala-lang.org/api/2.11.6/index.html#scala.concurrent.Future" class="extype" target="_top">Future</a>[<a href="http://www.scala-lang.org/api/2.11.6/index.html#scala.Unit" class="extype" target="_top">Unit</a>]</span>
       </span>
       </h4><span class="permalink">
       <a href="../../../../../../index.html#com.mfglabs.commons.aws.extensions.cloudwatch.CloudwatchAkkaHeartbeat@initMetricAlarm()(implicitec:scala.concurrent.ExecutionContext):scala.concurrent.Future[Unit]" title="Permalink" target="_top">
@@ -873,7 +875,7 @@
         <span class="kind">def</span>
       </span>
       <span class="symbol">
-        <span class="name">isDebugEnabled</span><span class="result">: <a href="http://www.scala-lang.org/api/2.11.2/index.html#scala.Boolean" class="extype" target="_top">Boolean</a></span>
+        <span class="name">isDebugEnabled</span><span class="result">: <a href="http://www.scala-lang.org/api/2.11.6/index.html#scala.Boolean" class="extype" target="_top">Boolean</a></span>
       </span>
       </h4><span class="permalink">
       <a href="../../../../../../index.html#com.mfglabs.commons.aws.extensions.cloudwatch.CloudwatchAkkaHeartbeat@isDebugEnabled:Boolean" title="Permalink" target="_top">
@@ -890,7 +892,7 @@
         <span class="kind">def</span>
       </span>
       <span class="symbol">
-        <span class="name">isErrorEnabled</span><span class="result">: <a href="http://www.scala-lang.org/api/2.11.2/index.html#scala.Boolean" class="extype" target="_top">Boolean</a></span>
+        <span class="name">isErrorEnabled</span><span class="result">: <a href="http://www.scala-lang.org/api/2.11.6/index.html#scala.Boolean" class="extype" target="_top">Boolean</a></span>
       </span>
       </h4><span class="permalink">
       <a href="../../../../../../index.html#com.mfglabs.commons.aws.extensions.cloudwatch.CloudwatchAkkaHeartbeat@isErrorEnabled:Boolean" title="Permalink" target="_top">
@@ -907,7 +909,7 @@
         <span class="kind">def</span>
       </span>
       <span class="symbol">
-        <span class="name">isInfoEnabled</span><span class="result">: <a href="http://www.scala-lang.org/api/2.11.2/index.html#scala.Boolean" class="extype" target="_top">Boolean</a></span>
+        <span class="name">isInfoEnabled</span><span class="result">: <a href="http://www.scala-lang.org/api/2.11.6/index.html#scala.Boolean" class="extype" target="_top">Boolean</a></span>
       </span>
       </h4><span class="permalink">
       <a href="../../../../../../index.html#com.mfglabs.commons.aws.extensions.cloudwatch.CloudwatchAkkaHeartbeat@isInfoEnabled:Boolean" title="Permalink" target="_top">
@@ -924,7 +926,7 @@
         <span class="kind">def</span>
       </span>
       <span class="symbol">
-        <span class="name">isInstanceOf</span><span class="tparams">[<span name="T0">T0</span>]</span><span class="result">: <a href="http://www.scala-lang.org/api/2.11.2/index.html#scala.Boolean" class="extype" target="_top">Boolean</a></span>
+        <span class="name">isInstanceOf</span><span class="tparams">[<span name="T0">T0</span>]</span><span class="result">: <a href="http://www.scala-lang.org/api/2.11.6/index.html#scala.Boolean" class="extype" target="_top">Boolean</a></span>
       </span>
       </h4><span class="permalink">
       <a href="../../../../../../index.html#com.mfglabs.commons.aws.extensions.cloudwatch.CloudwatchAkkaHeartbeat@isInstanceOf[T0]:Boolean" title="Permalink" target="_top">
@@ -941,7 +943,7 @@
         <span class="kind">def</span>
       </span>
       <span class="symbol">
-        <span class="name">isTraceEnabled</span><span class="result">: <a href="http://www.scala-lang.org/api/2.11.2/index.html#scala.Boolean" class="extype" target="_top">Boolean</a></span>
+        <span class="name">isTraceEnabled</span><span class="result">: <a href="http://www.scala-lang.org/api/2.11.6/index.html#scala.Boolean" class="extype" target="_top">Boolean</a></span>
       </span>
       </h4><span class="permalink">
       <a href="../../../../../../index.html#com.mfglabs.commons.aws.extensions.cloudwatch.CloudwatchAkkaHeartbeat@isTraceEnabled:Boolean" title="Permalink" target="_top">
@@ -958,7 +960,7 @@
         <span class="kind">def</span>
       </span>
       <span class="symbol">
-        <span class="name">isWarnEnabled</span><span class="result">: <a href="http://www.scala-lang.org/api/2.11.2/index.html#scala.Boolean" class="extype" target="_top">Boolean</a></span>
+        <span class="name">isWarnEnabled</span><span class="result">: <a href="http://www.scala-lang.org/api/2.11.6/index.html#scala.Boolean" class="extype" target="_top">Boolean</a></span>
       </span>
       </h4><span class="permalink">
       <a href="../../../../../../index.html#com.mfglabs.commons.aws.extensions.cloudwatch.CloudwatchAkkaHeartbeat@isWarnEnabled:Boolean" title="Permalink" target="_top">
@@ -975,7 +977,7 @@
         <span class="kind">val</span>
       </span>
       <span class="symbol">
-        <span class="name">launchTimeout</span><span class="result">: <a href="http://www.scala-lang.org/api/2.11.2/index.html#scala.concurrent.duration.FiniteDuration" class="extype" target="_top">FiniteDuration</a></span>
+        <span class="name">launchTimeout</span><span class="result">: <a href="http://www.scala-lang.org/api/2.11.6/index.html#scala.concurrent.duration.FiniteDuration" class="extype" target="_top">FiniteDuration</a></span>
       </span>
       </h4><span class="permalink">
       <a href="../../../../../../index.html#com.mfglabs.commons.aws.extensions.cloudwatch.CloudwatchAkkaHeartbeat@launchTimeout:scala.concurrent.duration.FiniteDuration" title="Permalink" target="_top">
@@ -1009,7 +1011,7 @@
         <span class="kind">def</span>
       </span>
       <span class="symbol">
-        <span class="name">loggerName</span><span class="result">: <a href="http://docs.oracle.com/javase/7/docs/api/index.html#java.lang.String" class="extype" target="_top">String</a></span>
+        <span class="name">loggerName</span><span class="result">: <span class="extype" name="java.lang.String">String</span></span>
       </span>
       </h4><span class="permalink">
       <a href="../../../../../../index.html#com.mfglabs.commons.aws.extensions.cloudwatch.CloudwatchAkkaHeartbeat@loggerName:String" title="Permalink" target="_top">
@@ -1026,7 +1028,7 @@
         <span class="kind">val</span>
       </span>
       <span class="symbol">
-        <span class="name">metricName</span><span class="result">: <a href="http://docs.oracle.com/javase/7/docs/api/index.html#java.lang.String" class="extype" target="_top">String</a></span>
+        <span class="name">metricName</span><span class="result">: <span class="extype" name="java.lang.String">String</span></span>
       </span>
       </h4><span class="permalink">
       <a href="../../../../../../index.html#com.mfglabs.commons.aws.extensions.cloudwatch.CloudwatchAkkaHeartbeat@metricName:String" title="Permalink" target="_top">
@@ -1077,7 +1079,7 @@
         <span class="kind">def</span>
       </span>
       <span class="symbol">
-        <span class="name">ne</span><span class="params">(<span name="arg0">arg0: <a href="http://www.scala-lang.org/api/2.11.2/index.html#scala.AnyRef" class="extype" target="_top">AnyRef</a></span>)</span><span class="result">: <a href="http://www.scala-lang.org/api/2.11.2/index.html#scala.Boolean" class="extype" target="_top">Boolean</a></span>
+        <span class="name">ne</span><span class="params">(<span name="arg0">arg0: <a href="http://www.scala-lang.org/api/2.11.6/index.html#scala.AnyRef" class="extype" target="_top">AnyRef</a></span>)</span><span class="result">: <a href="http://www.scala-lang.org/api/2.11.6/index.html#scala.Boolean" class="extype" target="_top">Boolean</a></span>
       </span>
       </h4><span class="permalink">
       <a href="../../../../../../index.html#com.mfglabs.commons.aws.extensions.cloudwatch.CloudwatchAkkaHeartbeat@ne(x$1:AnyRef):Boolean" title="Permalink" target="_top">
@@ -1094,7 +1096,7 @@
         <span class="kind">def</span>
       </span>
       <span class="symbol">
-        <span class="name">notify</span><span class="params">()</span><span class="result">: <a href="http://www.scala-lang.org/api/2.11.2/index.html#scala.Unit" class="extype" target="_top">Unit</a></span>
+        <span class="name">notify</span><span class="params">()</span><span class="result">: <a href="http://www.scala-lang.org/api/2.11.6/index.html#scala.Unit" class="extype" target="_top">Unit</a></span>
       </span>
       </h4><span class="permalink">
       <a href="../../../../../../index.html#com.mfglabs.commons.aws.extensions.cloudwatch.CloudwatchAkkaHeartbeat@notify():Unit" title="Permalink" target="_top">
@@ -1111,7 +1113,7 @@
         <span class="kind">def</span>
       </span>
       <span class="symbol">
-        <span class="name">notifyAll</span><span class="params">()</span><span class="result">: <a href="http://www.scala-lang.org/api/2.11.2/index.html#scala.Unit" class="extype" target="_top">Unit</a></span>
+        <span class="name">notifyAll</span><span class="params">()</span><span class="result">: <a href="http://www.scala-lang.org/api/2.11.6/index.html#scala.Unit" class="extype" target="_top">Unit</a></span>
       </span>
       </h4><span class="permalink">
       <a href="../../../../../../index.html#com.mfglabs.commons.aws.extensions.cloudwatch.CloudwatchAkkaHeartbeat@notifyAll():Unit" title="Permalink" target="_top">
@@ -1128,7 +1130,7 @@
         <span class="kind">def</span>
       </span>
       <span class="symbol">
-        <span class="name">putAlarm</span><span class="params">()</span><span class="params">(<span class="implicit">implicit </span><span name="ec">ec: <span class="extype" name="scala.concurrent.ExecutionContext">ExecutionContext</span></span>)</span><span class="result">: <a href="http://www.scala-lang.org/api/2.11.2/index.html#scala.concurrent.Future" class="extype" target="_top">Future</a>[<a href="http://www.scala-lang.org/api/2.11.2/index.html#scala.Unit" class="extype" target="_top">Unit</a>]</span>
+        <span class="name">putAlarm</span><span class="params">()</span><span class="params">(<span class="implicit">implicit </span><span name="ec">ec: <span class="extype" name="scala.concurrent.ExecutionContext">ExecutionContext</span></span>)</span><span class="result">: <a href="http://www.scala-lang.org/api/2.11.6/index.html#scala.concurrent.Future" class="extype" target="_top">Future</a>[<a href="http://www.scala-lang.org/api/2.11.6/index.html#scala.Unit" class="extype" target="_top">Unit</a>]</span>
       </span>
       </h4><span class="permalink">
       <a href="../../../../../../index.html#com.mfglabs.commons.aws.extensions.cloudwatch.CloudwatchAkkaHeartbeat@putAlarm()(implicitec:scala.concurrent.ExecutionContext):scala.concurrent.Future[Unit]" title="Permalink" target="_top">
@@ -1145,7 +1147,7 @@
         <span class="kind">def</span>
       </span>
       <span class="symbol">
-        <span class="name">putMetric</span><span class="params">()</span><span class="params">(<span class="implicit">implicit </span><span name="ec">ec: <span class="extype" name="scala.concurrent.ExecutionContext">ExecutionContext</span></span>)</span><span class="result">: <a href="http://www.scala-lang.org/api/2.11.2/index.html#scala.concurrent.Future" class="extype" target="_top">Future</a>[<a href="http://www.scala-lang.org/api/2.11.2/index.html#scala.Unit" class="extype" target="_top">Unit</a>]</span>
+        <span class="name">putMetric</span><span class="params">()</span><span class="params">(<span class="implicit">implicit </span><span name="ec">ec: <span class="extype" name="scala.concurrent.ExecutionContext">ExecutionContext</span></span>)</span><span class="result">: <a href="http://www.scala-lang.org/api/2.11.6/index.html#scala.concurrent.Future" class="extype" target="_top">Future</a>[<a href="http://www.scala-lang.org/api/2.11.6/index.html#scala.Unit" class="extype" target="_top">Unit</a>]</span>
       </span>
       </h4><span class="permalink">
       <a href="../../../../../../index.html#com.mfglabs.commons.aws.extensions.cloudwatch.CloudwatchAkkaHeartbeat@putMetric()(implicitec:scala.concurrent.ExecutionContext):scala.concurrent.Future[Unit]" title="Permalink" target="_top">
@@ -1162,7 +1164,7 @@
         <span class="kind">def</span>
       </span>
       <span class="symbol">
-        <span class="name">start</span><span class="params">()</span><span class="params">(<span class="implicit">implicit </span><span name="ec">ec: <span class="extype" name="scala.concurrent.ExecutionContext">ExecutionContext</span></span>)</span><span class="result">: <a href="http://www.scala-lang.org/api/2.11.2/index.html#scala.concurrent.Future" class="extype" target="_top">Future</a>[<a href="http://www.scala-lang.org/api/2.11.2/index.html#scala.Boolean" class="extype" target="_top">Boolean</a>]</span>
+        <span class="name">start</span><span class="params">()</span><span class="params">(<span class="implicit">implicit </span><span name="ec">ec: <span class="extype" name="scala.concurrent.ExecutionContext">ExecutionContext</span></span>)</span><span class="result">: <a href="http://www.scala-lang.org/api/2.11.6/index.html#scala.concurrent.Future" class="extype" target="_top">Future</a>[<a href="http://www.scala-lang.org/api/2.11.6/index.html#scala.Boolean" class="extype" target="_top">Boolean</a>]</span>
       </span>
       </h4><span class="permalink">
       <a href="../../../../../../index.html#com.mfglabs.commons.aws.extensions.cloudwatch.CloudwatchAkkaHeartbeat@start()(implicitec:scala.concurrent.ExecutionContext):scala.concurrent.Future[Boolean]" title="Permalink" target="_top">
@@ -1179,7 +1181,7 @@
         <span class="kind">def</span>
       </span>
       <span class="symbol">
-        <span class="name">stop</span><span class="params">()</span><span class="params">(<span class="implicit">implicit </span><span name="ec">ec: <span class="extype" name="scala.concurrent.ExecutionContext">ExecutionContext</span></span>)</span><span class="result">: <a href="http://www.scala-lang.org/api/2.11.2/index.html#scala.concurrent.Future" class="extype" target="_top">Future</a>[<a href="http://www.scala-lang.org/api/2.11.2/index.html#scala.Boolean" class="extype" target="_top">Boolean</a>]</span>
+        <span class="name">stop</span><span class="params">()</span><span class="params">(<span class="implicit">implicit </span><span name="ec">ec: <span class="extype" name="scala.concurrent.ExecutionContext">ExecutionContext</span></span>)</span><span class="result">: <a href="http://www.scala-lang.org/api/2.11.6/index.html#scala.concurrent.Future" class="extype" target="_top">Future</a>[<a href="http://www.scala-lang.org/api/2.11.6/index.html#scala.Boolean" class="extype" target="_top">Boolean</a>]</span>
       </span>
       </h4><span class="permalink">
       <a href="../../../../../../index.html#com.mfglabs.commons.aws.extensions.cloudwatch.CloudwatchAkkaHeartbeat@stop()(implicitec:scala.concurrent.ExecutionContext):scala.concurrent.Future[Boolean]" title="Permalink" target="_top">
@@ -1247,7 +1249,7 @@
         <span class="kind">def</span>
       </span>
       <span class="symbol">
-        <span class="name">toString</span><span class="params">()</span><span class="result">: <a href="http://docs.oracle.com/javase/7/docs/api/index.html#java.lang.String" class="extype" target="_top">String</a></span>
+        <span class="name">toString</span><span class="params">()</span><span class="result">: <span class="extype" name="java.lang.String">String</span></span>
       </span>
       </h4><span class="permalink">
       <a href="../../../../../../index.html#com.mfglabs.commons.aws.extensions.cloudwatch.CloudwatchAkkaHeartbeat@toString():String" title="Permalink" target="_top">
@@ -1264,7 +1266,7 @@
         <span class="kind">def</span>
       </span>
       <span class="symbol">
-        <span class="name">trace</span><span class="params">(<span name="msg">msg: ⇒ <a href="http://www.scala-lang.org/api/2.11.2/index.html#scala.Any" class="extype" target="_top">Any</a></span>, <span name="t">t: ⇒ <span class="extype" name="scala.Throwable">Throwable</span></span>)</span><span class="result">: <a href="http://www.scala-lang.org/api/2.11.2/index.html#scala.Unit" class="extype" target="_top">Unit</a></span>
+        <span class="name">trace</span><span class="params">(<span name="msg">msg: ⇒ <a href="http://www.scala-lang.org/api/2.11.6/index.html#scala.Any" class="extype" target="_top">Any</a></span>, <span name="t">t: ⇒ <span class="extype" name="scala.Throwable">Throwable</span></span>)</span><span class="result">: <a href="http://www.scala-lang.org/api/2.11.6/index.html#scala.Unit" class="extype" target="_top">Unit</a></span>
       </span>
       </h4><span class="permalink">
       <a href="../../../../../../index.html#com.mfglabs.commons.aws.extensions.cloudwatch.CloudwatchAkkaHeartbeat@trace(msg:=&gt;Any,t:=&gt;Throwable):Unit" title="Permalink" target="_top">
@@ -1281,7 +1283,7 @@
         <span class="kind">def</span>
       </span>
       <span class="symbol">
-        <span class="name">trace</span><span class="params">(<span name="msg">msg: ⇒ <a href="http://www.scala-lang.org/api/2.11.2/index.html#scala.Any" class="extype" target="_top">Any</a></span>)</span><span class="result">: <a href="http://www.scala-lang.org/api/2.11.2/index.html#scala.Unit" class="extype" target="_top">Unit</a></span>
+        <span class="name">trace</span><span class="params">(<span name="msg">msg: ⇒ <a href="http://www.scala-lang.org/api/2.11.6/index.html#scala.Any" class="extype" target="_top">Any</a></span>)</span><span class="result">: <a href="http://www.scala-lang.org/api/2.11.6/index.html#scala.Unit" class="extype" target="_top">Unit</a></span>
       </span>
       </h4><span class="permalink">
       <a href="../../../../../../index.html#com.mfglabs.commons.aws.extensions.cloudwatch.CloudwatchAkkaHeartbeat@trace(msg:=&gt;Any):Unit" title="Permalink" target="_top">
@@ -1298,7 +1300,7 @@
         <span class="kind">def</span>
       </span>
       <span class="symbol">
-        <span class="name">wait</span><span class="params">()</span><span class="result">: <a href="http://www.scala-lang.org/api/2.11.2/index.html#scala.Unit" class="extype" target="_top">Unit</a></span>
+        <span class="name">wait</span><span class="params">()</span><span class="result">: <a href="http://www.scala-lang.org/api/2.11.6/index.html#scala.Unit" class="extype" target="_top">Unit</a></span>
       </span>
       </h4><span class="permalink">
       <a href="../../../../../../index.html#com.mfglabs.commons.aws.extensions.cloudwatch.CloudwatchAkkaHeartbeat@wait():Unit" title="Permalink" target="_top">
@@ -1321,7 +1323,7 @@
         <span class="kind">def</span>
       </span>
       <span class="symbol">
-        <span class="name">wait</span><span class="params">(<span name="arg0">arg0: <a href="http://www.scala-lang.org/api/2.11.2/index.html#scala.Long" class="extype" target="_top">Long</a></span>, <span name="arg1">arg1: <a href="http://www.scala-lang.org/api/2.11.2/index.html#scala.Int" class="extype" target="_top">Int</a></span>)</span><span class="result">: <a href="http://www.scala-lang.org/api/2.11.2/index.html#scala.Unit" class="extype" target="_top">Unit</a></span>
+        <span class="name">wait</span><span class="params">(<span name="arg0">arg0: <a href="http://www.scala-lang.org/api/2.11.6/index.html#scala.Long" class="extype" target="_top">Long</a></span>, <span name="arg1">arg1: <a href="http://www.scala-lang.org/api/2.11.6/index.html#scala.Int" class="extype" target="_top">Int</a></span>)</span><span class="result">: <a href="http://www.scala-lang.org/api/2.11.6/index.html#scala.Unit" class="extype" target="_top">Unit</a></span>
       </span>
       </h4><span class="permalink">
       <a href="../../../../../../index.html#com.mfglabs.commons.aws.extensions.cloudwatch.CloudwatchAkkaHeartbeat@wait(x$1:Long,x$2:Int):Unit" title="Permalink" target="_top">
@@ -1344,7 +1346,7 @@
         <span class="kind">def</span>
       </span>
       <span class="symbol">
-        <span class="name">wait</span><span class="params">(<span name="arg0">arg0: <a href="http://www.scala-lang.org/api/2.11.2/index.html#scala.Long" class="extype" target="_top">Long</a></span>)</span><span class="result">: <a href="http://www.scala-lang.org/api/2.11.2/index.html#scala.Unit" class="extype" target="_top">Unit</a></span>
+        <span class="name">wait</span><span class="params">(<span name="arg0">arg0: <a href="http://www.scala-lang.org/api/2.11.6/index.html#scala.Long" class="extype" target="_top">Long</a></span>)</span><span class="result">: <a href="http://www.scala-lang.org/api/2.11.6/index.html#scala.Unit" class="extype" target="_top">Unit</a></span>
       </span>
       </h4><span class="permalink">
       <a href="../../../../../../index.html#com.mfglabs.commons.aws.extensions.cloudwatch.CloudwatchAkkaHeartbeat@wait(x$1:Long):Unit" title="Permalink" target="_top">
@@ -1367,7 +1369,7 @@
         <span class="kind">def</span>
       </span>
       <span class="symbol">
-        <span class="name">warn</span><span class="params">(<span name="msg">msg: ⇒ <a href="http://www.scala-lang.org/api/2.11.2/index.html#scala.Any" class="extype" target="_top">Any</a></span>, <span name="t">t: ⇒ <span class="extype" name="scala.Throwable">Throwable</span></span>)</span><span class="result">: <a href="http://www.scala-lang.org/api/2.11.2/index.html#scala.Unit" class="extype" target="_top">Unit</a></span>
+        <span class="name">warn</span><span class="params">(<span name="msg">msg: ⇒ <a href="http://www.scala-lang.org/api/2.11.6/index.html#scala.Any" class="extype" target="_top">Any</a></span>, <span name="t">t: ⇒ <span class="extype" name="scala.Throwable">Throwable</span></span>)</span><span class="result">: <a href="http://www.scala-lang.org/api/2.11.6/index.html#scala.Unit" class="extype" target="_top">Unit</a></span>
       </span>
       </h4><span class="permalink">
       <a href="../../../../../../index.html#com.mfglabs.commons.aws.extensions.cloudwatch.CloudwatchAkkaHeartbeat@warn(msg:=&gt;Any,t:=&gt;Throwable):Unit" title="Permalink" target="_top">
@@ -1384,7 +1386,7 @@
         <span class="kind">def</span>
       </span>
       <span class="symbol">
-        <span class="name">warn</span><span class="params">(<span name="msg">msg: ⇒ <a href="http://www.scala-lang.org/api/2.11.2/index.html#scala.Any" class="extype" target="_top">Any</a></span>)</span><span class="result">: <a href="http://www.scala-lang.org/api/2.11.2/index.html#scala.Unit" class="extype" target="_top">Unit</a></span>
+        <span class="name">warn</span><span class="params">(<span name="msg">msg: ⇒ <a href="http://www.scala-lang.org/api/2.11.6/index.html#scala.Any" class="extype" target="_top">Any</a></span>)</span><span class="result">: <a href="http://www.scala-lang.org/api/2.11.6/index.html#scala.Unit" class="extype" target="_top">Unit</a></span>
       </span>
       </h4><span class="permalink">
       <a href="../../../../../../index.html#com.mfglabs.commons.aws.extensions.cloudwatch.CloudwatchAkkaHeartbeat@warn(msg:=&gt;Any):Unit" title="Permalink" target="_top">
@@ -1427,9 +1429,9 @@
             </div><div class="parent" name="com.mfglabs.commons.aws.extensions.cloudwatch.HeartBeat">
               <h3>Inherited from <a href="HeartBeat.html" class="extype" name="com.mfglabs.commons.aws.extensions.cloudwatch.HeartBeat">HeartBeat</a></h3>
             </div><div class="parent" name="scala.AnyRef">
-              <h3>Inherited from <a href="http://www.scala-lang.org/api/2.11.2/index.html#scala.AnyRef" class="extype" target="_top">AnyRef</a></h3>
+              <h3>Inherited from <a href="http://www.scala-lang.org/api/2.11.6/index.html#scala.AnyRef" class="extype" target="_top">AnyRef</a></h3>
             </div><div class="parent" name="scala.Any">
-              <h3>Inherited from <a href="http://www.scala-lang.org/api/2.11.2/index.html#scala.Any" class="extype" target="_top">Any</a></h3>
+              <h3>Inherited from <a href="http://www.scala-lang.org/api/2.11.6/index.html#scala.Any" class="extype" target="_top">Any</a></h3>
             </div>
         <div class="conversion" name="scala.Predef.any2stringadd">
               <h3>Inherited by implicit conversion any2stringadd from
