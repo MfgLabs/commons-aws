@@ -37,9 +37,9 @@ import com.mfglabs.commons.aws.s3._
 
 val builder = S3StreamBuilder(new AmazonS3AsyncClient()) // contains un-materialized composable Source / Flow / Sink
 
-val fileStream: Source[ByteString] = builder.getFileAsStream(bucket, key)
+val fileStream: Source[ByteString, Unit] = builder.getFileAsStream(bucket, key)
 
-val multipartfileStream: Source[ByteString] = builder.getMultipartFileAsStream(bucket, prefix)
+val multipartfileStream: Source[ByteString, Unit] = builder.getMultipartFileAsStream(bucket, prefix)
 
 someBinaryStream.via(
   builder.uploadStreamAsFile(bucket, key, chunkUploadConcurrency = 2)
@@ -78,7 +78,7 @@ import com.mfglabs.commons.aws.sqs._
 val sqs = new AmazonSQSScalaClient(new AmazonSQSAsyncClient(), ec)
 val builder = SQSStreamBuilder(sqs)
 
-val sender: Flow[String, SendMessageResult] =
+val sender: Flow[String, SendMessageResult, Unit] =
   Flow[String].map { body =>
     val req = new SendMessageRequest()
     req.setMessageBody(body)
@@ -87,7 +87,7 @@ val sender: Flow[String, SendMessageResult] =
   }
   .via(builder.sendMessageAsStream())
 
-val receiver: Source[Message] = 
+val receiver: Source[Message, Unit] = 
     builder.receiveMessageAsStream(queueUrl, autoAck = false)
 ```
 
