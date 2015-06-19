@@ -51,7 +51,7 @@
       </span>
       </h4>
       
-          <div id="comment" class="fullcommenttop"><dl class="attributes block"> <dt>Source</dt><dd><a href="https://github.com/MfgLabs/commons-aws/tree/v0.7/core/src/main/scala/sqs/SQS.scala" target="_blank">SQS.scala</a></dd></dl><div class="toggleContainer block">
+          <div id="comment" class="fullcommenttop"><dl class="attributes block"> <dt>Source</dt><dd><a href="https://github.com/MfgLabs/commons-aws/tree/v0.7.5-SNAPSHOT/core/src/main/scala/sqs/SQS.scala" target="_blank">SQS.scala</a></dd></dl><div class="toggleContainer block">
           <span class="toggle">Linear Supertypes</span>
           <div class="superTypes hiddenContent"><a href="http://www.scala-lang.org/api/2.11.6/index.html#scala.AnyRef" class="extype" target="_top">AnyRef</a>, <a href="http://www.scala-lang.org/api/2.11.6/index.html#scala.Any" class="extype" target="_top">Any</a></div>
         </div></div>
@@ -258,6 +258,23 @@
     </span>)</span>
               
         </dd></dl></div>
+    </li><li name="com.mfglabs.commons.aws.sqs.SQSStreamBuilder#defaultMessageOpsConcurrency" visbl="pub" data-isabs="false" fullComment="no" group="Ungrouped">
+      <a id="defaultMessageOpsConcurrency:Int"></a>
+      <a id="defaultMessageOpsConcurrency:Int"></a>
+      <h4 class="signature">
+      <span class="modifier_kind">
+        <span class="modifier"></span>
+        <span class="kind">val</span>
+      </span>
+      <span class="symbol">
+        <span class="name">defaultMessageOpsConcurrency</span><span class="result">: <a href="http://www.scala-lang.org/api/2.11.6/index.html#scala.Int" class="extype" target="_top">Int</a></span>
+      </span>
+      </h4><span class="permalink">
+      <a href="../../../../../index.html#com.mfglabs.commons.aws.sqs.SQSStreamBuilder@defaultMessageOpsConcurrency:Int" title="Permalink" target="_top">
+        <img src="../../../../../lib/permalink.png" />
+      </a>
+    </span>
+      
     </li><li name="scala.Predef.Ensuring#ensuring" visbl="pub" data-isabs="false" fullComment="yes" group="Ungrouped">
       <a id="ensuring(cond:A=&gt;Boolean,msg:=&gt;Any):A"></a>
       <a id="ensuring((SQSStreamBuilder)⇒Boolean,⇒Any):SQSStreamBuilder"></a>
@@ -526,42 +543,46 @@
     </span>
       <div class="fullcomment"><dl class="attributes block"> <dt>Definition Classes</dt><dd>AnyRef</dd></dl></div>
     </li><li name="com.mfglabs.commons.aws.sqs.SQSStreamBuilder#receiveMessageAsStream" visbl="pub" data-isabs="false" fullComment="yes" group="Ungrouped">
-      <a id="receiveMessageAsStream(queueUrl:String,longPollingMaxWait:scala.concurrent.duration.FiniteDuration,autoAck:Boolean):akka.stream.scaladsl.Source[com.amazonaws.services.sqs.model.Message,akka.actor.ActorRef]"></a>
-      <a id="receiveMessageAsStream(String,FiniteDuration,Boolean):Source[Message,ActorRef]"></a>
+      <a id="receiveMessageAsStream(queueUrl:String,messageAckingConcurrency:Int,longPollingMaxWait:scala.concurrent.duration.FiniteDuration,autoAck:Boolean,messageAttributeNames:Seq[String]):akka.stream.scaladsl.Source[com.amazonaws.services.sqs.model.Message,akka.actor.ActorRef]"></a>
+      <a id="receiveMessageAsStream(String,Int,FiniteDuration,Boolean,Seq[String]):Source[Message,ActorRef]"></a>
       <h4 class="signature">
       <span class="modifier_kind">
         <span class="modifier"></span>
         <span class="kind">def</span>
       </span>
       <span class="symbol">
-        <span class="name">receiveMessageAsStream</span><span class="params">(<span name="queueUrl">queueUrl: <span class="extype" name="scala.Predef.String">String</span></span>, <span name="longPollingMaxWait">longPollingMaxWait: <a href="http://www.scala-lang.org/api/2.11.6/index.html#scala.concurrent.duration.FiniteDuration" class="extype" target="_top">FiniteDuration</a> = <span class="symbol">20 seconds</span></span>, <span name="autoAck">autoAck: <a href="http://www.scala-lang.org/api/2.11.6/index.html#scala.Boolean" class="extype" target="_top">Boolean</a> = <span class="symbol">false</span></span>)</span><span class="result">: <span class="extype" name="akka.stream.scaladsl.Source">Source</span>[<span class="extype" name="com.amazonaws.services.sqs.model.Message">Message</span>, <span class="extype" name="akka.actor.ActorRef">ActorRef</span>]</span>
+        <span class="name">receiveMessageAsStream</span><span class="params">(<span name="queueUrl">queueUrl: <span class="extype" name="scala.Predef.String">String</span></span>, <span name="messageAckingConcurrency">messageAckingConcurrency: <a href="http://www.scala-lang.org/api/2.11.6/index.html#scala.Int" class="extype" target="_top">Int</a> = <span class="symbol"><span class="name"><a href="#defaultMessageOpsConcurrency:Int">defaultMessageOpsConcurrency</a></span></span></span>, <span name="longPollingMaxWait">longPollingMaxWait: <a href="http://www.scala-lang.org/api/2.11.6/index.html#scala.concurrent.duration.FiniteDuration" class="extype" target="_top">FiniteDuration</a> = <span class="symbol">20 seconds</span></span>, <span name="autoAck">autoAck: <a href="http://www.scala-lang.org/api/2.11.6/index.html#scala.Boolean" class="extype" target="_top">Boolean</a> = <span class="symbol">false</span></span>, <span name="messageAttributeNames">messageAttributeNames: <span class="extype" name="scala.Seq">Seq</span>[<span class="extype" name="scala.Predef.String">String</span>] = <span class="symbol">Seq.empty</span></span>)</span><span class="result">: <span class="extype" name="akka.stream.scaladsl.Source">Source</span>[<span class="extype" name="com.amazonaws.services.sqs.model.Message">Message</span>, <span class="extype" name="akka.actor.ActorRef">ActorRef</span>]</span>
       </span>
       </h4><span class="permalink">
-      <a href="../../../../../index.html#com.mfglabs.commons.aws.sqs.SQSStreamBuilder@receiveMessageAsStream(queueUrl:String,longPollingMaxWait:scala.concurrent.duration.FiniteDuration,autoAck:Boolean):akka.stream.scaladsl.Source[com.amazonaws.services.sqs.model.Message,akka.actor.ActorRef]" title="Permalink" target="_top">
+      <a href="../../../../../index.html#com.mfglabs.commons.aws.sqs.SQSStreamBuilder@receiveMessageAsStream(queueUrl:String,messageAckingConcurrency:Int,longPollingMaxWait:scala.concurrent.duration.FiniteDuration,autoAck:Boolean,messageAttributeNames:Seq[String]):akka.stream.scaladsl.Source[com.amazonaws.services.sqs.model.Message,akka.actor.ActorRef]" title="Permalink" target="_top">
         <img src="../../../../../lib/permalink.png" />
       </a>
     </span>
       <p class="shortcomment cmt">Receive messages from a SQS queue as a stream.</p><div class="fullcomment"><div class="comment cmt"><p>Receive messages from a SQS queue as a stream.</p></div><dl class="paramcmts block"><dt class="param">queueUrl</dt><dd class="cmt"><p>SQS queue url</p></dd><dt class="param">longPollingMaxWait</dt><dd class="cmt"><p>SQS long-polling parameter.</p></dd><dt class="param">autoAck</dt><dd class="cmt"><p>If true, the SQS messages will be automatically ack once they are received. If false, you must call
                sqs.deleteMessage yourself when you want to ack the message.
 </p></dd></dl></div>
-    </li><li name="com.mfglabs.commons.aws.sqs.SQSStreamBuilder#sendMessageAsStream" visbl="pub" data-isabs="false" fullComment="no" group="Ungrouped">
-      <a id="sendMessageAsStream:akka.stream.scaladsl.Flow[com.amazonaws.services.sqs.model.SendMessageRequest,com.amazonaws.services.sqs.model.SendMessageResult,Unit]"></a>
-      <a id="sendMessageAsStream:Flow[SendMessageRequest,SendMessageResult,Unit]"></a>
+    </li><li name="com.mfglabs.commons.aws.sqs.SQSStreamBuilder#sendMessageAsStream" visbl="pub" data-isabs="false" fullComment="yes" group="Ungrouped">
+      <a id="sendMessageAsStream(messageSendingConcurrency:Int):akka.stream.scaladsl.Flow[com.amazonaws.services.sqs.model.SendMessageRequest,com.amazonaws.services.sqs.model.SendMessageResult,Unit]"></a>
+      <a id="sendMessageAsStream(Int):Flow[SendMessageRequest,SendMessageResult,Unit]"></a>
       <h4 class="signature">
       <span class="modifier_kind">
         <span class="modifier"></span>
         <span class="kind">def</span>
       </span>
       <span class="symbol">
-        <span class="name">sendMessageAsStream</span><span class="result">: <span class="extype" name="akka.stream.scaladsl.Flow">Flow</span>[<span class="extype" name="com.amazonaws.services.sqs.model.SendMessageRequest">SendMessageRequest</span>, <span class="extype" name="com.amazonaws.services.sqs.model.SendMessageResult">SendMessageResult</span>, <a href="http://www.scala-lang.org/api/2.11.6/index.html#scala.Unit" class="extype" target="_top">Unit</a>]</span>
+        <span class="name">sendMessageAsStream</span><span class="params">(<span name="messageSendingConcurrency">messageSendingConcurrency: <a href="http://www.scala-lang.org/api/2.11.6/index.html#scala.Int" class="extype" target="_top">Int</a> = <span class="symbol"><span class="name"><a href="#defaultMessageOpsConcurrency:Int">defaultMessageOpsConcurrency</a></span></span></span>)</span><span class="result">: <span class="extype" name="akka.stream.scaladsl.Flow">Flow</span>[<span class="extype" name="com.amazonaws.services.sqs.model.SendMessageRequest">SendMessageRequest</span>, <span class="extype" name="com.amazonaws.services.sqs.model.SendMessageResult">SendMessageResult</span>, <a href="http://www.scala-lang.org/api/2.11.6/index.html#scala.Unit" class="extype" target="_top">Unit</a>]</span>
       </span>
       </h4><span class="permalink">
-      <a href="../../../../../index.html#com.mfglabs.commons.aws.sqs.SQSStreamBuilder@sendMessageAsStream:akka.stream.scaladsl.Flow[com.amazonaws.services.sqs.model.SendMessageRequest,com.amazonaws.services.sqs.model.SendMessageResult,Unit]" title="Permalink" target="_top">
+      <a href="../../../../../index.html#com.mfglabs.commons.aws.sqs.SQSStreamBuilder@sendMessageAsStream(messageSendingConcurrency:Int):akka.stream.scaladsl.Flow[com.amazonaws.services.sqs.model.SendMessageRequest,com.amazonaws.services.sqs.model.SendMessageResult,Unit]" title="Permalink" target="_top">
         <img src="../../../../../lib/permalink.png" />
       </a>
     </span>
       <p class="shortcomment cmt">Send SQS messages as a stream
-</p>
+Important note: SQS does not ensure message ordering, so setting messageSendingConcurrency parameter equal to 1 does not
+guarantee total message ordering.</p><div class="fullcomment"><div class="comment cmt"><p>Send SQS messages as a stream
+Important note: SQS does not ensure message ordering, so setting messageSendingConcurrency parameter equal to 1 does not
+guarantee total message ordering.</p></div><dl class="paramcmts block"><dt class="param">messageSendingConcurrency</dt><dd class="cmt"><p>
+</p></dd></dl></div>
     </li><li name="scala.AnyRef#synchronized" visbl="pub" data-isabs="false" fullComment="yes" group="Ungrouped">
       <a id="synchronized[T0](x$1:=&gt;T0):T0"></a>
       <a id="synchronized[T0](⇒T0):T0"></a>
