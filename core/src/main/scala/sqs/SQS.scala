@@ -15,6 +15,7 @@ import com.mfglabs.stream._
 import scala.concurrent.duration.FiniteDuration
 
 trait SQSStreamBuilder {
+
   import scala.collection.JavaConversions._
 
   val sqs: AmazonSQSScalaClient
@@ -43,12 +44,13 @@ trait SQSStreamBuilder {
    *                sqs.deleteMessage yourself when you want to ack the message.
    */
   def receiveMessageAsStream(queueUrl: String, messageAckingConcurrency: Int = defaultMessageOpsConcurrency,
-                             longPollingMaxWait: FiniteDuration = 20 seconds, autoAck: Boolean = false): Source[Message, ActorRef] = {
+                             longPollingMaxWait: FiniteDuration = 20 seconds, autoAck: Boolean = false,
+                             messageAttributeNames: Seq[String] = Seq.empty): Source[Message, ActorRef] = {
     val source = SourceExt.bulkPullerAsync(0L) { (total, currentDemand) =>
       val msg = new ReceiveMessageRequest(queueUrl)
       msg.setWaitTimeSeconds(longPollingMaxWait.toSeconds.toInt) // > 0 seconds allow long-polling. 20 seconds is the maximum
       msg.setMaxNumberOfMessages(Math.min(currentDemand, 10)) // 10 is SQS limit
-
+      msg.setMessageAttributeNames(messageAttributeNames)
       sqs.receiveMessage(msg).map(res => (res.getMessages.toSeq, false))
     }
 
