@@ -1,6 +1,7 @@
 import sbtunidoc.Plugin._
 import bintray.Plugin._
 
+
 organization in ThisBuild := "com.mfglabs"
 
 scalaVersion in ThisBuild := "2.11.6"
