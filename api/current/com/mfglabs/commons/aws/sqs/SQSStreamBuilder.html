@@ -51,7 +51,7 @@
       </span>
       </h4>
       
-          <div id="comment" class="fullcommenttop"><dl class="attributes block"> <dt>Source</dt><dd><a href="https://github.com/MfgLabs/commons-aws/tree/v0.7.5-SNAPSHOT/core/src/main/scala/sqs/SQS.scala" target="_blank">SQS.scala</a></dd></dl><div class="toggleContainer block">
+          <div id="comment" class="fullcommenttop"><dl class="attributes block"> <dt>Source</dt><dd><a href="https://github.com/MfgLabs/commons-aws/tree/v0.8.0/core/src/main/scala/sqs/SQS.scala" target="_blank">SQS.scala</a></dd></dl><div class="toggleContainer block">
           <span class="toggle">Linear Supertypes</span>
           <div class="superTypes hiddenContent"><a href="http://www.scala-lang.org/api/2.11.6/index.html#scala.AnyRef" class="extype" target="_top">AnyRef</a>, <a href="http://www.scala-lang.org/api/2.11.6/index.html#scala.Any" class="extype" target="_top">Any</a></div>
         </div></div>
@@ -559,7 +559,30 @@
       </a>
     </span>
       <p class="shortcomment cmt">Receive messages from a SQS queue as a stream.</p><div class="fullcomment"><div class="comment cmt"><p>Receive messages from a SQS queue as a stream.</p></div><dl class="paramcmts block"><dt class="param">queueUrl</dt><dd class="cmt"><p>SQS queue url</p></dd><dt class="param">longPollingMaxWait</dt><dd class="cmt"><p>SQS long-polling parameter.</p></dd><dt class="param">autoAck</dt><dd class="cmt"><p>If true, the SQS messages will be automatically ack once they are received. If false, you must call
-               sqs.deleteMessage yourself when you want to ack the message.
+               sqs.deleteMessage yourself when you want to ack the message.</p></dd><dt class="param">messageAttributeNames</dt><dd class="cmt"><p>the message attribute names asked to be returned
+</p></dd></dl></div>
+    </li><li name="com.mfglabs.commons.aws.sqs.SQSStreamBuilder#receiveMessageAsStreamWithRetryExpBackoff" visbl="pub" data-isabs="false" fullComment="yes" group="Ungrouped">
+      <a id="receiveMessageAsStreamWithRetryExpBackoff(queueUrl:String,messageAckingConcurrency:Int,maxRetryDuration:scala.concurrent.duration.FiniteDuration,retryMinInterval:scala.concurrent.duration.FiniteDuration,longPollingMaxWait:scala.concurrent.duration.FiniteDuration,autoAck:Boolean,messageAttributeNames:Seq[String]):akka.stream.scaladsl.Source[com.amazonaws.services.sqs.model.Message,akka.actor.ActorRef]"></a>
+      <a id="receiveMessageAsStreamWithRetryExpBackoff(String,Int,FiniteDuration,FiniteDuration,FiniteDuration,Boolean,Seq[String]):Source[Message,ActorRef]"></a>
+      <h4 class="signature">
+      <span class="modifier_kind">
+        <span class="modifier"></span>
+        <span class="kind">def</span>
+      </span>
+      <span class="symbol">
+        <span class="name">receiveMessageAsStreamWithRetryExpBackoff</span><span class="params">(<span name="queueUrl">queueUrl: <span class="extype" name="scala.Predef.String">String</span></span>, <span name="messageAckingConcurrency">messageAckingConcurrency: <a href="http://www.scala-lang.org/api/2.11.6/index.html#scala.Int" class="extype" target="_top">Int</a> = <span class="symbol"><span class="name"><a href="#defaultMessageOpsConcurrency:Int">defaultMessageOpsConcurrency</a></span></span></span>, <span name="maxRetryDuration">maxRetryDuration: <a href="http://www.scala-lang.org/api/2.11.6/index.html#scala.concurrent.duration.FiniteDuration" class="extype" target="_top">FiniteDuration</a> = <span class="symbol">540.seconds</span></span>, <span name="retryMinInterval">retryMinInterval: <a href="http://www.scala-lang.org/api/2.11.6/index.html#scala.concurrent.duration.FiniteDuration" class="extype" target="_top">FiniteDuration</a> = <span class="symbol">1.second</span></span>, <span name="longPollingMaxWait">longPollingMaxWait: <a href="http://www.scala-lang.org/api/2.11.6/index.html#scala.concurrent.duration.FiniteDuration" class="extype" target="_top">FiniteDuration</a> = <span class="symbol">20 seconds</span></span>, <span name="autoAck">autoAck: <a href="http://www.scala-lang.org/api/2.11.6/index.html#scala.Boolean" class="extype" target="_top">Boolean</a> = <span class="symbol">false</span></span>, <span name="messageAttributeNames">messageAttributeNames: <span class="extype" name="scala.Seq">Seq</span>[<span class="extype" name="scala.Predef.String">String</span>] = <span class="symbol">Seq.empty</span></span>)</span><span class="result">: <span class="extype" name="akka.stream.scaladsl.Source">Source</span>[<span class="extype" name="com.amazonaws.services.sqs.model.Message">Message</span>, <span class="extype" name="akka.actor.ActorRef">ActorRef</span>]</span>
+      </span>
+      </h4><span class="permalink">
+      <a href="../../../../../index.html#com.mfglabs.commons.aws.sqs.SQSStreamBuilder@receiveMessageAsStreamWithRetryExpBackoff(queueUrl:String,messageAckingConcurrency:Int,maxRetryDuration:scala.concurrent.duration.FiniteDuration,retryMinInterval:scala.concurrent.duration.FiniteDuration,longPollingMaxWait:scala.concurrent.duration.FiniteDuration,autoAck:Boolean,messageAttributeNames:Seq[String]):akka.stream.scaladsl.Source[com.amazonaws.services.sqs.model.Message,akka.actor.ActorRef]" title="Permalink" target="_top">
+        <img src="../../../../../lib/permalink.png" />
+      </a>
+    </span>
+      <p class="shortcomment cmt">Receive messages from a SQS queue as a stream and if connection closes,
+retry using an exponential backoff reconnection strategy (2^retryNb * retryMinInterval).
+</p><div class="fullcomment"><div class="comment cmt"><p>Receive messages from a SQS queue as a stream and if connection closes,
+retry using an exponential backoff reconnection strategy (2^retryNb * retryMinInterval).
+</p></div><dl class="paramcmts block"><dt class="param">queueUrl</dt><dd class="cmt"><p>SQS queue url</p></dd><dt class="param">maxRetryDuration</dt><dd class="cmt"><p>maximum retry duration.</p></dd><dt class="param">retryMinInterval</dt><dd class="cmt"><p>minimum delay before retrying.</p></dd><dt class="param">longPollingMaxWait</dt><dd class="cmt"><p>SQS long-polling parameter.</p></dd><dt class="param">autoAck</dt><dd class="cmt"><p>If true, the SQS messages will be automatically ack once they are received. If false, you must call
+               sqs.deleteMessage yourself when you want to ack the message.</p></dd><dt class="param">messageAttributeNames</dt><dd class="cmt"><p>the message attribute names asked to be returned
 </p></dd></dl></div>
     </li><li name="com.mfglabs.commons.aws.sqs.SQSStreamBuilder#sendMessageAsStream" visbl="pub" data-isabs="false" fullComment="yes" group="Ungrouped">
       <a id="sendMessageAsStream(messageSendingConcurrency:Int):akka.stream.scaladsl.Flow[com.amazonaws.services.sqs.model.SendMessageRequest,com.amazonaws.services.sqs.model.SendMessageResult,Unit]"></a>
