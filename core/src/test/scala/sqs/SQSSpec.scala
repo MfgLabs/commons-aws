@@ -24,7 +24,7 @@ class SQSSpec extends FlatSpec with Matchers with ScalaFutures {
     PatienceConfig(timeout = Span(60, Seconds), interval = Span(5, Millis))
 
   implicit val as = ActorSystem()
-  implicit val fm = ActorFlowMaterializer()
+  implicit val fm = ActorMaterializer()
 
   val sqs = new AmazonSQSScalaClient(new AmazonSQSAsyncClient(), scala.concurrent.ExecutionContext.Implicits.global)
   val builder = SQSStreamBuilder(sqs)

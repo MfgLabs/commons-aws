@@ -23,7 +23,7 @@ class S3Spec extends FlatSpec with Matchers with ScalaFutures {
     PatienceConfig(timeout = Span(3, Minutes), interval = Span(20, Millis))
 
   implicit val system = ActorSystem()
-  implicit val fm = ActorFlowMaterializer()
+  implicit val fm = ActorMaterializer()
 
   val streamBuilder = S3StreamBuilder(new s3.AmazonS3AsyncClient())
   val ops = new streamBuilder.MaterializedOps(fm)

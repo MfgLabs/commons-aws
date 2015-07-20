@@ -21,7 +21,7 @@ trait S3StreamBuilder {
   implicit lazy val ecForBlockingOps = ExecutionContextForBlockingOps(client.ec)
 
   // Ops class contains materialized methods (returning Futures)
-  class MaterializedOps(flowMaterializer: FlowMaterializer)
+  class MaterializedOps(flowMaterializer: ActorMaterializer)
     extends AmazonS3AsyncClient(client.awsCredentialsProvider, client.clientConfiguration, client.executorService) {
 
     implicit val fm = flowMaterializer
