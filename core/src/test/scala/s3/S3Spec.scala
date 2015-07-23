@@ -5,11 +5,14 @@ import akka.actor.ActorSystem
 import akka.stream._
 import akka.stream.scaladsl._
 import akka.util.ByteString
-import com.amazonaws.services.s3.model.{CompleteMultipartUploadResult, DeleteObjectsRequest}
+import com.amazonaws.services.s3.model.{AmazonS3Exception, CompleteMultipartUploadResult, DeleteObjectsRequest}
 import com.mfglabs.stream._
 import org.scalatest._
 import concurrent.ScalaFutures
 import org.scalatest.time.{Minutes, Millis, Seconds, Span}
+
+import scala.concurrent._
+import scala.concurrent.duration._
 
 class S3Spec extends FlatSpec with Matchers with ScalaFutures {
   import s3._
@@ -42,6 +45,13 @@ class S3Spec extends FlatSpec with Matchers with ScalaFutures {
     ) { case (l, l2) =>
       (l map (_._1)) should equal(List(s"$keyPrefix/small.txt"))
       l2 should be('empty)
+    }
+  }
+
+  it should "throw an exception when a file is non-existent" in {
+    val source = streamBuilder.getFileAsStream(bucket, "foo")
+    intercept[AmazonS3Exception] {
+      Await.result(source.runFold(ByteString.empty)(_ ++ _).map(_.compact), 5 seconds)
     }
   }
 
