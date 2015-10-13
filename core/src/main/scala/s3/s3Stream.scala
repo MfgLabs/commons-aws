@@ -182,7 +182,7 @@ trait S3StreamBuilder {
    * chunk inside a part file can be uploaded concurrently (tuned with chunkUploadConcurrency).
    * The Flow returns a CompleteMultipartUploadResult for each part file uploaded.
    * @param bucket S3 bucket
-   * @param getKey S3 key factory that will generate a new key for each chunk ...
+   * @param getKey S3 key factory that will generate a new key for each part file based on the index of upstream chunks...
    * @param nbChunkPerFile the number of upstream chunks (for example lines) to include in each part file
    * @param chunkUploadConcurrency chunk upload concurrency. Order is guaranteed even with chunkUploadConcurrency > 1.
    */
