@@ -174,18 +174,32 @@ trait S3StreamBuilder {
       s"$prefix.part.$pad"
     }
 
+    uploadStreamAsMultipartFile(bucket, i => formatKey(i / nbChunkPerFile), nbChunkPerFile, chunkUploadConcurrency)
+  }
+
+  /**
+   * Upload a stream as a multipart file with a given number of upstream chunk per file. Part file are uploaded sequentially but
+   * chunk inside a part file can be uploaded concurrently (tuned with chunkUploadConcurrency).
+   * The Flow returns a CompleteMultipartUploadResult for each part file uploaded.
+   * @param bucket S3 bucket
+   * @param getKey S3 key factory that will generate a new key for each part file based on the index of upstream chunks...
+   * @param nbChunkPerFile the number of upstream chunks (for example lines) to include in each part file
+   * @param chunkUploadConcurrency chunk upload concurrency. Order is guaranteed even with chunkUploadConcurrency > 1.
+   */
+  def uploadStreamAsMultipartFile(bucket: String, getKey: Long => String, nbChunkPerFile: Int,
+      chunkUploadConcurrency: Int = 1): Flow[ByteString, CompleteMultipartUploadResult, Unit] = {
+
     Flow[ByteString]
-      .via(FlowExt.zipWithIndex)
-      .splitWhen { case (_, i) => i != 0 && i % nbChunkPerFile == 0 }
-      .map { partFileStream =>
-        partFileStream.via(
-          FlowExt.withHead(includeHeadInUpStream = true) { case (_, i) =>
-            val key = formatKey(i / nbChunkPerFile)
-            Flow[(ByteString, Long)].map(_._1).via(uploadStreamAsFile(bucket, key, chunkUploadConcurrency))
-          }
-        )
-      }
-      .flatten(FlattenStrategy.concat)
+        .via(FlowExt.zipWithIndex)
+        .splitWhen { case (_, i) => i != 0 && i % nbChunkPerFile == 0 }
+        .map { partFileStream =>
+          partFileStream.via(
+            FlowExt.withHead(includeHeadInUpStream = true) { case (_, i) =>
+              Flow[(ByteString, Long)].map(_._1).via(uploadStreamAsFile(bucket, getKey(i), chunkUploadConcurrency))
+            }
+          )
+        }
+        .flatten(FlattenStrategy.concat)
   }
 
 }
