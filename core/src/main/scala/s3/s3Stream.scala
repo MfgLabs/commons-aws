@@ -83,7 +83,7 @@ trait S3StreamBuilder {
     */
   def getFileAsStream(bucket: String, key: String, inputStreamTransform: InputStream => InputStream = identity): Source[ByteString, Unit] = {
     SourceExt.seededLazyAsync(client.getObject(bucket, key)) { o =>
-      SourceExt.fromStream(inputStreamTransform(o.getObjectContent))
+      StreamConverters.fromInputStream(() => inputStreamTransform(o.getObjectContent))
     }
   }
 
@@ -104,8 +104,7 @@ trait S3StreamBuilder {
    */
   def getMultipartFileAsStream(bucket: String, prefix: String, inputStreamTransform: InputStream => InputStream = identity): Source[ByteString, Unit] = {
     listFilesAsStream(bucket, Some(prefix))
-      .map { case (key, _) => getFileAsStream(bucket, key, inputStreamTransform) }
-      .flatten(FlattenStrategy.concat)
+      .flatMapConcat { case (key, _) => getFileAsStream(bucket, key, inputStreamTransform) }
   }
 
   /**
@@ -187,21 +186,19 @@ trait S3StreamBuilder {
    * @param chunkUploadConcurrency chunk upload concurrency. Order is guaranteed even with chunkUploadConcurrency > 1.
    */
   def uploadStreamAsMultipartFile(bucket: String, getKey: Long => String, nbChunkPerFile: Int,
-      chunkUploadConcurrency: Int = 1): Flow[ByteString, CompleteMultipartUploadResult, Unit] = {
+      chunkUploadConcurrency : Int): Flow[ByteString, CompleteMultipartUploadResult, Unit] = {
 
     Flow[ByteString]
-        .via(FlowExt.zipWithIndex)
-        .splitWhen { case (_, i) => i != 0 && i % nbChunkPerFile == 0 }
-        .map { partFileStream =>
-          partFileStream.via(
-            FlowExt.withHead(includeHeadInUpStream = true) { case (_, i) =>
-              Flow[(ByteString, Long)].map(_._1).via(uploadStreamAsFile(bucket, getKey(i), chunkUploadConcurrency))
-            }
-          )
-        }
-        .flatten(FlattenStrategy.concat)
+      .via(FlowExt.zipWithIndex)
+      .splitWhen { case (_, i) => i != 0 && i % nbChunkPerFile == 0 }
+      .via(
+          FlowExt.withHead(includeHeadInUpStream = true) { case (_, i) =>
+            Flow[(ByteString, Long)].map(_._1).via(uploadStreamAsFile(bucket, getKey(i), chunkUploadConcurrency))
+          }
+        )
+      .concatSubstreams
   }
-
+  def uploadStreamAsMultipartFile(bucket: String, getKey: Long => String, nbChunkPerFile: Int) : Flow[ByteString, CompleteMultipartUploadResult, Unit] = uploadStreamAsMultipartFile(bucket,getKey,nbChunkPerFile,1)
 }
 
 object S3StreamBuilder {

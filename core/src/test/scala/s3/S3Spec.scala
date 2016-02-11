@@ -56,15 +56,13 @@ class S3Spec extends FlatSpec with Matchers with ScalaFutures {
   }
 
   it should "upload and download a big file as a single file" in {
-    val futBytes = SourceExt
-      .fromFile(new java.io.File(getClass.getResource("/big.txt").getPath))
+    val futBytes = FileIO.fromFile(new java.io.File(getClass.getResource("/big.txt").getPath))
       .via(streamBuilder.uploadStreamAsFile(bucket, s"$keyPrefix/big", chunkUploadConcurrency = 2))
-      .map(_ => streamBuilder.getFileAsStream(bucket, s"$keyPrefix/big"))
-      .flatten(FlattenStrategy.concat)
+      .flatMapConcat(_ => streamBuilder.getFileAsStream(bucket, s"$keyPrefix/big"))
       .runFold(ByteString.empty)(_ ++ _)
       .map(_.compact)
 
-    val expectedBytes = SourceExt.fromFile(new java.io.File(getClass.getResource("/big.txt").getPath))
+    val expectedBytes = FileIO.fromFile(new java.io.File(getClass.getResource("/big.txt").getPath))
       .runFold(ByteString.empty)(_ ++ _).map(_.compact)
 
     whenReady(futBytes zip expectedBytes) { case (bytes, expectedBytes) =>
@@ -80,7 +78,7 @@ class S3Spec extends FlatSpec with Matchers with ScalaFutures {
       .runWith(SinkExt.collect)
 
     val futExpectedLines =
-      SourceExt.fromFile(new java.io.File(getClass.getResource("/big.txt").getPath))
+      FileIO.fromFile(new java.io.File(getClass.getResource("/big.txt").getPath))
         .runFold(ByteString.empty)(_ ++ _)
         .map(_.compact.utf8String)
         .map(_.split("\n").to[scala.collection.immutable.Seq])
@@ -92,16 +90,15 @@ class S3Spec extends FlatSpec with Matchers with ScalaFutures {
 
 
   it should "upload and download a big file as a multipart file" in {
-    val futBytes = SourceExt
-      .fromFile(new java.io.File(getClass.getResource("/big.txt").getPath), maxChunkSize = 2 * 1024 * 1024)
+    val futBytes = FileIO
+      .fromFile(new java.io.File(getClass.getResource("/big.txt").getPath), chunkSize = 2 * 1024 * 1024)
       .via(streamBuilder.uploadStreamAsMultipartFile(bucket, s"$keyPrefix/big", nbChunkPerFile = 1, chunkUploadConcurrency = 2))
       .via(FlowExt.fold[CompleteMultipartUploadResult, Vector[CompleteMultipartUploadResult]](Vector.empty)(_ :+ _))
-      .map(_ => streamBuilder.getMultipartFileAsStream(bucket, s"$keyPrefix/big.part"))
-      .flatten(FlattenStrategy.concat)
+      .flatMapConcat(_ => streamBuilder.getMultipartFileAsStream(bucket, s"$keyPrefix/big.part"))
       .runFold(ByteString.empty)(_ ++ _)
       .map(_.compact)
 
-   val futExpectedBytes = SourceExt.fromFile(new java.io.File(getClass.getResource("/big.txt").getPath))
+   val futExpectedBytes = FileIO.fromFile(new java.io.File(getClass.getResource("/big.txt").getPath))
      .runFold(ByteString.empty)(_ ++ _).map(_.compact)
 
     whenReady(futBytes zip futExpectedBytes) { case (bytes, expectedBytes) =>
