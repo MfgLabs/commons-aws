@@ -4,9 +4,9 @@ import bintray.Plugin._
 
 organization in ThisBuild := "com.mfglabs"
 
-scalaVersion in ThisBuild := "2.11.6"
+scalaVersion in ThisBuild := "2.11.7"
 
-version in ThisBuild := "0.8.1-55509dd"
+version in ThisBuild := "0.9.0"
 
 resolvers in ThisBuild ++= Seq(
   "Typesafe repository" at "http://repo.typesafe.com/typesafe/releases/",

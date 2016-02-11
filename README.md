@@ -20,7 +20,7 @@ resolvers ++= Seq(
 ## Dependencies
 
 ```scala
-libraryDependencies += "com.mfglabs" %% "commons-aws" % "0.8.0"
+libraryDependencies += "com.mfglabs" %% "commons-aws" % "0.9.0"
 ```
 
 ## Usage
