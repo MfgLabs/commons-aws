@@ -59,8 +59,7 @@ class S3Spec extends FlatSpec with Matchers with ScalaFutures {
     val futBytes = SourceExt
       .fromFile(new java.io.File(getClass.getResource("/big.txt").getPath))
       .via(streamBuilder.uploadStreamAsFile(bucket, s"$keyPrefix/big", chunkUploadConcurrency = 2))
-      .map(_ => streamBuilder.getFileAsStream(bucket, s"$keyPrefix/big"))
-      .flatten(FlattenStrategy.concat)
+      .flatMapConcat(_ => streamBuilder.getFileAsStream(bucket, s"$keyPrefix/big"))
       .runFold(ByteString.empty)(_ ++ _)
       .map(_.compact)
 
@@ -96,8 +95,7 @@ class S3Spec extends FlatSpec with Matchers with ScalaFutures {
       .fromFile(new java.io.File(getClass.getResource("/big.txt").getPath), maxChunkSize = 2 * 1024 * 1024)
       .via(streamBuilder.uploadStreamAsMultipartFile(bucket, s"$keyPrefix/big", nbChunkPerFile = 1, chunkUploadConcurrency = 2))
       .via(FlowExt.fold[CompleteMultipartUploadResult, Vector[CompleteMultipartUploadResult]](Vector.empty)(_ :+ _))
-      .map(_ => streamBuilder.getMultipartFileAsStream(bucket, s"$keyPrefix/big.part"))
-      .flatten(FlattenStrategy.concat)
+      .flatMapConcat(_ => streamBuilder.getMultipartFileAsStream(bucket, s"$keyPrefix/big.part"))
       .runFold(ByteString.empty)(_ ++ _)
       .map(_.compact)
 

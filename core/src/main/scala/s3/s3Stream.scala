@@ -104,8 +104,7 @@ trait S3StreamBuilder {
    */
   def getMultipartFileAsStream(bucket: String, prefix: String, inputStreamTransform: InputStream => InputStream = identity): Source[ByteString, Unit] = {
     listFilesAsStream(bucket, Some(prefix))
-      .map { case (key, _) => getFileAsStream(bucket, key, inputStreamTransform) }
-      .flatten(FlattenStrategy.concat)
+      .flatMapConcat { case (key, _) => getFileAsStream(bucket, key, inputStreamTransform) }
   }
 
   /**
@@ -177,15 +176,13 @@ trait S3StreamBuilder {
     Flow[ByteString]
       .via(FlowExt.zipWithIndex)
       .splitWhen { case (_, i) => i != 0 && i % nbChunkPerFile == 0 }
-      .map { partFileStream =>
-        partFileStream.via(
+      .via(
           FlowExt.withHead(includeHeadInUpStream = true) { case (_, i) =>
             val key = formatKey(i / nbChunkPerFile)
             Flow[(ByteString, Long)].map(_._1).via(uploadStreamAsFile(bucket, key, chunkUploadConcurrency))
           }
         )
-      }
-      .flatten(FlattenStrategy.concat)
+      .concatSubstreams
   }
 
 }
