@@ -83,7 +83,7 @@ trait S3StreamBuilder {
     */
   def getFileAsStream(bucket: String, key: String, inputStreamTransform: InputStream => InputStream = identity): Source[ByteString, Unit] = {
     SourceExt.seededLazyAsync(client.getObject(bucket, key)) { o =>
-      SourceExt.fromStream(inputStreamTransform(o.getObjectContent))
+      StreamConverters.fromInputStream(() => inputStreamTransform(o.getObjectContent))
     }
   }
 
