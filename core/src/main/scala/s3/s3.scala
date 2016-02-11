@@ -2,6 +2,7 @@ package com.mfglabs.commons.aws
 package s3
 
 import java.io.File
+import java.util.concurrent.atomic.AtomicLong
 
 import scala.concurrent.{ExecutionContext, Future, Promise}
 import scala.util.Try
@@ -14,6 +15,16 @@ import com.amazonaws.internal.StaticCredentialsProvider
 
 import com.amazonaws.services.s3._
 import com.amazonaws.services.s3.model._
+
+private[s3] class S3ThreadFactory extends ThreadFactory {
+  private val count = new AtomicLong(0L)
+  private val backingThreadFactory: ThreadFactory = Executors.defaultThreadFactory()
+  override def newThread(r: Runnable): Thread = {
+    val thread = backingThreadFactory.newThread(r)
+    thread.setName(s"aws.wrap.s3-${count.getAndIncrement()}")
+    thread
+  }
+}
 
 /**
   * Asynchronous S3 Scala client on top of Pellucid's one.
@@ -40,12 +51,7 @@ class AmazonS3AsyncClient(
     *     a client configuration.
     */
   def this(awsCredentialsProvider: AWSCredentialsProvider, clientConfiguration: ClientConfiguration) = {
-    this(awsCredentialsProvider, clientConfiguration,
-      new ThreadPoolExecutor(
-        0, clientConfiguration.getMaxConnections,
-        60L, TimeUnit.SECONDS,
-        new LinkedBlockingQueue[Runnable],
-        new AWSThreadFactory("aws.wrap.s3")))
+    this(awsCredentialsProvider, clientConfiguration, Executors.newFixedThreadPool(clientConfiguration.getMaxConnections, new S3ThreadFactory()))
   }
 
   /**
