@@ -52,7 +52,7 @@ trait S3StreamBuilder {
    * @param bucket S3 bucket
    * @param maybePrefix S3 prefix. If not present, all the files of the bucket will be returned.
    */
-  def listFilesAsStream(bucket: String, maybePrefix: Option[String] = None): Source[(String, Date), Unit] = {
+  def listFilesAsStream(bucket: String, maybePrefix: Option[String] = None): Source[(String, Date), akka.NotUsed] = {
     import collection.JavaConversions._
 
     def getFirstListing: Future[ObjectListing] = maybePrefix match {
@@ -81,7 +81,7 @@ trait S3StreamBuilder {
     * @param key the key of file
     * @param inputStreamTransform optional inputstream transformation (for example GZIP decompression, ...)
     */
-  def getFileAsStream(bucket: String, key: String, inputStreamTransform: InputStream => InputStream = identity): Source[ByteString, Unit] = {
+  def getFileAsStream(bucket: String, key: String, inputStreamTransform: InputStream => InputStream = identity): Source[ByteString, akka.NotUsed] = {
     SourceExt.seededLazyAsync(client.getObject(bucket, key)) { o =>
       StreamConverters.fromInputStream(() => inputStreamTransform(o.getObjectContent))
     }
@@ -102,7 +102,7 @@ trait S3StreamBuilder {
    * @param prefix S3 prefix. Files of path prefix* will be taken into account.
    * @param inputStreamTransform optional inputstream transformation (for example GZIP decompression, ...)
    */
-  def getMultipartFileAsStream(bucket: String, prefix: String, inputStreamTransform: InputStream => InputStream = identity): Source[ByteString, Unit] = {
+  def getMultipartFileAsStream(bucket: String, prefix: String, inputStreamTransform: InputStream => InputStream = identity): Source[ByteString, akka.NotUsed] = {
     listFilesAsStream(bucket, Some(prefix))
       .flatMapConcat { case (key, _) => getFileAsStream(bucket, key, inputStreamTransform) }
   }
@@ -113,7 +113,7 @@ trait S3StreamBuilder {
    * @param key S3 key
    * @param chunkUploadConcurrency chunk upload concurrency. Order is guaranteed even with chunkUploadConcurrency > 1.
    */
-  def uploadStreamAsFile(bucket: String, key: String, chunkUploadConcurrency: Int = 1): Flow[ByteString, CompleteMultipartUploadResult, Unit] = {
+  def uploadStreamAsFile(bucket: String, key: String, chunkUploadConcurrency: Int = 1): Flow[ByteString, CompleteMultipartUploadResult, akka.NotUsed] = {
     import scala.collection.JavaConversions._
 
     val uploadChunkSize = 8 * 1024 * 1024 // recommended by AWS
@@ -166,7 +166,7 @@ trait S3StreamBuilder {
    * @param chunkUploadConcurrency chunk upload concurrency. Order is guaranteed even with chunkUploadConcurrency > 1.
    */
   def uploadStreamAsMultipartFile(bucket: String, prefix: String, nbChunkPerFile: Int,
-                                  chunkUploadConcurrency: Int = 1): Flow[ByteString, CompleteMultipartUploadResult, Unit] = {
+                                  chunkUploadConcurrency: Int = 1): Flow[ByteString, CompleteMultipartUploadResult, akka.NotUsed] = {
 
     def formatKey(fileNb: Long) = {
       val pad = "%08d".format(fileNb)
@@ -186,11 +186,14 @@ trait S3StreamBuilder {
    * @param chunkUploadConcurrency chunk upload concurrency. Order is guaranteed even with chunkUploadConcurrency > 1.
    */
   def uploadStreamAsMultipartFile(bucket: String, getKey: Long => String, nbChunkPerFile: Int,
-      chunkUploadConcurrency : Int): Flow[ByteString, CompleteMultipartUploadResult, Unit] = {
+      chunkUploadConcurrency : Int): Flow[ByteString, CompleteMultipartUploadResult, akka.NotUsed] = {
 
     Flow[ByteString]
       .via(FlowExt.zipWithIndex)
-      .splitWhen { case (_, i) => i != 0 && i % nbChunkPerFile == 0 }
+      .splitWhen { x =>
+        val i = x._2
+        i != 0 && i % nbChunkPerFile == 0
+      }
       .via(
           FlowExt.withHead(includeHeadInUpStream = true) { case (_, i) =>
             Flow[(ByteString, Long)].map(_._1).via(uploadStreamAsFile(bucket, getKey(i), chunkUploadConcurrency))
@@ -198,7 +201,8 @@ trait S3StreamBuilder {
         )
       .concatSubstreams
   }
-  def uploadStreamAsMultipartFile(bucket: String, getKey: Long => String, nbChunkPerFile: Int) : Flow[ByteString, CompleteMultipartUploadResult, Unit] = uploadStreamAsMultipartFile(bucket,getKey,nbChunkPerFile,1)
+  def uploadStreamAsMultipartFile(bucket: String, getKey: Long => String, nbChunkPerFile: Int) : Flow[ByteString, CompleteMultipartUploadResult, akka.NotUsed] =
+    uploadStreamAsMultipartFile(bucket,getKey,nbChunkPerFile,1)
 }
 
 object S3StreamBuilder {
