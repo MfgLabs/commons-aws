@@ -30,7 +30,7 @@ trait SQSStreamBuilder {
    * guarantee total message ordering.
    * @param messageSendingConcurrency
    */
-  def sendMessageAsStream(messageSendingConcurrency: Int = defaultMessageOpsConcurrency): Flow[SendMessageRequest, SendMessageResult, Unit] = {
+  def sendMessageAsStream(messageSendingConcurrency: Int = defaultMessageOpsConcurrency): Flow[SendMessageRequest, SendMessageResult, akka.NotUsed] = {
     Flow[SendMessageRequest].mapAsync(messageSendingConcurrency) { msg =>
       sqs.sendMessage(msg)
     }
