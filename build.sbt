@@ -56,9 +56,11 @@ lazy val core = project.in(file("core"))
   .settings   (
     name := "commons-aws",
     libraryDependencies ++= Seq(
-      Dependencies.Compile.awsJavaSDK,
-      Dependencies.Compile.pellucidAwsWrap,
+      Dependencies.Compile.awsJavaSDKcw,
+      Dependencies.Compile.awsJavaSDKs3,
+      Dependencies.Compile.awsJavaSDKsqs,
       Dependencies.Compile.akkaStreamExt,
+      Dependencies.Compile.slf4j,
       Dependencies.Test.scalaTest
     ),
     commonSettings,

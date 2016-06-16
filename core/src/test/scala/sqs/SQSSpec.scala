@@ -7,7 +7,6 @@ import akka.stream.scaladsl._
 import com.amazonaws.regions.{Region, Regions}
 import com.amazonaws.services.sqs.AmazonSQSAsyncClient
 import com.amazonaws.services.sqs.model.{CreateQueueRequest, MessageAttributeValue, SendMessageRequest}
-import com.github.dwhjames.awswrap.sqs.AmazonSQSScalaClient
 import com.mfglabs.stream.SinkExt
 import org.scalatest.concurrent.ScalaFutures
 import org.scalatest.time.{Millis, Seconds, Span}
@@ -26,7 +25,7 @@ class SQSSpec extends FlatSpec with Matchers with ScalaFutures {
   implicit val as = ActorSystem()
   implicit val fm = ActorMaterializer()
 
-  val sqs = new AmazonSQSScalaClient(new AmazonSQSAsyncClient(), scala.concurrent.ExecutionContext.Implicits.global)
+  val sqs = new AmazonSQSClient( scala.concurrent.ExecutionContext.Implicits.global)
   val builder = SQSStreamBuilder(sqs)
 
   val testQueueName = "commons-aws-sqs-test-" + Random.nextInt()

@@ -4,9 +4,7 @@ package sqs
 import akka.actor._
 import akka.stream._
 import akka.stream.scaladsl._
-import com.amazonaws.services.sqs.{AmazonSQSAsyncClient, AmazonSQSClient}
 import com.amazonaws.services.sqs.model._
-import com.github.dwhjames.awswrap.sqs.AmazonSQSScalaClient
 import scala.concurrent._
 import scala.concurrent.duration._
 
@@ -18,7 +16,7 @@ trait SQSStreamBuilder {
 
   import scala.collection.JavaConversions._
 
-  val sqs: AmazonSQSScalaClient
+  val sqs: AmazonSQSClient
 
   import sqs.execCtx
 
@@ -97,7 +95,7 @@ trait SQSStreamBuilder {
 }
 
 object SQSStreamBuilder {
-  def apply(sqsClient: AmazonSQSScalaClient) = new SQSStreamBuilder {
-    override val sqs: AmazonSQSScalaClient = sqsClient
+  def apply(sqsClient: AmazonSQSClient) = new SQSStreamBuilder {
+    override val sqs: AmazonSQSClient = sqsClient
   }
 }

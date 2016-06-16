@@ -36,10 +36,10 @@ class S3Spec extends FlatSpec with Matchers with ScalaFutures {
   it should "upload/list/delete small files" in {
     whenReady(
       for {
-        _ <- ops.deleteFiles(bucket, s"$keyPrefix")
-        _ <- ops.uploadFile(bucket, s"$keyPrefix/small.txt", new java.io.File(getClass.getResource("/small.txt").getPath))
+        _ <- ops.deleteObjects(bucket, s"$keyPrefix")
+        _ <- ops.putObject(bucket, s"$keyPrefix/small.txt", new java.io.File(getClass.getResource("/small.txt").getPath))
         l <- ops.listFiles(bucket, Some(keyPrefix))
-        _ <- ops.deleteFile(bucket, s"$keyPrefix/small.txt")
+        _ <- ops.deleteObjects(bucket, s"$keyPrefix/small.txt")
         l2 <- ops.listFiles(bucket, Some(keyPrefix))
       } yield (l, l2)
     ) { case (l, l2) =>

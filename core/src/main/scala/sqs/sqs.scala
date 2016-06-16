@@ -15,7 +15,7 @@
  * limitations under the License.
  */
 
-package com.github.dwhjames.awswrap
+package com.mfglabs.commons.aws
 package sqs
 
 import scala.concurrent.{Future, ExecutionContext}
@@ -23,13 +23,25 @@ import scala.collection.JavaConverters._
 
 import java.util.concurrent.ExecutorService
 
-import com.amazonaws.services.sqs._
+import com.amazonaws.services.sqs.AmazonSQSAsyncClient
 import com.amazonaws.services.sqs.model._
 
-class AmazonSQSScalaClient(
+class AmazonSQSClient(
     val client: AmazonSQSAsyncClient,
     implicit val execCtx: ExecutionContext
 ) {
+
+  /**
+    * make a client from an ExecutionContext
+    *
+    * @param ExecutionContext
+    *     an  ExecutionContext
+    * @param clientConfiguration
+    *     a client configuration.
+    */
+  def this(execCtx: ExecutionContext) = {
+    this(new AmazonSQSAsyncClient(), execCtx)
+  }
 
   def addPermission(
     addPermissionRequest: AddPermissionRequest
@@ -86,7 +98,7 @@ class AmazonSQSScalaClient(
   def createQueue(
     createQueueRequest: CreateQueueRequest
   ): Future[CreateQueueResult] =
-    wrapAsyncMethod(client.createQueueAsync, createQueueRequest)
+    wrapAsyncMethod[CreateQueueRequest, CreateQueueResult](client.createQueueAsync, createQueueRequest)
 
   def createQueue(
     queueName: String,
@@ -133,7 +145,7 @@ class AmazonSQSScalaClient(
   def deleteQueue(
     deleteQueueRequest: DeleteQueueRequest
   ): Future[Unit] =
-    wrapVoidAsyncMethod(client.deleteQueueAsync, deleteQueueRequest)
+    wrapVoidAsyncMethod[DeleteQueueRequest](client.deleteQueueAsync, deleteQueueRequest)
 
   def deleteQueue(
     queueUrl: String
@@ -154,13 +166,13 @@ class AmazonSQSScalaClient(
   ): Future[Map[String, String]] =
     getQueueAttributes(
       new GetQueueAttributesRequest(queueUrl)
-      .withAttributeNames(attributeNames: _*)
+        .withAttributeNames(attributeNames: _*)
     ).map(_.getAttributes.asScala.toMap)
 
   def getQueueUrl(
     getQueueUrlRequest: GetQueueUrlRequest
   ): Future[GetQueueUrlResult] =
-    wrapAsyncMethod(client.getQueueUrlAsync, getQueueUrlRequest)
+    wrapAsyncMethod[GetQueueUrlRequest, GetQueueUrlResult](client.getQueueUrlAsync, getQueueUrlRequest)
 
   def getQueueUrl(
     queueName: String
@@ -170,7 +182,7 @@ class AmazonSQSScalaClient(
   def listQueues(
     listQueuesRequest: ListQueuesRequest
   ): Future[ListQueuesResult] =
-    wrapAsyncMethod(client.listQueuesAsync, listQueuesRequest)
+    wrapAsyncMethod[ListQueuesRequest, ListQueuesResult](client.listQueuesAsync, listQueuesRequest)
 
   def listQueues(
     queueNamePrefix: String = null
@@ -180,7 +192,7 @@ class AmazonSQSScalaClient(
   def receiveMessage(
     receiveMessageRequest: ReceiveMessageRequest
   ): Future[ReceiveMessageResult] =
-    wrapAsyncMethod(client.receiveMessageAsync, receiveMessageRequest)
+    wrapAsyncMethod[ReceiveMessageRequest, ReceiveMessageResult](client.receiveMessageAsync, receiveMessageRequest)
 
   def receiveMessage(
     queueUrl: String
