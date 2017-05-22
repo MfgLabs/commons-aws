@@ -2,10 +2,8 @@ package com.mfglabs.commons.aws
 package sqs
 
 import akka.actor._
-import akka.stream._
 import akka.stream.scaladsl._
 import com.amazonaws.services.sqs.model._
-import scala.concurrent._
 import scala.concurrent.duration._
 
 import com.mfglabs.stream._

@@ -6,23 +6,44 @@ organization in ThisBuild := "com.mfglabs"
 
 scalaVersion in ThisBuild := "2.11.7"
 
-version in ThisBuild := "0.10.0"
+version in ThisBuild := "0.11.0"
 
 resolvers in ThisBuild ++= Seq(
   "Typesafe repository" at "http://repo.typesafe.com/typesafe/releases/",
   Resolver.sonatypeRepo("releases"),
   DefaultMavenRepository,
-  Resolver.bintrayRepo("dwhjames", "maven"),
   Resolver.bintrayRepo("mfglabs", "maven")
 )
 
-scalacOptions in ThisBuild ++= Seq("-feature", "-unchecked", "-language:postfixOps")
+scalacOptions in ThisBuild ++= Seq(
+  "-encoding", "UTF-8",
+  "-target:jvm-1.8",
+  "-Ydelambdafy:method",
+  "-Yno-adapted-args",
+  "-deprecation",
+  "-feature",
+  "-language:postfixOps",
+  "-unchecked",
+  "-Xfuture",
+  "-Xlint",
+  "-Xlint:-missing-interpolator",
+  "-Xlint:private-shadow",
+  "-Xlint:type-parameter-shadow",
+  "-Ywarn-dead-code",
+  "-Ywarn-unused",
+  "-Ywarn-unused-import",
+  "-Ywarn-numeric-widen",
+  "-Ywarn-value-discard",
+  "-Xcheckinit"
+)
 
 publishMavenStyle in ThisBuild := true
 
 lazy val commonSettings = Seq(
-  scmInfo := Some(ScmInfo(url("https://github.com/MfgLabs/commons-aws"),
-    "git@github.com:MfgLabs/commons-aws.git"))
+  scmInfo := Some(ScmInfo(
+    url("https://github.com/MfgLabs/commons-aws"),
+    "git@github.com:MfgLabs/commons-aws.git"
+  ))
 )
 
 lazy val publishSettings = Seq(
@@ -42,23 +63,47 @@ lazy val noPublishSettings = Seq(
 )
 
 lazy val all = (project in file("."))
-  .aggregate  (core, cloudwatchHeartbeat)
-  .settings   (name := "commons-aws-all")
-  .settings   (site.settings ++ ghpages.settings: _*)
-  .settings   (
+  .aggregate(commons)
+  .aggregate(cloudwatch)
+  .aggregate(s3)
+  .aggregate(sqs)
+  .settings(name := "commons-aws-all")
+  .settings(site.settings ++ ghpages.settings: _*)
+  .settings(
     name := "commons-aws-all",
-    site.addMappingsToSiteDir(mappings in (ScalaUnidoc, packageDoc), "api/current"),
+    site.addMappingsToSiteDir(mappings in (ScalaUnidoc, packageDoc), "api/" + version),
     git.remoteRepo := "git@github.com:MfgLabs/commons-aws.git"
   )
   .settings(noPublishSettings)
 
-lazy val core = project.in(file("core"))
+lazy val commons = project.in(file("commons"))
   .settings   (
     name := "commons-aws",
     libraryDependencies ++= Seq(
+      Dependencies.Compile.awsJavaSDKcore
+    ),
+    commonSettings
+  )
+  .settings(noPublishSettings)
+
+lazy val cloudwatch = project.in(file("cloudwatch"))
+  .settings   (
+    name := "commons-aws-cloudwatch",
+    libraryDependencies ++= Seq(
       Dependencies.Compile.awsJavaSDKcw,
+      Dependencies.Compile.akkaStreamExt,
+      Dependencies.Compile.slf4j,
+      Dependencies.Test.scalaTest
+    ),
+    commonSettings,
+    publishSettings
+  ).dependsOn(commons)
+
+lazy val s3 = project.in(file("s3"))
+  .settings   (
+    name := "commons-aws-s3",
+    libraryDependencies ++= Seq(
       Dependencies.Compile.awsJavaSDKs3,
-      Dependencies.Compile.awsJavaSDKsqs,
       Dependencies.Compile.akkaStreamExt,
       Dependencies.Compile.slf4j,
       Dependencies.Test.scalaTest
@@ -67,24 +112,15 @@ lazy val core = project.in(file("core"))
     publishSettings
   )
 
-////////////////////////////////////////////////////////////////////////////////////////
-// EXTENSIONS GO HERE
-//
-
-// If you want to add an extension, put it in directory "extensions"
-// and add it to build as following.
-
-lazy val cloudwatchHeartbeat = project.in(file("extensions/cloudwatch-heartbeat"))
-  .dependsOn(core)
-  .settings(
-    name := "commons-aws-cloudwatch-heartbeat",
+lazy val sqs = project.in(file("sqs"))
+  .settings   (
+    name := "commons-aws-sqs",
     libraryDependencies ++= Seq(
-      Dependencies.Compile.akka,
-      Dependencies.Compile.grizzled,
-      Dependencies.Compile.logback,
-      Dependencies.Test.scalaTest,
-      Dependencies.Test.akkaTestkit
+      Dependencies.Compile.awsJavaSDKsqs,
+      Dependencies.Compile.akkaStreamExt,
+      Dependencies.Compile.slf4j,
+      Dependencies.Test.scalaTest
     ),
     commonSettings,
     publishSettings
-  )
+  ).dependsOn(commons)

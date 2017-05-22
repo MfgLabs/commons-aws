@@ -7,7 +7,6 @@ import org.scalatest.time.{Minutes, Millis, Seconds, Span}
 import scala.concurrent.Future
 
 class CloudwatchSpec extends FlatSpec with Matchers with ScalaFutures {
-  import cloudwatch._
   import scala.concurrent.ExecutionContext.Implicits.global
 
   implicit override val patienceConfig =

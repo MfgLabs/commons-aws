@@ -33,7 +33,7 @@ trait S3StreamBuilder {
       * @return a future of seq of file keys & last modified dates (or a failure)
       */
     def listFiles(bucket: String, path: Option[String] = None): Future[Seq[(String, Date)]] = {
-      listFilesAsStream(bucket, path).runWith(SinkExt.collect)
+      listFilesAsStream(bucket, path).runWith(Sink.seq)
     }
 
     /**
@@ -67,7 +67,7 @@ trait S3StreamBuilder {
           client.listNextBatchOfObjects(listing).map { nextListing =>
             (Option(files), Option(nextListing))
           }
-        else Future.successful(Option(files), None)
+        else Future.successful(Option(files) -> None)
       }
     }
     .mapConcat(identity)
@@ -132,7 +132,7 @@ trait S3StreamBuilder {
           .withPartNumber((partNumber + 1).toInt)
           .withUploadId(uploadId)
           .withInputStream(new ByteArrayInputStream(bytes.toArray))
-          .withPartSize(bytes.length)
+          .withPartSize(bytes.length.toLong)
         client.uploadPart(uploadRequest).map(r => (r.getPartETag, uploadId)).recoverWith {
           case e: Exception =>
             client.abortMultipartUpload(new AbortMultipartUploadRequest(bucket, key, uploadId))

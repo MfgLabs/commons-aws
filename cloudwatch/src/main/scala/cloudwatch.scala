@@ -38,7 +38,7 @@ import com.amazonaws.services.cloudwatch.model._
  * @see [[http://docs.aws.amazon.com/AWSJavaSDK/latest/javadoc/com/amazonaws/services/dynamodbv2/AmazonDynamoDBAsyncClient.html AmazonCloudWatchAsyncClient]]
  */
 class AmazonCloudwatchClient(val client: AmazonCloudWatchAsyncClient) {
-
+  import FutureHelper._
 
   /**
     * make a client from a credentials provider, a config, and a default executor service.

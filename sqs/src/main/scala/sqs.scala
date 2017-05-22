@@ -30,6 +30,7 @@ class AmazonSQSClient(
     val client: AmazonSQSAsyncClient,
     implicit val execCtx: ExecutionContext
 ) {
+  import FutureHelper._
 
   /**
     * make a client from an ExecutionContext

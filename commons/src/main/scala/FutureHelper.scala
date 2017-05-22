@@ -1,23 +1,12 @@
-package com.mfglabs.commons
+package com.mfglabs.commons.aws
 
 import com.amazonaws.AmazonWebServiceRequest
 import com.amazonaws.handlers.AsyncHandler
 
 import scala.concurrent.{Future, Promise}
-import java.util.concurrent.{Executors, ThreadFactory, Future => JFuture}
-import java.util.concurrent.atomic.AtomicLong
+import java.util.concurrent.{Future => JFuture}
 
-package object aws {
-
-  class AWSThreadFactory(name: String) extends ThreadFactory {
-    private val count = new AtomicLong(0L)
-    private val backingThreadFactory: ThreadFactory = Executors.defaultThreadFactory()
-    override def newThread(r: Runnable): Thread = {
-      val thread = backingThreadFactory.newThread(r)
-      thread.setName(s"$name-${count.getAndIncrement()}")
-      thread
-    }
-  }
+package object FutureHelper {
 
   def promiseToAsyncHandler[Request <: AmazonWebServiceRequest, Result](p: Promise[Result]) =
     new AsyncHandler[Request, Result] {

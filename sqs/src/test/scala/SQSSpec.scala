@@ -53,10 +53,10 @@ class SQSSpec extends FlatSpec with Matchers with ScalaFutures {
     }
       .via(builder.sendMessageAsStream())
       .take(200)
-      .runWith(SinkExt.collect)
-    val futReceived = builder.receiveMessageAsStream(queueUrl, autoAck = true, messageAttributeNames = List(messageAttributeKey)).take(200).runWith(SinkExt.collect)
+      .runWith(Sink.seq)
+    val futReceived = builder.receiveMessageAsStream(queueUrl, autoAck = true, messageAttributeNames = List(messageAttributeKey)).take(200).runWith(Sink.seq)
 
-    val (sent, received) = futSent.zip(futReceived).futureValue
+    val (_, received) = futSent.zip(futReceived).futureValue
 
     received.map(_.getBody).sorted shouldEqual msgs.sorted
     received.map(_.getMessageAttributes.get(messageAttributeKey).getStringValue).sorted shouldEqual msgs.sorted
@@ -65,7 +65,7 @@ class SQSSpec extends FlatSpec with Matchers with ScalaFutures {
     val res = builder
       .receiveMessageAsStream(queueUrl, longPollingMaxWait = 1 second)
       .takeWithin(10 seconds)
-      .runWith(SinkExt.collect)
+      .runWith(Sink.seq)
       .futureValue
     res shouldBe empty
 
@@ -92,10 +92,10 @@ class SQSSpec extends FlatSpec with Matchers with ScalaFutures {
       }
       .via(builder.sendMessageAsStream())
       .take(200)
-      .runWith(SinkExt.collect)
-    val futReceived = builder.receiveMessageAsStreamWithRetryExpBackoff(queueUrl, autoAck = true).take(200).runWith(SinkExt.collect)
+      .runWith(Sink.seq)
+    val futReceived = builder.receiveMessageAsStreamWithRetryExpBackoff(queueUrl, autoAck = true).take(200).runWith(Sink.seq)
 
-    val (sent, received) = futSent.zip(futReceived).futureValue
+    val (_, received) = futSent.zip(futReceived).futureValue
 
     received.map(_.getBody).sorted shouldEqual msgs.sorted
 
@@ -103,7 +103,7 @@ class SQSSpec extends FlatSpec with Matchers with ScalaFutures {
     val res = builder
       .receiveMessageAsStream(queueUrl, longPollingMaxWait = 1 second)
       .takeWithin(10 seconds)
-      .runWith(SinkExt.collect)
+      .runWith(Sink.seq)
       .futureValue
     res shouldBe empty
 
