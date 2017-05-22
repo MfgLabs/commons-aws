@@ -4,10 +4,9 @@ package sqs
 import akka.actor._
 import akka.stream._
 import akka.stream.scaladsl._
-import com.amazonaws.regions.{Region, Regions}
-import com.amazonaws.services.sqs.AmazonSQSAsyncClient
+import com.amazonaws.regions.Regions
+import com.amazonaws.services.sqs.AmazonSQSAsyncClientBuilder
 import com.amazonaws.services.sqs.model.{CreateQueueRequest, MessageAttributeValue, SendMessageRequest}
-import com.mfglabs.stream.SinkExt
 import org.scalatest.concurrent.ScalaFutures
 import org.scalatest.time.{Millis, Seconds, Span}
 import org.scalatest.{FlatSpec, Matchers}
@@ -25,7 +24,9 @@ class SQSSpec extends FlatSpec with Matchers with ScalaFutures {
   implicit val as = ActorSystem()
   implicit val fm = ActorMaterializer()
 
-  val sqs = new AmazonSQSClient( scala.concurrent.ExecutionContext.Implicits.global)
+
+  val client  = AmazonSQSAsyncClientBuilder.standard().withRegion(Regions.EU_WEST_1).build()
+  val sqs     = new AmazonSQSClient(client, scala.concurrent.ExecutionContext.Implicits.global)
   val builder = SQSStreamBuilder(sqs)
 
   val testQueueName = "commons-aws-sqs-test-" + Random.nextInt()
@@ -33,10 +34,11 @@ class SQSSpec extends FlatSpec with Matchers with ScalaFutures {
 
   val messageAttributeKey = "attribute_key"
 
-  "SQS client" should "send message and receive them as streams" in {
-    sqs.client.setRegion(Region.getRegion(Regions.EU_WEST_1))
-
+  "SQS client" should "delete all test queue if any" in {
     sqs.listQueues("commons-aws-sqs-test-").futureValue.headOption.foreach(queueUrl => sqs.deleteQueue(queueUrl).futureValue)
+  }
+
+  it should "send message and receive them as streams" in {
     val newQueueReq = new CreateQueueRequest()
     newQueueReq.setAttributes(Map("VisibilityTimeout" -> 10.toString)) // 10 seconds
     newQueueReq.setQueueName(testQueueName)
@@ -73,10 +75,7 @@ class SQSSpec extends FlatSpec with Matchers with ScalaFutures {
   }
 
 
-  "SQS client" should "send message and receive them as streams with retry mechanism" in {
-    sqs.client.setRegion(Region.getRegion(Regions.EU_WEST_1))
-
-    sqs.listQueues("commons-aws-sqs-test-").futureValue.headOption.foreach(queueUrl => sqs.deleteQueue(queueUrl).futureValue)
+  it should "send message and receive them as streams with retry mechanism" in {
     val newQueueReq = new CreateQueueRequest()
     newQueueReq.setAttributes(Map("VisibilityTimeout" -> 10.toString)) // 10 seconds
     newQueueReq.setQueueName(testQueueName2)

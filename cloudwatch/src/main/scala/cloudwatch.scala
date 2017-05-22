@@ -18,16 +18,35 @@
 package com.mfglabs.commons.aws
 package cloudwatch
 
-import java.util.concurrent.{Executors, ExecutorService, LinkedBlockingQueue, ThreadFactory, ThreadPoolExecutor, TimeUnit}
-import scala.concurrent.{Future, Promise}
-import scala.util.Try
+import java.util.concurrent.ExecutorService
+import scala.concurrent.Future
 
-import com.amazonaws.auth.{AWSCredentials, AWSCredentialsProvider, DefaultAWSCredentialsProviderChain}
-import com.amazonaws.{AmazonWebServiceRequest, ClientConfiguration}
-import com.amazonaws.internal.StaticCredentialsProvider
+import com.amazonaws.auth.{AWSCredentialsProvider, DefaultAWSCredentialsProviderChain}
+import com.amazonaws.ClientConfiguration
+import com.amazonaws.client.builder.ExecutorFactory
 
-import com.amazonaws.services.cloudwatch.AmazonCloudWatchAsyncClient
+import com.amazonaws.services.cloudwatch.{AmazonCloudWatchAsync, AmazonCloudWatchAsyncClient}
 import com.amazonaws.services.cloudwatch.model._
+
+
+object AmazonCloudwatchClient {
+  import FutureHelper.defaultExecutorService
+
+  def apply(
+    awsCredentialsProvider : AWSCredentialsProvider = new DefaultAWSCredentialsProviderChain,
+    clientConfiguration    : ClientConfiguration    = new ClientConfiguration()
+  )(
+    executorService        : ExecutorService        = defaultExecutorService(clientConfiguration, "aws.wrap.cloudwatch")
+  ): AmazonCloudwatchClient = new AmazonCloudwatchClient(
+    AmazonCloudWatchAsyncClient
+      .asyncBuilder()
+      .withCredentials(awsCredentialsProvider)
+      .withClientConfiguration(clientConfiguration)
+      .withExecutorFactory(new ExecutorFactory { def newExecutor() = executorService })
+      .build()
+  )
+
+}
 
 /**
  * A lightweight wrapper for [[http://docs.aws.amazon.com/AWSJavaSDK/latest/javadoc/com/amazonaws/services/dynamodbv2/AmazonDynamoDBAsyncClient.html AmazonCloudWatchAsyncClient]].
@@ -37,120 +56,21 @@ import com.amazonaws.services.cloudwatch.model._
   *     the underlying [[http://docs.aws.amazon.com/AWSJavaSDK/latest/javadoc/com/amazonaws/services/dynamodbv2/AmazonDynamoDBAsyncClient.html AmazonCloudWatchAsyncClient]].
  * @see [[http://docs.aws.amazon.com/AWSJavaSDK/latest/javadoc/com/amazonaws/services/dynamodbv2/AmazonDynamoDBAsyncClient.html AmazonCloudWatchAsyncClient]]
  */
-class AmazonCloudwatchClient(val client: AmazonCloudWatchAsyncClient) {
+class AmazonCloudwatchClient(val client: AmazonCloudWatchAsync) {
   import FutureHelper._
 
   /**
-    * make a client from a credentials provider, a config, and a default executor service.
-    *
-    * @param awsCredentialsProvider
-    *     a provider of AWS credentials.
-    * @param clientConfiguration
-    *     a client configuration.
-    */
-  def this(awsCredentialsProvider: AWSCredentialsProvider, clientConfiguration: ClientConfiguration) = {
-    this(new AmazonCloudWatchAsyncClient(
-      awsCredentialsProvider,
-      clientConfiguration,
-      new ThreadPoolExecutor(
-        0, clientConfiguration.getMaxConnections,
-        60L, TimeUnit.SECONDS,
-        new LinkedBlockingQueue[Runnable],
-        new AWSThreadFactory("aws.wrap.cloudwatch")))
-    )
-  }
-
-  /**
-    * make a client from a credentials provider, a default config, and an executor service.
-    *
-    * @param awsCredentialsProvider
-    *     a provider of AWS credentials.
-    * @param executorService
-    *     an executor service for synchronous calls to the underlying AmazonS3Client.
-    */
-  def this(awsCredentialsProvider: AWSCredentialsProvider, executorService: ExecutorService) = {
-    this(new AmazonCloudWatchAsyncClient(
-      awsCredentialsProvider, new ClientConfiguration(), executorService
-    ))
-  }
-
-  /**
-    * make a client from a credentials provider, a default config, and a default executor service.
-    *
-    * @param awsCredentialsProvider
-    *     a provider of AWS credentials.
-    */
-  def this(awsCredentialsProvider: AWSCredentialsProvider) = {
-    this(awsCredentialsProvider, new ClientConfiguration())
-  }
-
-  /**
-    * make a client from credentials, a config, and an executor service.
-    *
-    * @param awsCredentials
-    *     AWS credentials.
-    * @param clientConfiguration
-    *     a client configuration.
-    * @param executorService
-    *     an executor service for synchronous calls to the underlying AmazonS3Client.
-    */
-  def this(awsCredentials: AWSCredentials, clientConfiguration: ClientConfiguration, executorService: ExecutorService) = {
-    this(new AmazonCloudWatchAsyncClient(
-      new StaticCredentialsProvider(awsCredentials), clientConfiguration, executorService
-    ))
-  }
-
-  /**
-    * make a client from credentials, a default config, and an executor service.
-    *
-    * @param awsCredentials
-    *     AWS credentials.
-    * @param executorService
-    *     an executor service for synchronous calls to the underlying AmazonS3Client.
-    */
-  def this(awsCredentials: AWSCredentials, executorService: ExecutorService) = {
-    this(awsCredentials, new ClientConfiguration(), executorService)
-  }
-
-  /**
-    * make a client from credentials, a default config, and a default executor service.
-    *
-    * @param awsCredentials
-    *     AWS credentials.
-    */
-  def this(awsCredentials: AWSCredentials) = {
-    this(new StaticCredentialsProvider(awsCredentials))
-  }
-
-  /**
-    * make a client from a default credentials provider, a config, and a default executor service.
-    *
-    * @param clientConfiguration
-    *     a client configuration.
-    */
-  def this(clientConfiguration: ClientConfiguration) = {
-    this(new DefaultAWSCredentialsProviderChain(), clientConfiguration)
-  }
-
-  /**
-    * make a client from a default credentials provider, a default config, and a default executor service.
-    */
-  def this() = {
-    this(new DefaultAWSCredentialsProviderChain())
-  }
-
-/**
   * @see [[http://docs.aws.amazon.com/AWSJavaSDK/latest/javadoc/com/amazonaws/services/cloudwatch/AmazonCloudWatch.html#deleteAlarms(com.amazonaws.services.cloudwatch.model.DeleteAlarmsRequest) AWS Java SDK]]
   */
   def deleteAlarms(
     deleteAlarmsRequest: DeleteAlarmsRequest
-  ): Future[Unit] =
-    wrapVoidAsyncMethod(client.deleteAlarmsAsync, deleteAlarmsRequest)
+  ): Future[DeleteAlarmsResult] =
+    wrapAsyncMethod(client.deleteAlarmsAsync, deleteAlarmsRequest)
 
   /**
     * @see [[http://docs.aws.amazon.com/AWSJavaSDK/latest/javadoc/com/amazonaws/services/cloudwatch/AmazonCloudWatch.html#deleteAlarms(com.amazonaws.services.cloudwatch.model.DeleteAlarmsRequest) AWS Java SDK]]
     */
-  def deleteAlarms(alarmNames: String*): Future[Unit] =
+  def deleteAlarms(alarmNames: String*): Future[DeleteAlarmsResult] =
     deleteAlarms(new DeleteAlarmsRequest().withAlarmNames(alarmNames: _*))
 
   /**
@@ -194,13 +114,13 @@ class AmazonCloudwatchClient(val client: AmazonCloudWatchAsyncClient) {
     */
   def disableAlarmActions(
     disableAlarmActionsRequest: DisableAlarmActionsRequest
-  ): Future[Unit] =
-    wrapVoidAsyncMethod(client.disableAlarmActionsAsync, disableAlarmActionsRequest)
+  ): Future[DisableAlarmActionsResult] =
+    wrapAsyncMethod(client.disableAlarmActionsAsync, disableAlarmActionsRequest)
 
   /**
     * @see [[http://docs.aws.amazon.com/AWSJavaSDK/latest/javadoc/com/amazonaws/services/cloudwatch/AmazonCloudWatch.html#disableAlarmActions(com.amazonaws.services.cloudwatch.model.DisableAlarmActionsRequest) AWS Java SDK]]
     */
-  def disableAlarmActions(alarmNames: String*): Future[Unit] =
+  def disableAlarmActions(alarmNames: String*): Future[DisableAlarmActionsResult] =
     disableAlarmActions(new DisableAlarmActionsRequest().withAlarmNames(alarmNames: _*))
 
   /**
@@ -208,13 +128,13 @@ class AmazonCloudwatchClient(val client: AmazonCloudWatchAsyncClient) {
     */
   def enableAlarmActions(
     enableAlarmActionsRequest: EnableAlarmActionsRequest
-  ): Future[Unit] =
-    wrapVoidAsyncMethod(client.enableAlarmActionsAsync, enableAlarmActionsRequest)
+  ): Future[EnableAlarmActionsResult] =
+    wrapAsyncMethod(client.enableAlarmActionsAsync, enableAlarmActionsRequest)
 
   /**
     * @see [[http://docs.aws.amazon.com/AWSJavaSDK/latest/javadoc/com/amazonaws/services/cloudwatch/AmazonCloudWatch.html#enableAlarmActions(com.amazonaws.services.cloudwatch.model.EnableAlarmActionsRequest) AWS Java SDK]]
     */
-  def enableAlarmActions(alarmNames: String*): Future[Unit] =
+  def enableAlarmActions(alarmNames: String*): Future[EnableAlarmActionsResult] =
     enableAlarmActions(new EnableAlarmActionsRequest().withAlarmNames(alarmNames: _*))
 
   /**
@@ -244,16 +164,16 @@ class AmazonCloudwatchClient(val client: AmazonCloudWatchAsyncClient) {
     */
   def putMetricAlarm(
     putMetricAlarmRequest: PutMetricAlarmRequest
-  ): Future[Unit] =
-    wrapVoidAsyncMethod(client.putMetricAlarmAsync, putMetricAlarmRequest)
+  ): Future[PutMetricAlarmResult] =
+    wrapAsyncMethod(client.putMetricAlarmAsync, putMetricAlarmRequest)
 
   /**
     * @see [[http://docs.aws.amazon.com/AWSJavaSDK/latest/javadoc/com/amazonaws/services/cloudwatch/AmazonCloudWatch.html#putMetricData(com.amazonaws.services.cloudwatch.model.PutMetricDataRequest) AWS Java SDK]]
     */
   def putMetricData(
     putMetricDataRequest: PutMetricDataRequest
-  ): Future[Unit] =
-    wrapVoidAsyncMethod(client.putMetricDataAsync, putMetricDataRequest)
+  ): Future[PutMetricDataResult] =
+    wrapAsyncMethod(client.putMetricDataAsync, putMetricDataRequest)
 
   /**
     * @see [[http://docs.aws.amazon.com/AWSJavaSDK/latest/javadoc/com/amazonaws/services/cloudwatch/AmazonCloudWatch.html#putMetricData(com.amazonaws.services.cloudwatch.model.PutMetricDataRequest) AWS Java SDK]]
@@ -261,7 +181,7 @@ class AmazonCloudwatchClient(val client: AmazonCloudWatchAsyncClient) {
   def putMetricData(
     namespace:  String,
     metricData: Iterable[MetricDatum]
-  ): Future[Unit] = {
+  ): Future[PutMetricDataResult] = {
     import scala.collection.JavaConversions.asJavaCollection
 
     putMetricData(
@@ -276,8 +196,8 @@ class AmazonCloudwatchClient(val client: AmazonCloudWatchAsyncClient) {
     */
   def setAlarmState(
     setAlarmStateRequest: SetAlarmStateRequest
-  ): Future[Unit] =
-    wrapVoidAsyncMethod(client.setAlarmStateAsync, setAlarmStateRequest)
+  ): Future[SetAlarmStateResult] =
+    wrapAsyncMethod(client.setAlarmStateAsync, setAlarmStateRequest)
 
   /**
     * @see [[http://docs.aws.amazon.com/AWSJavaSDK/latest/javadoc/com/amazonaws/services/cloudwatch/AmazonCloudWatch.html#setAlarmState(com.amazonaws.services.cloudwatch.model.SetAlarmStateRequest) AWS Java SDK]]
@@ -287,7 +207,7 @@ class AmazonCloudwatchClient(val client: AmazonCloudWatchAsyncClient) {
     stateReason: String,
     stateValue: StateValue,
     stateReasonData: String = ""
-  ): Future[Unit] =
+  ): Future[SetAlarmStateResult] =
     setAlarmState(
       new SetAlarmStateRequest()
       .withAlarmName(alarmName)

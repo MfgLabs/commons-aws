@@ -1,28 +1,30 @@
 package com.mfglabs.commons.aws
 package s3
 
-import java.io.{File, ByteArrayInputStream, InputStream}
+import java.io.{ByteArrayInputStream, InputStream}
 import java.util.Date
 import java.util.zip.GZIPInputStream
 
-import akka.actor.ActorSystem
 import akka.stream._
 import akka.stream.scaladsl._
 import akka.util.ByteString
 import com.amazonaws.services.s3.model._
-import com.mfglabs.stream.{ExecutionContextForBlockingOps, SinkExt, FlowExt, SourceExt}
+import com.mfglabs.stream.{ExecutionContextForBlockingOps, FlowExt, SourceExt}
 
-import scala.concurrent.{ExecutionContext, Future}
+import scala.concurrent.Future
 
 trait S3StreamBuilder {
+  import scala.collection.immutable.Seq
+
   val client: AmazonS3AsyncClient
 
   import client.ec
   implicit lazy val ecForBlockingOps = ExecutionContextForBlockingOps(client.ec)
 
   // Ops class contains materialized methods (returning Futures)
-  class MaterializedOps(flowMaterializer: ActorMaterializer)
-    extends AmazonS3AsyncClient(client.awsCredentialsProvider, client.clientConfiguration, client.executorService) {
+  class MaterializedOps(flowMaterializer: ActorMaterializer) extends AmazonS3AsyncClient(
+    client.awsCredentialsProvider, client.clientConfiguration, client.executorService
+  ) {
 
     implicit val fm = flowMaterializer
 
@@ -60,20 +62,14 @@ trait S3StreamBuilder {
       case None => client.listObjects(bucket)
     }
 
-    SourceExt.seededLazyAsync(getFirstListing) { firstListing =>
-      SourceExt.unfoldPullerAsync(firstListing) { listing =>
-        val files = listing.getObjectSummaries.to[scala.collection.immutable.Seq]
-        if (listing.isTruncated)
-          client.listNextBatchOfObjects(listing).map { nextListing =>
-            (Option(files), Option(nextListing))
-          }
-        else Future.successful(Option(files) -> None)
-      }
-    }
-    .mapConcat(identity)
-    .map { file =>
-      (file.getKey, file.getLastModified)
-    }
+    def unfold(listing: ObjectListing) = Some(Some(listing) -> listing.getObjectSummaries.to[Seq])
+
+    Source.unfoldAsync[Option[ObjectListing], Seq[S3ObjectSummary]](None) {
+      case None             => getFirstListing.map(unfold)
+      case Some(oldListing) if oldListing.isTruncated => client.listNextBatchOfObjects(oldListing).map(unfold)
+      case Some(oldListing) => Future.successful(None)
+    }.mapConcat(identity)
+     .map { file => file.getKey -> file.getLastModified }
   }
 
   /** Stream a S3 file.

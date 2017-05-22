@@ -1,10 +1,8 @@
-import sbtunidoc.Plugin._
 import bintray.Plugin._
-
 
 organization in ThisBuild := "com.mfglabs"
 
-scalaVersion in ThisBuild := "2.11.7"
+scalaVersion in ThisBuild := "2.11.11"
 
 version in ThisBuild := "0.11.0"
 
@@ -68,12 +66,8 @@ lazy val all = (project in file("."))
   .aggregate(s3)
   .aggregate(sqs)
   .settings(name := "commons-aws-all")
-  .settings(site.settings ++ ghpages.settings: _*)
-  .settings(
-    name := "commons-aws-all",
-    site.addMappingsToSiteDir(mappings in (ScalaUnidoc, packageDoc), "api/" + version),
-    git.remoteRepo := "git@github.com:MfgLabs/commons-aws.git"
-  )
+  .enablePlugins(ScalaUnidocPlugin)
+  .settings(name := "commons-aws-all")
   .settings(noPublishSettings)
 
 lazy val commons = project.in(file("commons"))
@@ -110,7 +104,7 @@ lazy val s3 = project.in(file("s3"))
     ),
     commonSettings,
     publishSettings
-  )
+  ).dependsOn(commons)
 
 lazy val sqs = project.in(file("sqs"))
   .settings   (

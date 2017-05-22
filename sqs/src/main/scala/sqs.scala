@@ -21,39 +21,34 @@ package sqs
 import scala.concurrent.{Future, ExecutionContext}
 import scala.collection.JavaConverters._
 
-import java.util.concurrent.ExecutorService
-
-import com.amazonaws.services.sqs.AmazonSQSAsyncClient
+import com.amazonaws.services.sqs.{AmazonSQSAsync, AmazonSQSAsyncClientBuilder}
 import com.amazonaws.services.sqs.model._
 
 class AmazonSQSClient(
-    val client: AmazonSQSAsyncClient,
+    val client: AmazonSQSAsync,
     implicit val execCtx: ExecutionContext
 ) {
   import FutureHelper._
 
   /**
     * make a client from an ExecutionContext
-    *
     * @param ExecutionContext
-    *     an  ExecutionContext
     * @param clientConfiguration
-    *     a client configuration.
     */
   def this(execCtx: ExecutionContext) = {
-    this(new AmazonSQSAsyncClient(), execCtx)
+    this(AmazonSQSAsyncClientBuilder.defaultClient(), execCtx)
   }
 
   def addPermission(
     addPermissionRequest: AddPermissionRequest
-  ): Future[Unit] =
-    wrapVoidAsyncMethod(client.addPermissionAsync, addPermissionRequest)
+  ): Future[AddPermissionResult] =
+    wrapAsyncMethod(client.addPermissionAsync, addPermissionRequest)
 
   def addPermission(
     queueUrl:       String,
     label:          String,
     accountActions: Map[String, String]
-  ): Future[Unit] = {
+  ): Future[AddPermissionResult] = {
     val (accounts, actions) = accountActions.unzip
     addPermission(
       new AddPermissionRequest(
@@ -67,14 +62,14 @@ class AmazonSQSClient(
 
   def changeMessageVisibility(
     changeMessageVisibilityRequest: ChangeMessageVisibilityRequest
-  ): Future[Unit] =
-    wrapVoidAsyncMethod(client.changeMessageVisibilityAsync, changeMessageVisibilityRequest)
+  ): Future[ChangeMessageVisibilityResult] =
+    wrapAsyncMethod(client.changeMessageVisibilityAsync, changeMessageVisibilityRequest)
 
   def changeMessageVisibility(
     queueUrl:          String,
     receiptHandle:     String,
     visibilityTimeout: Int
-  ): Future[Unit] =
+  ): Future[ChangeMessageVisibilityResult] =
     changeMessageVisibility(new ChangeMessageVisibilityRequest(queueUrl, receiptHandle, visibilityTimeout))
 
   def changeMessageVisibilityBatch(
@@ -116,13 +111,13 @@ class AmazonSQSClient(
 
   def deleteMessage(
     deleteMessageRequest: DeleteMessageRequest
-  ): Future[Unit] =
-    wrapVoidAsyncMethod(client.deleteMessageAsync, deleteMessageRequest)
+  ): Future[DeleteMessageResult] =
+    wrapAsyncMethod(client.deleteMessageAsync, deleteMessageRequest)
 
   def deleteMessage(
     queueUrl:      String,
     receiptHandle: String
-  ): Future[Unit] =
+  ): Future[DeleteMessageResult] =
     deleteMessage(new DeleteMessageRequest(queueUrl, receiptHandle))
 
   def deleteMessageBatch(
@@ -145,16 +140,13 @@ class AmazonSQSClient(
 
   def deleteQueue(
     deleteQueueRequest: DeleteQueueRequest
-  ): Future[Unit] =
-    wrapVoidAsyncMethod[DeleteQueueRequest](client.deleteQueueAsync, deleteQueueRequest)
+  ): Future[DeleteQueueResult] =
+    wrapAsyncMethod[DeleteQueueRequest, DeleteQueueResult](client.deleteQueueAsync, deleteQueueRequest)
 
   def deleteQueue(
     queueUrl: String
-  ): Future[Unit] =
+  ): Future[DeleteQueueResult] =
     deleteQueue(new DeleteQueueRequest(queueUrl))
-
-  def getExecutorService(): ExecutorService =
-    client.getExecutorService()
 
   def getQueueAttributes(
     getQueueAttributesRequest: GetQueueAttributesRequest
@@ -211,13 +203,13 @@ class AmazonSQSClient(
 
   def removePermission(
     removePermissionRequest: RemovePermissionRequest
-  ): Future[Unit] =
-    wrapVoidAsyncMethod(client.removePermissionAsync, removePermissionRequest)
+  ): Future[RemovePermissionResult] =
+    wrapAsyncMethod(client.removePermissionAsync, removePermissionRequest)
 
   def removePermission(
     queueUrl: String,
     label:    String
-  ): Future[Unit] =
+  ): Future[RemovePermissionResult] =
     removePermission(new RemovePermissionRequest(queueUrl, label))
 
   def sendMessage(
@@ -251,13 +243,13 @@ class AmazonSQSClient(
 
   def setQueueAttributes(
     setQueueAttributesRequest: SetQueueAttributesRequest
-  ): Future[Unit] =
-    wrapVoidAsyncMethod(client.setQueueAttributesAsync, setQueueAttributesRequest)
+  ): Future[SetQueueAttributesResult] =
+    wrapAsyncMethod(client.setQueueAttributesAsync, setQueueAttributesRequest)
 
   def setQueueAttributes(
     queueUrl:   String,
     attributes: Map[String, String]
-  ): Future[Unit] =
+  ): Future[SetQueueAttributesResult] =
     setQueueAttributes(new SetQueueAttributesRequest(queueUrl, attributes.asJava))
 
   def shutdown(): Unit =

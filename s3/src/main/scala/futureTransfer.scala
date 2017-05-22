@@ -38,7 +38,7 @@ import org.slf4j.{Logger, LoggerFactory}
   */
 object FutureTransfer {
 
-  private val logger: Logger = LoggerFactory.getLogger("com.github.dwhjames.awswrap.s3.FutureTransfer")
+  private val logger: Logger = LoggerFactory.getLogger("com.mfglabs.commons.aws.s3.FutureTransfer")
 
   /**
     * Attach a listener to an S3 Transfer and return it as a Future.

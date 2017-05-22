@@ -20,19 +20,29 @@ package s3
 
 import java.io.{InputStream, File}
 import java.net.URL
-import java.util.concurrent.{Executors, ExecutorService, LinkedBlockingQueue, ThreadFactory, ThreadPoolExecutor, TimeUnit, Future => JFuture}
+import java.util.concurrent.ExecutorService
 
 import scala.collection.JavaConverters._
 import scala.concurrent.{ExecutionContext, Future, Promise}
 import scala.util.Try
 
-import com.amazonaws.{AmazonWebServiceRequest, ClientConfiguration}
-import com.amazonaws.auth.{AWSCredentials, AWSCredentialsProvider, DefaultAWSCredentialsProviderChain}
-import com.amazonaws.internal.StaticCredentialsProvider;
+import com.amazonaws.ClientConfiguration
+import com.amazonaws.auth.{AWSCredentialsProvider, DefaultAWSCredentialsProviderChain}
 import com.amazonaws.services.s3._
 import com.amazonaws.services.s3.model._
 
-import org.slf4j.{Logger, LoggerFactory}
+object AmazonS3AsyncClient {
+  import FutureHelper.defaultExecutorService
+
+  def apply(
+    awsCredentialsProvider : AWSCredentialsProvider = new DefaultAWSCredentialsProviderChain,
+    clientConfiguration    : ClientConfiguration    = new ClientConfiguration()
+  )(
+    executorService        : ExecutorService        = defaultExecutorService(clientConfiguration, "aws.wrap.s3")
+  ): AmazonS3AsyncClient = {
+    new AmazonS3AsyncClient(awsCredentialsProvider, clientConfiguration, executorService)
+  }
+}
 
 /**
   * A lightweight wrapper for [[http://docs.aws.amazon.com/AWSJavaSDK/latest/javadoc/com/amazonaws/services/s3/AmazonS3Client.html AmazonS3Client]]
@@ -69,111 +79,13 @@ class AmazonS3AsyncClient(
     *
     * @see [[http://docs.aws.amazon.com/AWSJavaSDK/latest/javadoc/com/amazonaws/services/s3/AmazonS3Client.html AmazonS3Client]]
     */
-  val client = new AmazonS3Client(awsCredentialsProvider, clientConfiguration)
-
-  /**
-    * make a client from a credentials provider, a config, and a default executor service.
-    *
-    * @param awsCredentialsProvider
-    *     a provider of AWS credentials.
-    * @param clientConfiguration
-    *     a client configuration.
-    */
-  def this(awsCredentialsProvider: AWSCredentialsProvider, clientConfiguration: ClientConfiguration) = {
-    this(awsCredentialsProvider, clientConfiguration,
-      new ThreadPoolExecutor(
-        0, clientConfiguration.getMaxConnections,
-        60L, TimeUnit.SECONDS,
-        new LinkedBlockingQueue[Runnable],
-        new AWSThreadFactory("aws.wrap.s3")
-      )
-    )
+  val client = {
+    AmazonS3ClientBuilder
+      .standard()
+      .withCredentials(awsCredentialsProvider)
+      .withClientConfiguration(clientConfiguration)
+      .build()
   }
-
-  /**
-    * make a client from a credentials provider, a default config, and an executor service.
-    *
-    * @param awsCredentialsProvider
-    *     a provider of AWS credentials.
-    * @param executorService
-    *     an executor service for synchronous calls to the underlying AmazonS3Client.
-    */
-  def this(awsCredentialsProvider: AWSCredentialsProvider, executorService: ExecutorService) {
-    this(awsCredentialsProvider, new ClientConfiguration(), executorService)
-  }
-
-  /**
-    * make a client from a credentials provider, a default config, and a default executor service.
-    *
-    * @param awsCredentialsProvider
-    *     a provider of AWS credentials.
-    */
-  def this(awsCredentialsProvider: AWSCredentialsProvider) {
-    this(awsCredentialsProvider, new ClientConfiguration())
-  }
-
-  /**
-    * make a client from credentials, a config, and an executor service.
-    *
-    * @param awsCredentials
-    *     AWS credentials.
-    * @param clientConfiguration
-    *     a client configuration.
-    * @param executorService
-    *     an executor service for synchronous calls to the underlying AmazonS3Client.
-    */
-  def this(awsCredentials: AWSCredentials, clientConfiguration: ClientConfiguration, executorService: ExecutorService) {
-    this(new StaticCredentialsProvider(awsCredentials), clientConfiguration, executorService)
-  }
-
-  /**
-    * make a client from credentials, a default config, and an executor service.
-    *
-    * @param awsCredentials
-    *     AWS credentials.
-    * @param clientConfiguration
-    *     a client configuration.
-    * @param executorService
-    *     an executor service for synchronous calls to the underlying AmazonS3Client.
-    */
-  def this(awsCredentials: AWSCredentials, executorService: ExecutorService) {
-    this(awsCredentials, new ClientConfiguration(), executorService)
-  }
-
-  /**
-    * make a client from credentials, a default config, and a default executor service.
-    *
-    * @param awsCredentials
-    *     AWS credentials.
-    */
-  def this(awsCredentials: AWSCredentials) {
-    this(new StaticCredentialsProvider(awsCredentials))
-  }
-
-  /**
-    * make a client from a default credentials provider, a config, and a default executor service.
-    *
-    * @param clientConfiguration
-    *     a client configuration.
-    */
-  def this(clientConfiguration: ClientConfiguration) {
-    this(new DefaultAWSCredentialsProviderChain(), clientConfiguration)
-  }
-
-  /**
-    * make a client from a default credentials provider, a default config, and a default executor service.
-    */
-  def this() {
-    this(new DefaultAWSCredentialsProviderChain())
-  }
-
-  /**
-    * Return the underlying executor service, through which all client
-    * API calls are made.
-    *
-    * @return the underlying executor service
-    */
-  def getExecutorsService(): ExecutorService = executorService
 
   /**
     * Shutdown the executor service.
@@ -185,7 +97,6 @@ class AmazonS3AsyncClient(
     executorService.shutdownNow()
     ()
   }
-
 
   @inline
   def wrapMethod[Request, Result](
