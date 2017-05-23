@@ -1,75 +1,86 @@
 package com.mfglabs.commons.aws
 package s3
 
-import java.io.{ByteArrayInputStream, InputStream}
-import java.util.Date
-import java.util.zip.GZIPInputStream
-
-import akka.stream._
+import akka.stream.ActorMaterializer
 import akka.stream.scaladsl._
 import akka.util.ByteString
+
+import com.amazonaws.services.s3.AmazonS3
 import com.amazonaws.services.s3.model._
 import com.mfglabs.stream.{ExecutionContextForBlockingOps, FlowExt, SourceExt}
 
+import java.io.{ByteArrayInputStream, InputStream}
+import java.util.concurrent.ExecutorService
+import java.util.zip.GZIPInputStream
+
 import scala.concurrent.Future
 
-trait S3StreamBuilder {
+object AmazonS3Client {
+  import com.amazonaws.auth._
+  import com.amazonaws.ClientConfiguration
+  import com.amazonaws.services.s3.AmazonS3ClientBuilder
+  import FutureHelper.defaultExecutorService
+
+  def apply(
+    awsCredentials      : AWSCredentials,
+    clientConfiguration : ClientConfiguration = new ClientConfiguration()
+  )(
+    executorService     : ExecutorService     = defaultExecutorService(clientConfiguration, "aws.wrap.s3")
+  ): AmazonS3Client = {
+    from(new AWSStaticCredentialsProvider(awsCredentials), clientConfiguration)(executorService)
+  }
+
+  def from(
+    awsCredentialsProvider : AWSCredentialsProvider = new DefaultAWSCredentialsProviderChain,
+    clientConfiguration    : ClientConfiguration    = new ClientConfiguration()
+  )(
+    executorService        : ExecutorService        = defaultExecutorService(clientConfiguration, "aws.wrap.s3")
+  ): AmazonS3Client = {
+
+   val client = AmazonS3ClientBuilder
+      .standard()
+      .withCredentials(awsCredentialsProvider)
+      .withClientConfiguration(clientConfiguration)
+      .build()
+
+    new AmazonS3Client(client, executorService)
+  }
+
+}
+
+class AmazonS3Client(
+  val client          : AmazonS3,
+  val executorService : ExecutorService
+) extends AmazonS3Wrapper {
   import scala.collection.immutable.Seq
 
-  val client: AmazonS3AsyncClient
+  implicit lazy val ecForBlockingOps = ExecutionContextForBlockingOps(ec)
 
-  import client.ec
-  implicit lazy val ecForBlockingOps = ExecutionContextForBlockingOps(client.ec)
-
-  // Ops class contains materialized methods (returning Futures)
-  class MaterializedOps(flowMaterializer: ActorMaterializer) extends AmazonS3AsyncClient(
-    client.awsCredentialsProvider, client.clientConfiguration, client.executorService
-  ) {
-
-    implicit val fm = flowMaterializer
-
-    /** List all files with a given prefix of a S3 bucket.
-      *
-      * @param  bucket the bucket name
-      * @param  path an optional path to search in bucket
-      * @return a future of seq of file keys & last modified dates (or a failure)
-      */
-    def listFiles(bucket: String, path: Option[String] = None): Future[Seq[(String, Date)]] = {
-      listFilesAsStream(bucket, path).runWith(Sink.seq)
-    }
-
-    /**
-     * Get a S3 file.
-     * @param bucket
-     * @param key
-     * @return binary file
-     */
-    def getFile(bucket: String, key: String): Future[ByteString] = {
-      getFileAsStream(bucket, key).runFold(ByteString.empty)(_ ++ _).map(_.compact)
-    }
-
-  } // end Ops
+  /**
+   * Return a client with additional logic to obtain a Stream logic as a Future.
+   */
+  def materialized(flowMaterializer : ActorMaterializer): AmazonS3ClientMaterialized =
+    new AmazonS3ClientMaterialized(client, executorService, flowMaterializer)
 
   /** List all files with a given prefix of a S3 bucket.
    * @param bucket S3 bucket
    * @param maybePrefix S3 prefix. If not present, all the files of the bucket will be returned.
    */
-  def listFilesAsStream(bucket: String, maybePrefix: Option[String] = None): Source[(String, Date), akka.NotUsed] = {
+  def listFilesAsStream(bucket: String, maybePrefix: Option[String] = None): Source[S3ObjectSummary, akka.NotUsed] = {
     import collection.JavaConversions._
 
     def getFirstListing: Future[ObjectListing] = maybePrefix match {
-      case Some(prefix) => client.listObjects(bucket, prefix)
-      case None => client.listObjects(bucket)
+      case Some(prefix) => listObjects(bucket, prefix)
+      case None => listObjects(bucket)
     }
 
     def unfold(listing: ObjectListing) = Some(Some(listing) -> listing.getObjectSummaries.to[Seq])
 
     Source.unfoldAsync[Option[ObjectListing], Seq[S3ObjectSummary]](None) {
       case None             => getFirstListing.map(unfold)
-      case Some(oldListing) if oldListing.isTruncated => client.listNextBatchOfObjects(oldListing).map(unfold)
+      case Some(oldListing) if oldListing.isTruncated => listNextBatchOfObjects(oldListing).map(unfold)
       case Some(oldListing) => Future.successful(None)
     }.mapConcat(identity)
-     .map { file => file.getKey -> file.getLastModified }
   }
 
   /** Stream a S3 file.
@@ -78,7 +89,7 @@ trait S3StreamBuilder {
     * @param inputStreamTransform optional inputstream transformation (for example GZIP decompression, ...)
     */
   def getFileAsStream(bucket: String, key: String, inputStreamTransform: InputStream => InputStream = identity): Source[ByteString, akka.NotUsed] = {
-    SourceExt.seededLazyAsync(client.getObject(bucket, key)) { o =>
+    SourceExt.seededLazyAsync(getObject(bucket, key)) { o =>
       StreamConverters.fromInputStream(() => inputStreamTransform(o.getObjectContent))
     }
   }
@@ -100,7 +111,7 @@ trait S3StreamBuilder {
    */
   def getMultipartFileAsStream(bucket: String, prefix: String, inputStreamTransform: InputStream => InputStream = identity): Source[ByteString, akka.NotUsed] = {
     listFilesAsStream(bucket, Some(prefix))
-      .flatMapConcat { case (key, _) => getFileAsStream(bucket, key, inputStreamTransform) }
+      .flatMapConcat { s3Object => getFileAsStream(bucket, s3Object.getKey, inputStreamTransform) }
   }
 
   /**
@@ -115,7 +126,7 @@ trait S3StreamBuilder {
     val uploadChunkSize = 8 * 1024 * 1024 // recommended by AWS
 
     def initiateUpload(bucket: String, key: String): Future[String] =
-      client.initiateMultipartUpload(new InitiateMultipartUploadRequest(bucket, key)).map(_.getUploadId)
+      initiateMultipartUpload(new InitiateMultipartUploadRequest(bucket, key)).map(_.getUploadId)
 
     Flow[ByteString]
       .via(FlowExt.rechunkByteStringBySize(uploadChunkSize))
@@ -129,9 +140,9 @@ trait S3StreamBuilder {
           .withUploadId(uploadId)
           .withInputStream(new ByteArrayInputStream(bytes.toArray))
           .withPartSize(bytes.length.toLong)
-        client.uploadPart(uploadRequest).map(r => (r.getPartETag, uploadId)).recoverWith {
+        uploadPart(uploadRequest).map(r => (r.getPartETag, uploadId)).recoverWith {
           case e: Exception =>
-            client.abortMultipartUpload(new AbortMultipartUploadRequest(bucket, key, uploadId))
+            abortMultipartUpload(new AbortMultipartUploadRequest(bucket, key, uploadId))
             Future.failed(e)
         }
       }
@@ -140,8 +151,8 @@ trait S3StreamBuilder {
         etags.headOption match {
           case Some((_, uploadId)) =>
             val compRequest = new CompleteMultipartUploadRequest(bucket, key, uploadId, etags.map(_._1).toBuffer[PartETag])
-            val futResult = client.completeMultipartUpload(compRequest).map(Option.apply).recoverWith { case e: Exception =>
-              client.abortMultipartUpload(new AbortMultipartUploadRequest(bucket, key, uploadId))
+            val futResult = completeMultipartUpload(compRequest).map(Option.apply).recoverWith { case e: Exception =>
+              abortMultipartUpload(new AbortMultipartUploadRequest(bucket, key, uploadId))
               Future.failed(e)
             }
             futResult
@@ -200,10 +211,3 @@ trait S3StreamBuilder {
   def uploadStreamAsMultipartFile(bucket: String, getKey: Long => String, nbChunkPerFile: Int) : Flow[ByteString, CompleteMultipartUploadResult, akka.NotUsed] =
     uploadStreamAsMultipartFile(bucket,getKey,nbChunkPerFile,1)
 }
-
-object S3StreamBuilder {
-  def apply(s3client: AmazonS3AsyncClient) = new S3StreamBuilder {
-    override val client: AmazonS3AsyncClient = s3client
-  }
-}
-

@@ -20,29 +20,12 @@ package s3
 
 import java.io.{InputStream, File}
 import java.net.URL
-import java.util.concurrent.ExecutorService
 
 import scala.collection.JavaConverters._
-import scala.concurrent.{ExecutionContext, Future, Promise}
-import scala.util.Try
+import scala.concurrent.{ExecutionContext, Future}
 
-import com.amazonaws.ClientConfiguration
-import com.amazonaws.auth.{AWSCredentialsProvider, DefaultAWSCredentialsProviderChain}
 import com.amazonaws.services.s3._
 import com.amazonaws.services.s3.model._
-
-object AmazonS3AsyncClient {
-  import FutureHelper.defaultExecutorService
-
-  def apply(
-    awsCredentialsProvider : AWSCredentialsProvider = new DefaultAWSCredentialsProviderChain,
-    clientConfiguration    : ClientConfiguration    = new ClientConfiguration()
-  )(
-    executorService        : ExecutorService        = defaultExecutorService(clientConfiguration, "aws.wrap.s3")
-  ): AmazonS3AsyncClient = {
-    new AmazonS3AsyncClient(awsCredentialsProvider, clientConfiguration, executorService)
-  }
-}
 
 /**
   * A lightweight wrapper for [[http://docs.aws.amazon.com/AWSJavaSDK/latest/javadoc/com/amazonaws/services/s3/AmazonS3Client.html AmazonS3Client]]
@@ -53,12 +36,8 @@ object AmazonS3AsyncClient {
   * calls within an executor service. The methods in this class
   * all return Scala futures.
   *
-  * @constructor make a client from a credentials provider,
-  *     a config, and an executor service.
-  * @param awsCredentialsProvider
-  *     a provider of AWS credentials.
+  * @param client: the underlying AmazonS3Client
   * @param clientConfiguration
-  *     a client configuration.
   * @param executorService
   *     an executor service for synchronous calls to the underlying AmazonS3Client.
   * @see [[http://docs.aws.amazon.com/AWSJavaSDK/latest/javadoc/com/amazonaws/services/s3/AmazonS3Client.html AmazonS3Client]]
@@ -66,55 +45,20 @@ object AmazonS3AsyncClient {
   * @see [[http://docs.aws.amazon.com/AWSJavaSDK/latest/javadoc/com/amazonaws/ClientConfiguration.html ClientConfiguration]]
   * @see java.util.concurrent.ExecutorService
   */
-class AmazonS3AsyncClient(
-    val awsCredentialsProvider: AWSCredentialsProvider,
-    val clientConfiguration:    ClientConfiguration,
-    val executorService:        ExecutorService
-) {
+trait AmazonS3Wrapper extends FutureHelper.MethodWrapper {
+  def client          : AmazonS3
+  def executorService : java.util.concurrent.ExecutorService
 
   implicit val ec = ExecutionContext.fromExecutorService(executorService)
 
   /**
-    * The underlying S3 client.
-    *
-    * @see [[http://docs.aws.amazon.com/AWSJavaSDK/latest/javadoc/com/amazonaws/services/s3/AmazonS3Client.html AmazonS3Client]]
-    */
-  val client = {
-    AmazonS3ClientBuilder
-      .standard()
-      .withCredentials(awsCredentialsProvider)
-      .withClientConfiguration(clientConfiguration)
-      .build()
-  }
-
-  /**
-    * Shutdown the executor service.
-    *
+    * Shutdown the client and the executor service.
     * @see [[http://docs.aws.amazon.com/AWSJavaSDK/latest/javadoc/com/amazonaws/AmazonWebServiceClient.html#shutdown() AmazonWebServiceClient.shutdown()]]
     */
   def shutdown(): Unit = {
     client.shutdown()
     executorService.shutdownNow()
     ()
-  }
-
-  @inline
-  def wrapMethod[Request, Result](
-    f:       Request => Result,
-    request: Request
-  ): Future[Result] = {
-    val p = Promise[Result]
-    executorService.execute(new Runnable {
-      override def run(): Unit = {
-        p complete {
-          Try {
-            f(request)
-          }
-        }
-        ()
-      }
-    })
-    p.future
   }
 
   /**

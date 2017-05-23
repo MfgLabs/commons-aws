@@ -28,26 +28,23 @@ class S3Spec extends FlatSpec with Matchers with ScalaFutures with BeforeAndAfte
   implicit val system = ActorSystem()
   implicit val fm = ActorMaterializer()
 
-  val s3Client = s3.AmazonS3AsyncClient(
+  val s3Client = AmazonS3Client.from(
     new com.amazonaws.auth.profile.ProfileCredentialsProvider("mfg")
-  )()
-
-  val streamBuilder = S3StreamBuilder(s3Client)
-  val ops = new streamBuilder.MaterializedOps(fm)
+  )().materialized(fm)
 
   it should "upload/list/delete small files" in {
-    ops.deleteObjects(bucket, s"$keyPrefix").futureValue
-    ops.putObject(bucket, s"$keyPrefix/small.txt", new java.io.File(getClass.getResource("/small.txt").getPath)).futureValue
-    val l = ops.listFiles(bucket, Some(keyPrefix)).futureValue
-    ops.deleteObjects(bucket, s"$keyPrefix/small.txt").futureValue
-    val l2 = ops.listFiles(bucket, Some(keyPrefix)).futureValue
+    s3Client.deleteObjects(bucket, s"$keyPrefix").futureValue
+    s3Client.putObject(bucket, s"$keyPrefix/small.txt", new java.io.File(getClass.getResource("/small.txt").getPath)).futureValue
+    val l = s3Client.listFiles(bucket, Some(keyPrefix)).futureValue
+    s3Client.deleteObjects(bucket, s"$keyPrefix/small.txt").futureValue
+    val l2 = s3Client.listFiles(bucket, Some(keyPrefix)).futureValue
 
-    (l map (_._1)) should equal(List(s"$keyPrefix/small.txt"))
+    (l map (_.getKey)) should equal(List(s"$keyPrefix/small.txt"))
     l2 should be('empty)
   }
 
   it should "throw an exception when a file is non-existent" in {
-    val source = streamBuilder.getFileAsStream(bucket, "foo")
+    val source = s3Client.getFileAsStream(bucket, "foo")
     intercept[AmazonS3Exception] {
       Await.result(source.runFold(ByteString.empty)(_ ++ _).map(_.compact), 5 seconds)
     }
@@ -55,8 +52,8 @@ class S3Spec extends FlatSpec with Matchers with ScalaFutures with BeforeAndAfte
 
   it should "upload and download a big file as a single file" in {
     val futBytes = StreamConverters.fromInputStream(() => getClass.getResourceAsStream("/big.txt"))
-      .via(streamBuilder.uploadStreamAsFile(bucket, s"$keyPrefix/big", chunkUploadConcurrency = 2))
-      .flatMapConcat(_ => streamBuilder.getFileAsStream(bucket, s"$keyPrefix/big"))
+      .via(s3Client.uploadStreamAsFile(bucket, s"$keyPrefix/big", chunkUploadConcurrency = 2))
+      .flatMapConcat(_ => s3Client.getFileAsStream(bucket, s"$keyPrefix/big"))
       .runFold(ByteString.empty)(_ ++ _)
       .map(_.compact)
 
@@ -69,7 +66,7 @@ class S3Spec extends FlatSpec with Matchers with ScalaFutures with BeforeAndAfte
   }
 
   it should "download a big file and chunk it by line" in {
-    val futLines = streamBuilder.getFileAsStream(bucket, s"$keyPrefix/big")
+    val futLines = s3Client.getFileAsStream(bucket, s"$keyPrefix/big")
       .via(FlowExt.rechunkByteStringBySize(2 * 1024 * 1024))
       .via(FlowExt.rechunkByteStringBySeparator(ByteString("\n"), 8 * 1024))
       .map(_.utf8String)
@@ -90,9 +87,9 @@ class S3Spec extends FlatSpec with Matchers with ScalaFutures with BeforeAndAfte
   it should "upload and download a big file as a multipart file" in {
     val bytes = StreamConverters
       .fromInputStream(() => getClass.getResourceAsStream("/big.txt"), chunkSize = 2 * 1024 * 1024)
-      .via(streamBuilder.uploadStreamAsMultipartFile(bucket, s"$keyPrefix/big", nbChunkPerFile = 1, chunkUploadConcurrency = 2))
+      .via(s3Client.uploadStreamAsMultipartFile(bucket, s"$keyPrefix/big", nbChunkPerFile = 1, chunkUploadConcurrency = 2))
       .via(FlowExt.fold[CompleteMultipartUploadResult, Vector[CompleteMultipartUploadResult]](Vector.empty)(_ :+ _))
-      .flatMapConcat(_ => streamBuilder.getMultipartFileAsStream(bucket, s"$keyPrefix/big.part"))
+      .flatMapConcat(_ => s3Client.getMultipartFileAsStream(bucket, s"$keyPrefix/big.part"))
       .runFold(ByteString.empty)(_ ++ _)
       .map(_.compact).futureValue
 

@@ -5,9 +5,10 @@ import com.amazonaws.ClientConfiguration
 import com.amazonaws.handlers.AsyncHandler
 
 import scala.concurrent.{Future, Promise}
+import scala.util.Try
 import java.util.concurrent.{Future => JFuture, LinkedBlockingQueue, ThreadPoolExecutor, TimeUnit}
 
-package object FutureHelper {
+object FutureHelper {
 
   def promiseToAsyncHandler[Request <: AmazonWebServiceRequest, Result](p: Promise[Result]) =
     new AsyncHandler[Request, Result] {
@@ -31,5 +32,23 @@ package object FutureHelper {
     new LinkedBlockingQueue[Runnable],
     new AWSThreadFactory(factoryName)
   )
+
+  trait MethodWrapper {
+
+    @inline
+    def executorService: java.util.concurrent.ExecutorService
+
+    @inline
+    def wrapMethod[Request, Result](f: Request => Result, request: Request): Future[Result] = {
+      val p = Promise[Result]
+      executorService.execute(new Runnable {
+        override def run(): Unit = {
+          p.complete(Try { f(request) })
+          ()
+        }
+      })
+      p.future
+    }
+  }
 
 }
