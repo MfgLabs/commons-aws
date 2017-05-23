@@ -76,9 +76,9 @@ lazy val commons = project.in(file("commons"))
     libraryDependencies ++= Seq(
       Dependencies.Compile.awsJavaSDKcore
     ),
-    commonSettings
+    commonSettings,
+    publishSettings
   )
-  .settings(noPublishSettings)
 
 lazy val cloudwatch = project.in(file("cloudwatch"))
   .settings   (
