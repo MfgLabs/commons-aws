@@ -4,8 +4,6 @@ package sqs
 import akka.actor._
 import akka.stream._
 import akka.stream.scaladsl._
-import com.amazonaws.regions.Regions
-import com.amazonaws.services.sqs.AmazonSQSAsyncClientBuilder
 import com.amazonaws.services.sqs.model.{CreateQueueRequest, MessageAttributeValue, SendMessageRequest}
 import org.scalatest.concurrent.ScalaFutures
 import org.scalatest.time.{Millis, Seconds, Span}
@@ -24,10 +22,7 @@ class SQSSpec extends FlatSpec with Matchers with ScalaFutures {
   implicit val as = ActorSystem()
   implicit val fm = ActorMaterializer()
 
-
-  val client  = AmazonSQSAsyncClientBuilder.standard().withRegion(Regions.EU_WEST_1).build()
-  val sqs     = new AmazonSQSClient(client, scala.concurrent.ExecutionContext.Implicits.global)
-  val builder = SQSStreamBuilder(sqs)
+  val sqsClient  = AmazonSQSClient.from()()
 
   val testQueueName = "commons-aws-sqs-test-" + Random.nextInt()
   val testQueueName2 = "commons-aws-sqs-test-" + Random.nextInt()
@@ -35,14 +30,14 @@ class SQSSpec extends FlatSpec with Matchers with ScalaFutures {
   val messageAttributeKey = "attribute_key"
 
   "SQS client" should "delete all test queue if any" in {
-    sqs.listQueues("commons-aws-sqs-test-").futureValue.headOption.foreach(queueUrl => sqs.deleteQueue(queueUrl).futureValue)
+    sqsClient.listQueues("commons-aws-sqs-test-").futureValue.headOption.foreach(queueUrl => sqsClient.deleteQueue(queueUrl).futureValue)
   }
 
   it should "send message and receive them as streams" in {
     val newQueueReq = new CreateQueueRequest()
     newQueueReq.setAttributes(Map("VisibilityTimeout" -> 10.toString)) // 10 seconds
     newQueueReq.setQueueName(testQueueName)
-    val queueUrl = sqs.createQueue(newQueueReq).futureValue.getQueueUrl
+    val queueUrl = sqsClient.createQueue(newQueueReq).futureValue.getQueueUrl
 
     val msgs = for (i <- 1 to 200) yield s"Message $i"
     val futSent = Source(msgs)
@@ -53,10 +48,10 @@ class SQSSpec extends FlatSpec with Matchers with ScalaFutures {
       req.setQueueUrl(queueUrl)
       req
     }
-      .via(builder.sendMessageAsStream())
+      .via(sqsClient.sendMessageAsStream())
       .take(200)
       .runWith(Sink.seq)
-    val futReceived = builder.receiveMessageAsStream(queueUrl, autoAck = true, messageAttributeNames = List(messageAttributeKey)).take(200).runWith(Sink.seq)
+    val futReceived = sqsClient.receiveMessageAsStream(queueUrl, autoAck = true, messageAttributeNames = List(messageAttributeKey)).take(200).runWith(Sink.seq)
 
     val (_, received) = futSent.zip(futReceived).futureValue
 
@@ -64,14 +59,14 @@ class SQSSpec extends FlatSpec with Matchers with ScalaFutures {
     received.map(_.getMessageAttributes.get(messageAttributeKey).getStringValue).sorted shouldEqual msgs.sorted
 
     // testing auto-ack (queue must be empty)
-    val res = builder
+    val res = sqsClient
       .receiveMessageAsStream(queueUrl, longPollingMaxWait = 1 second)
       .takeWithin(10 seconds)
       .runWith(Sink.seq)
       .futureValue
     res shouldBe empty
 
-    sqs.deleteQueue(queueUrl).futureValue
+    sqsClient.deleteQueue(queueUrl).futureValue
   }
 
 
@@ -79,7 +74,7 @@ class SQSSpec extends FlatSpec with Matchers with ScalaFutures {
     val newQueueReq = new CreateQueueRequest()
     newQueueReq.setAttributes(Map("VisibilityTimeout" -> 10.toString)) // 10 seconds
     newQueueReq.setQueueName(testQueueName2)
-    val queueUrl = sqs.createQueue(newQueueReq).futureValue.getQueueUrl
+    val queueUrl = sqsClient.createQueue(newQueueReq).futureValue.getQueueUrl
 
     val msgs = for (i <- 1 to 200) yield s"Message $i"
     val futSent = Source(msgs)
@@ -89,24 +84,24 @@ class SQSSpec extends FlatSpec with Matchers with ScalaFutures {
         req.setQueueUrl(queueUrl)
         req
       }
-      .via(builder.sendMessageAsStream())
+      .via(sqsClient.sendMessageAsStream())
       .take(200)
       .runWith(Sink.seq)
-    val futReceived = builder.receiveMessageAsStreamWithRetryExpBackoff(queueUrl, autoAck = true).take(200).runWith(Sink.seq)
+    val futReceived = sqsClient.receiveMessageAsStreamWithRetryExpBackoff(queueUrl, autoAck = true).take(200).runWith(Sink.seq)
 
     val (_, received) = futSent.zip(futReceived).futureValue
 
     received.map(_.getBody).sorted shouldEqual msgs.sorted
 
     // testing auto-ack (queue must be empty)
-    val res = builder
+    val res = sqsClient
       .receiveMessageAsStream(queueUrl, longPollingMaxWait = 1 second)
       .takeWithin(10 seconds)
       .runWith(Sink.seq)
       .futureValue
     res shouldBe empty
 
-    sqs.deleteQueue(queueUrl).futureValue
+    sqsClient.deleteQueue(queueUrl).futureValue
   }
 
 }

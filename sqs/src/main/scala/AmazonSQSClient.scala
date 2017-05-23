@@ -3,22 +3,58 @@ package sqs
 
 import akka.actor._
 import akka.stream.scaladsl._
+import com.amazonaws.client.builder.ExecutorFactory
 import com.amazonaws.services.sqs.model._
+import com.mfglabs.stream._
+import java.util.concurrent.ExecutorService
+import scala.concurrent.ExecutionContext
 import scala.concurrent.duration._
 
-import com.mfglabs.stream._
 
-import scala.concurrent.duration.FiniteDuration
+object AmazonSQSClient {
+  import com.amazonaws.auth._
+  import com.amazonaws.ClientConfiguration
+  import com.amazonaws.services.sqs.AmazonSQSAsyncClientBuilder
+  import FutureHelper.defaultExecutorService
 
-trait SQSStreamBuilder {
+  def apply(
+    awsCredentials      : AWSCredentials,
+    clientConfiguration : ClientConfiguration = new ClientConfiguration()
+  )(
+    executorService     : ExecutorService     = defaultExecutorService(clientConfiguration, "aws.wrap.sqs")
+  ): AmazonSQSClient = {
+    from(new AWSStaticCredentialsProvider(awsCredentials), clientConfiguration)(executorService)
+  }
+
+  def from(
+    awsCredentialsProvider : AWSCredentialsProvider = new DefaultAWSCredentialsProviderChain,
+    clientConfiguration    : ClientConfiguration    = new ClientConfiguration()
+  )(
+    executorService     : ExecutorService     = defaultExecutorService(clientConfiguration, "aws.wrap.sqs")
+  ): AmazonSQSClient = {
+   val client = AmazonSQSAsyncClientBuilder
+      .standard()
+      .withCredentials(awsCredentialsProvider)
+      .withClientConfiguration(clientConfiguration)
+      .withExecutorFactory(new ExecutorFactory { def newExecutor() = executorService })
+      .build()
+
+    new AmazonSQSClient(client, executorService)
+  }
+
+}
+
+
+class AmazonSQSClient(
+  val client          : com.amazonaws.services.sqs.AmazonSQSAsync,
+  val executorService : ExecutorService
+) extends AmazonSQSWrapper {
 
   import scala.collection.JavaConversions._
 
-  val sqs: AmazonSQSClient
-
-  import sqs.execCtx
-
   val defaultMessageOpsConcurrency = 16
+
+  implicit val ec = ExecutionContext.fromExecutorService(executorService)
 
   /**
    * Send SQS messages as a stream
@@ -28,7 +64,7 @@ trait SQSStreamBuilder {
    */
   def sendMessageAsStream(messageSendingConcurrency: Int = defaultMessageOpsConcurrency): Flow[SendMessageRequest, SendMessageResult, akka.NotUsed] = {
     Flow[SendMessageRequest].mapAsync(messageSendingConcurrency) { msg =>
-      sqs.sendMessage(msg)
+      sendMessage(msg)
     }
   }
 
@@ -37,7 +73,7 @@ trait SQSStreamBuilder {
    * @param queueUrl SQS queue url
    * @param longPollingMaxWait SQS long-polling parameter.
    * @param autoAck If true, the SQS messages will be automatically ack once they are received. If false, you must call
-   *                sqs.deleteMessage yourself when you want to ack the message.
+   *                deleteMessage yourself when you want to ack the message.
    * @param messageAttributeNames the message attribute names asked to be returned
    */
   def receiveMessageAsStream(queueUrl: String, messageAckingConcurrency: Int = defaultMessageOpsConcurrency,
@@ -48,12 +84,12 @@ trait SQSStreamBuilder {
       msg.setWaitTimeSeconds(longPollingMaxWait.toSeconds.toInt) // > 0 seconds allow long-polling. 20 seconds is the maximum
       msg.setMaxNumberOfMessages(Math.min(currentDemand, 10)) // 10 is SQS limit
       msg.setMessageAttributeNames(messageAttributeNames)
-      sqs.receiveMessage(msg).map(res => (res.getMessages.toSeq, false))
+      receiveMessage(msg).map(res => (res.getMessages.toSeq, false))
     }
 
     if (autoAck)
       source.mapAsync(messageAckingConcurrency) { msg =>
-        sqs.deleteMessage(queueUrl, msg.getReceiptHandle).map(_ => msg)
+        deleteMessage(queueUrl, msg.getReceiptHandle).map(_ => msg)
       }
     else source
   }
@@ -68,7 +104,7 @@ trait SQSStreamBuilder {
    * @param retryMinInterval minimum delay before retrying.
    * @param longPollingMaxWait SQS long-polling parameter.
    * @param autoAck If true, the SQS messages will be automatically ack once they are received. If false, you must call
-   *                sqs.deleteMessage yourself when you want to ack the message.
+   *                deleteMessage yourself when you want to ack the message.
    * @param messageAttributeNames the message attribute names asked to be returned
    */
   def receiveMessageAsStreamWithRetryExpBackoff(
@@ -81,19 +117,13 @@ trait SQSStreamBuilder {
       msg.setWaitTimeSeconds(longPollingMaxWait.toSeconds.toInt) // > 0 seconds allow long-polling. 20 seconds is the maximum
       msg.setMaxNumberOfMessages(Math.min(currentDemand, 10)) // 10 is SQS limit
       msg.setMessageAttributeNames(messageAttributeNames)
-      sqs.receiveMessage(msg).map(res => (res.getMessages.toSeq, false))
+      receiveMessage(msg).map(res => (res.getMessages.toSeq, false))
     }
 
     if (autoAck)
       source.mapAsync(messageAckingConcurrency) { msg =>
-        sqs.deleteMessage(queueUrl, msg.getReceiptHandle).map(_ => msg)
+        deleteMessage(queueUrl, msg.getReceiptHandle).map(_ => msg)
       }
     else source
-  }
-}
-
-object SQSStreamBuilder {
-  def apply(sqsClient: AmazonSQSClient) = new SQSStreamBuilder {
-    override val sqs: AmazonSQSClient = sqsClient
   }
 }

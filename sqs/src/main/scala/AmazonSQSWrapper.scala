@@ -21,23 +21,14 @@ package sqs
 import scala.concurrent.{Future, ExecutionContext}
 import scala.collection.JavaConverters._
 
-import com.amazonaws.services.sqs.{AmazonSQSAsync, AmazonSQSAsyncClientBuilder}
+import com.amazonaws.services.sqs.AmazonSQSAsync
 import com.amazonaws.services.sqs.model._
 
-class AmazonSQSClient(
-    val client: AmazonSQSAsync,
-    implicit val execCtx: ExecutionContext
-) {
+trait AmazonSQSWrapper {
   import FutureHelper._
 
-  /**
-    * make a client from an ExecutionContext
-    * @param ExecutionContext
-    * @param clientConfiguration
-    */
-  def this(execCtx: ExecutionContext) = {
-    this(AmazonSQSAsyncClientBuilder.defaultClient(), execCtx)
-  }
+  def client: AmazonSQSAsync
+  implicit def ec: ExecutionContext
 
   def addPermission(
     addPermissionRequest: AddPermissionRequest
