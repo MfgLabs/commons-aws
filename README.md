@@ -18,8 +18,11 @@ resolvers ++= Seq(
 
 ## Dependencies
 
+Three packages are available :
 ```scala
-libraryDependencies += "com.mfglabs" %% "commons-aws" % "0.11.0"
+libraryDependencies += "com.mfglabs" %% "commons-aws-cloudwatch" % "0.11.0"
+libraryDependencies += "com.mfglabs" %% "commons-aws-s3" % "0.11.0"
+libraryDependencies += "com.mfglabs" %% "commons-aws-sqs" % "0.11.0"
 ```
 
 Changelog [here](CHANGELOG.md)
