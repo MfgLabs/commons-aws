@@ -20,9 +20,9 @@ resolvers ++= Seq(
 
 Three packages are available :
 ```scala
-libraryDependencies += "com.mfglabs" %% "commons-aws-cloudwatch" % "0.11.0"
-libraryDependencies += "com.mfglabs" %% "commons-aws-s3" % "0.11.0"
-libraryDependencies += "com.mfglabs" %% "commons-aws-sqs" % "0.11.0"
+libraryDependencies += "com.mfglabs" %% "commons-aws-cloudwatch" % "0.12.0"
+libraryDependencies += "com.mfglabs" %% "commons-aws-s3" % "0.12.0"
+libraryDependencies += "com.mfglabs" %% "commons-aws-sqs" % "0.12.0"
 ```
 
 Changelog [here](CHANGELOG.md)
@@ -38,18 +38,18 @@ Changelog [here](CHANGELOG.md)
 ```scala
 import com.mfglabs.commons.aws.s3._
 
-val builder = S3StreamBuilder(AmazonS3AsyncClient()()) // contains un-materialized composable Source / Flow / Sink
+val client = AmazonS3Client()()) // client with un-materialized composable Source / Flow / Sink
 
-val fileStream: Source[ByteString, Unit] = builder.getFileAsStream(bucket, key)
+val fileStream: Source[ByteString, Unit] = client.getFileAsStream(bucket, key)
 
-val multipartfileStream: Source[ByteString, Unit] = builder.getMultipartFileAsStream(bucket, prefix)
+val multipartfileStream: Source[ByteString, Unit] = client.getMultipartFileAsStream(bucket, prefix)
 
 someBinaryStream.via(
-  builder.uploadStreamAsFile(bucket, key, chunkUploadConcurrency = 2)
+  client.uploadStreamAsFile(bucket, key, chunkUploadConcurrency = 2)
 )
 
 someBinaryStream.via(
-  builder.uploadStreamAsMultipartFile(
+  client.uploadStreamAsMultipartFile(
     bucket,
     prefix,
     nbChunkPerFile = 10000,
@@ -57,7 +57,7 @@ someBinaryStream.via(
   )
 )
 
-val ops = new builder.MaterializedOps(flowMaterializer) // contains materialized methods on top of S3Stream
+val ops = client.materialized(flowMaterializer) // client with added materialized methods
 
 val file: Future[ByteString] = ops.getFile(bucket, key)
 
@@ -74,11 +74,9 @@ There are also smart `AmazonS3Client` constructors that can be provided with cus
 #### SQS
 
 ```scala
-import com.amazonaws.services.sqs.AmazonSQSAsyncClient
 import com.mfglabs.commons.aws.sqs._
 
-val sqs = new AmazonSQSClient(new AmazonSQSAsyncClient(), ec)
-val builder = SQSStreamBuilder(sqs)
+val sqs = AmazonSQSClient()()
 
 val sender: Flow[String, SendMessageResult, Unit] =
   Flow[String].map { body =>
@@ -87,11 +85,16 @@ val sender: Flow[String, SendMessageResult, Unit] =
     req.setQueueUrl(queueUrl)
     req
   }
-  .via(builder.sendMessageAsStream())
+  .via(sqs.sendMessageAsStream())
 
-val receiver: Source[Message, Unit] =
-    builder.receiveMessageAsStream(queueUrl, autoAck = false)
+val receiver: Source[Message, Unit] = sqs.receiveMessageAsStream(queueUrl, autoAck = false)
 ```
+
+Please remark that you don't need any implicit `scala.concurrent.ExecutionContext` as it's directly provided
+and managed by [[AmazonSQSClient]] itself.
+
+There are also smart `AmazonSQSClient` constructors that can be provided with custom.
+`java.util.concurrent.ExecutorService` if you want to manage your pools of threads.
 
 #### Cloudwatch
 
