@@ -6,7 +6,7 @@ import com.amazonaws.handlers.AsyncHandler
 
 import scala.concurrent.{Future, Promise}
 import scala.util.Try
-import java.util.concurrent.{Future => JFuture, LinkedBlockingQueue, ForkJoinPool, TimeUnit}
+import java.util.concurrent.{Future => JFuture, ForkJoinPool}
 
 object FutureHelper {
 
