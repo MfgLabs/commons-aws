@@ -6,7 +6,7 @@ import com.amazonaws.handlers.AsyncHandler
 
 import scala.concurrent.{Future, Promise}
 import scala.util.Try
-import java.util.concurrent.{Future => JFuture, LinkedBlockingQueue, ThreadPoolExecutor, TimeUnit}
+import java.util.concurrent.{Future => JFuture, LinkedBlockingQueue, ForkJoinPool, TimeUnit}
 
 object FutureHelper {
 
@@ -26,12 +26,14 @@ object FutureHelper {
     p.future
   }
 
-  def defaultExecutorService(clientConfiguration: ClientConfiguration, factoryName: String) = new ThreadPoolExecutor(
-    0, clientConfiguration.getMaxConnections,
-    60L, TimeUnit.SECONDS,
-    new LinkedBlockingQueue[Runnable],
-    new AWSThreadFactory(factoryName)
-  )
+  def defaultExecutorService(clientConfiguration: ClientConfiguration, factoryName: String) = {
+    new ForkJoinPool(
+      clientConfiguration.getMaxConnections + 1,
+      new AWSThreadFactory(factoryName),
+      null, // We do not override the default Thread.UncaughtExceptionHandler
+      true  // activate asyncMode
+    )
+  }
 
   trait MethodWrapper {
 

@@ -1,14 +1,13 @@
 package com.mfglabs.commons.aws
 
-import java.util.concurrent.{Executors, ThreadFactory}
-import java.util.concurrent.atomic.AtomicLong
+import java.util.concurrent._
 
-class AWSThreadFactory(name: String) extends ThreadFactory {
-  private val count = new AtomicLong(0L)
-  private val backingThreadFactory: ThreadFactory = Executors.defaultThreadFactory()
-  override def newThread(r: Runnable): Thread = {
-    val thread = backingThreadFactory.newThread(r)
-    thread.setName(s"$name-${count.getAndIncrement()}")
+class AWSThreadFactory(name: String) extends ForkJoinPool.ForkJoinWorkerThreadFactory {
+  private val backingThreadFactory = ForkJoinPool.defaultForkJoinWorkerThreadFactory
+
+  override def newThread(pool: ForkJoinPool): ForkJoinWorkerThread = {
+    val thread = backingThreadFactory.newThread(pool)
+    thread.setName(s"$name-${thread.getPoolIndex()}")
     thread
   }
 }

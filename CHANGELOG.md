@@ -9,6 +9,7 @@ This file summarizes the main changes for each release.
    - The `Client` extend it
    - For `ClientMaterialized` extend the `Client` and need an additional `Materializer` to transform a stream to `Future`.
  - Move `deleteObjects(bucket, prefix)` out of `AmazonS3Wrapper` to be able to use `AmazonS3ClientMaterialized.listFiles`
+ - Switch to `ForkJoinPool` with daemon thread as default.
 
 
 ### <a name="0.11.0"></a>Version 0.11.0
