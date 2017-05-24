@@ -177,15 +177,14 @@ trait AmazonS3Wrapper extends FutureHelper.MethodWrapper {
   ): Future[Seq[DeleteObjectsResult.DeletedObject]] =
     wrapMethod((req: DeleteObjectsRequest) => client.deleteObjects(req).getDeletedObjects.asScala.toSeq, deleteObjectsRequest)
 
-  def deleteObjects(bucket: String, commonPrefix: String): Future[Seq[Unit]] = {
-    import collection.JavaConversions._
-
-    listObjects(bucket, commonPrefix).flatMap { objListing =>
-      val allKeys = objListing.getObjectSummaries.listIterator().toList.map(_.getKey)
-      Future.sequence(allKeys.map { key =>
-        deleteObject(bucket, key)
-      })
-    }
+  /**
+    * @see [[http://docs.aws.amazon.com/AWSJavaSDK/latest/javadoc/com/amazonaws/services/s3/AmazonS3.html#deleteObjects(com.amazonaws.services.s3.model.DeleteObjectsRequest) AWS Java SDK]]
+    */
+  def deleteObjects(
+    bucketName: String,
+    keys:       String*
+  ): Future[Seq[DeleteObjectsResult.DeletedObject]] = {
+    deleteObjects(new DeleteObjectsRequest(bucketName).withKeys(keys:_ *))
   }
 
   /**

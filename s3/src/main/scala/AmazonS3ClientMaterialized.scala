@@ -4,7 +4,7 @@ package s3
 import akka.stream._
 import akka.stream.scaladsl._
 import akka.util.ByteString
-import com.amazonaws.services.s3.model.S3ObjectSummary
+import com.amazonaws.services.s3.model.{DeleteObjectsResult, S3ObjectSummary}
 import scala.concurrent.Future
 
 /**
@@ -15,6 +15,13 @@ class AmazonS3ClientMaterialized(
   executorService               : java.util.concurrent.ExecutorService,
   implicit val flowMaterializer : ActorMaterializer
 ) extends AmazonS3Client(client, executorService) {
+
+  def deleteObjects(bucket: String, commonPrefix: String): Future[Seq[DeleteObjectsResult.DeletedObject]] = {
+    for {
+      objects   <- listFiles(bucket, Some(commonPrefix))
+      deleted   <- deleteObjects(bucket, objects.map(_.getKey):_*)
+    } yield deleted
+  }
 
   /** List all files with a given prefix of a S3 bucket.
     *
