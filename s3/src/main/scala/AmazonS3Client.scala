@@ -18,19 +18,22 @@ import scala.concurrent.Future
 object AmazonS3Client {
   import com.amazonaws.auth._
   import com.amazonaws.ClientConfiguration
+  import com.amazonaws.regions.Regions
   import com.amazonaws.services.s3.AmazonS3ClientBuilder
   import FutureHelper.defaultExecutorService
 
   def apply(
+    region              : Regions,
     awsCredentials      : AWSCredentials,
     clientConfiguration : ClientConfiguration = new ClientConfiguration()
   )(
     executorService     : ExecutorService     = defaultExecutorService(clientConfiguration, "aws.wrap.s3")
   ): AmazonS3Client = {
-    from(new AWSStaticCredentialsProvider(awsCredentials), clientConfiguration)(executorService)
+    from(region, new AWSStaticCredentialsProvider(awsCredentials), clientConfiguration)(executorService)
   }
 
   def from(
+    region                 : Regions,
     awsCredentialsProvider : AWSCredentialsProvider = new DefaultAWSCredentialsProviderChain,
     clientConfiguration    : ClientConfiguration    = new ClientConfiguration()
   )(
@@ -39,11 +42,18 @@ object AmazonS3Client {
 
    val client = AmazonS3ClientBuilder
       .standard()
+      .withRegion(region)
       .withCredentials(awsCredentialsProvider)
       .withClientConfiguration(clientConfiguration)
       .build()
 
     new AmazonS3Client(client, executorService)
+  }
+
+  def build(builder: AmazonS3ClientBuilder) = {
+    val client = builder.build()
+
+    new AmazonS3Client(client, defaultExecutorService(builder.getClientConfiguration, "aws.wrap.s3"))
   }
 
 }

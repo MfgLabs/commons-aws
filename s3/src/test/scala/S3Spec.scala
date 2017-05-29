@@ -29,6 +29,7 @@ class S3Spec extends FlatSpec with Matchers with ScalaFutures with BeforeAndAfte
   implicit val fm = ActorMaterializer()
 
   val s3Client = AmazonS3Client.from(
+    com.amazonaws.regions.Regions.EU_WEST_1,
     new com.amazonaws.auth.profile.ProfileCredentialsProvider("mfg")
   )().materialized(fm)
 

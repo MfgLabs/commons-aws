@@ -2,6 +2,11 @@
 
 This file summarizes the main changes for each release.
 
+## <a name="0.12.1"></a>Version 0.12.1
+
+ - Add the region as a mandatory parameter for all clients.
+ - Add the `apply` and `from` constructor for `AmazonCloudwatchClient`.
+
 ### <a name="0.12.0"></a>Version 0.12.0
 
  - Rework the class hierarchy, for `S3` and `SQS`

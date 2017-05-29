@@ -13,7 +13,7 @@ import scala.concurrent.duration._
 import scala.util.Random
 
 class SQSSpec extends FlatSpec with Matchers with ScalaFutures {
-
+  import com.amazonaws.regions.Regions
   import scala.collection.JavaConversions._
 
   implicit override val patienceConfig =
@@ -22,7 +22,7 @@ class SQSSpec extends FlatSpec with Matchers with ScalaFutures {
   implicit val as = ActorSystem()
   implicit val fm = ActorMaterializer()
 
-  val sqsClient  = AmazonSQSClient.from()()
+  val sqsClient  = AmazonSQSClient.from(Regions.EU_WEST_1)()
 
   val testQueueName = "commons-aws-sqs-test-" + Random.nextInt()
   val testQueueName2 = "commons-aws-sqs-test-" + Random.nextInt()

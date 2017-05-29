@@ -4,7 +4,7 @@ organization in ThisBuild := "com.mfglabs"
 
 scalaVersion in ThisBuild := "2.11.11"
 
-version in ThisBuild := "0.12.0"
+version in ThisBuild := "0.12.1"
 
 resolvers in ThisBuild ++= Seq(
   "Typesafe repository" at "http://repo.typesafe.com/typesafe/releases/",

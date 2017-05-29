@@ -14,19 +14,22 @@ import scala.concurrent.duration._
 object AmazonSQSClient {
   import com.amazonaws.auth._
   import com.amazonaws.ClientConfiguration
+  import com.amazonaws.regions.Regions
   import com.amazonaws.services.sqs.AmazonSQSAsyncClientBuilder
   import FutureHelper.defaultExecutorService
 
   def apply(
+    region              : Regions,
     awsCredentials      : AWSCredentials,
     clientConfiguration : ClientConfiguration = new ClientConfiguration()
   )(
     executorService     : ExecutorService     = defaultExecutorService(clientConfiguration, "aws.wrap.sqs")
   ): AmazonSQSClient = {
-    from(new AWSStaticCredentialsProvider(awsCredentials), clientConfiguration)(executorService)
+    from(region, new AWSStaticCredentialsProvider(awsCredentials), clientConfiguration)(executorService)
   }
 
   def from(
+    region                 : Regions,
     awsCredentialsProvider : AWSCredentialsProvider = new DefaultAWSCredentialsProviderChain,
     clientConfiguration    : ClientConfiguration    = new ClientConfiguration()
   )(
@@ -34,8 +37,19 @@ object AmazonSQSClient {
   ): AmazonSQSClient = {
    val client = AmazonSQSAsyncClientBuilder
       .standard()
+      .withRegion(region)
       .withCredentials(awsCredentialsProvider)
       .withClientConfiguration(clientConfiguration)
+      .withExecutorFactory(new ExecutorFactory { def newExecutor() = executorService })
+      .build()
+
+    new AmazonSQSClient(client, executorService)
+  }
+
+  def build(builder: AmazonSQSAsyncClientBuilder)(
+    executorService : ExecutorService = defaultExecutorService(builder.getClientConfiguration, "aws.wrap.sqs")
+  ) = {
+   val client = builder
       .withExecutorFactory(new ExecutorFactory { def newExecutor() = executorService })
       .build()
 

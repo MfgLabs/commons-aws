@@ -25,21 +25,35 @@ import com.amazonaws.auth.{AWSCredentialsProvider, DefaultAWSCredentialsProvider
 import com.amazonaws.ClientConfiguration
 import com.amazonaws.client.builder.ExecutorFactory
 
-import com.amazonaws.services.cloudwatch.{AmazonCloudWatchAsync, AmazonCloudWatchAsyncClient}
+import com.amazonaws.services.cloudwatch.{AmazonCloudWatchAsync, AmazonCloudWatchAsyncClientBuilder}
 import com.amazonaws.services.cloudwatch.model._
 
 
 object AmazonCloudwatchClient {
+  import com.amazonaws.auth.{AWSCredentials, AWSStaticCredentialsProvider}
   import FutureHelper.defaultExecutorService
+  import com.amazonaws.regions.Regions
 
   def apply(
+    region              : Regions,
+    awsCredentials      : AWSCredentials,
+    clientConfiguration : ClientConfiguration = new ClientConfiguration()
+  )(
+    executorService     : ExecutorService     = defaultExecutorService(clientConfiguration, "aws.wrap.cloudwatch")
+  ): AmazonCloudwatchClient = {
+    from(region, new AWSStaticCredentialsProvider(awsCredentials), clientConfiguration)(executorService)
+  }
+
+  def from(
+    region                 : Regions,
     awsCredentialsProvider : AWSCredentialsProvider = new DefaultAWSCredentialsProviderChain,
     clientConfiguration    : ClientConfiguration    = new ClientConfiguration()
   )(
     executorService        : ExecutorService        = defaultExecutorService(clientConfiguration, "aws.wrap.cloudwatch")
   ): AmazonCloudwatchClient = new AmazonCloudwatchClient(
-    AmazonCloudWatchAsyncClient
-      .asyncBuilder()
+    AmazonCloudWatchAsyncClientBuilder
+      .standard()
+      .withRegion(region)
       .withCredentials(awsCredentialsProvider)
       .withClientConfiguration(clientConfiguration)
       .withExecutorFactory(new ExecutorFactory { def newExecutor() = executorService })
