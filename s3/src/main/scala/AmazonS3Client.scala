@@ -131,28 +131,33 @@ class AmazonS3Client(
    * @param chunkUploadConcurrency chunk upload concurrency. Order is guaranteed even with chunkUploadConcurrency > 1.
    */
   def uploadStreamAsFile(bucket: String, key: String, chunkUploadConcurrency: Int = 1): Flow[ByteString, CompleteMultipartUploadResult, akka.NotUsed] = {
+    val request = new InitiateMultipartUploadRequest(bucket, key)
+    uploadStreamAsFile(request, chunkUploadConcurrency)
+  }
+
+  def uploadStreamAsFile(intiate: InitiateMultipartUploadRequest, chunkUploadConcurrency: Int): Flow[ByteString, CompleteMultipartUploadResult, akka.NotUsed] = {
     import scala.collection.JavaConversions._
 
     val uploadChunkSize = 8 * 1024 * 1024 // recommended by AWS
 
-    def initiateUpload(bucket: String, key: String): Future[String] =
-      initiateMultipartUpload(new InitiateMultipartUploadRequest(bucket, key)).map(_.getUploadId)
+    def initiateUpload: Future[String] = initiateMultipartUpload(intiate).map(_.getUploadId)
 
     Flow[ByteString]
       .via(FlowExt.rechunkByteStringBySize(uploadChunkSize))
-      .via(FlowExt.zipWithConstantLazyAsync(initiateUpload(bucket, key)))
+      .via(FlowExt.zipWithConstantLazyAsync(initiateUpload))
       .via(FlowExt.zipWithIndex)
       .mapAsyncUnordered(chunkUploadConcurrency) { case ((bytes, uploadId), partNumber) =>
         val uploadRequest = new UploadPartRequest()
-          .withBucketName(bucket)
-          .withKey(key)
+          .withBucketName(intiate.getBucketName)
+          .withKey(intiate.getKey)
           .withPartNumber((partNumber + 1).toInt)
           .withUploadId(uploadId)
           .withInputStream(new ByteArrayInputStream(bytes.toArray))
           .withPartSize(bytes.length.toLong)
+
         uploadPart(uploadRequest).map(r => (r.getPartETag, uploadId)).recoverWith {
           case e: Exception =>
-            abortMultipartUpload(new AbortMultipartUploadRequest(bucket, key, uploadId))
+            abortMultipartUpload(new AbortMultipartUploadRequest(intiate.getBucketName, intiate.getKey, uploadId))
             Future.failed(e)
         }
       }
@@ -160,9 +165,12 @@ class AmazonS3Client(
       .mapAsync(1) { etags =>
         etags.headOption match {
           case Some((_, uploadId)) =>
-            val compRequest = new CompleteMultipartUploadRequest(bucket, key, uploadId, etags.map(_._1).toBuffer[PartETag])
+            val compRequest = new CompleteMultipartUploadRequest(
+              intiate.getBucketName, intiate.getKey, uploadId, etags.map(_._1).toBuffer[PartETag]
+            )
+
             val futResult = completeMultipartUpload(compRequest).map(Option.apply).recoverWith { case e: Exception =>
-              abortMultipartUpload(new AbortMultipartUploadRequest(bucket, key, uploadId))
+              abortMultipartUpload(new AbortMultipartUploadRequest(intiate.getBucketName, intiate.getKey, uploadId))
               Future.failed(e)
             }
             futResult
