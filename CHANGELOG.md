@@ -4,8 +4,8 @@ This file summarizes the main changes for each release.
 
 # <a name="0.12.2"></a>Version 0.12.2
 
- - Add cross compilation to scala 2.12 ([#24](https://github.com/MfgLabs/common-aws/pull/24))
- - In `uploadStreamAsFile` expose the `InitiateMultipartUploadRequest` as suggested in [#13](hhttps://github.com/MfgLabs/commons-aws/issues/13))
+ - Add cross compilation to scala 2.12 ([#24](https://github.com/MfgLabs/commons-aws/pull/24))
+ - In `uploadStreamAsFile` expose the `InitiateMultipartUploadRequest` as suggested in ([#13](https://github.com/MfgLabs/commons-aws/issues/13))
  - Upgrade `akka-stream-extensions` version to `0.11.2`
 
 ## <a name="0.12.1"></a>Version 0.12.1
