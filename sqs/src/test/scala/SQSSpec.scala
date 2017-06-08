@@ -14,7 +14,7 @@ import scala.util.Random
 
 class SQSSpec extends FlatSpec with Matchers with ScalaFutures {
   import com.amazonaws.regions.Regions
-  import scala.collection.JavaConversions._
+  import scala.collection.JavaConverters._
 
   implicit override val patienceConfig =
     PatienceConfig(timeout = Span(60, Seconds), interval = Span(5, Millis))
@@ -35,7 +35,7 @@ class SQSSpec extends FlatSpec with Matchers with ScalaFutures {
 
   it should "send message and receive them as streams" in {
     val newQueueReq = new CreateQueueRequest()
-    newQueueReq.setAttributes(Map("VisibilityTimeout" -> 10.toString)) // 10 seconds
+    newQueueReq.setAttributes(Map("VisibilityTimeout" -> 10.toString).asJava) // 10 seconds
     newQueueReq.setQueueName(testQueueName)
     val queueUrl = sqsClient.createQueue(newQueueReq).futureValue.getQueueUrl
 
@@ -72,7 +72,7 @@ class SQSSpec extends FlatSpec with Matchers with ScalaFutures {
 
   it should "send message and receive them as streams with retry mechanism" in {
     val newQueueReq = new CreateQueueRequest()
-    newQueueReq.setAttributes(Map("VisibilityTimeout" -> 10.toString)) // 10 seconds
+    newQueueReq.setAttributes(Map("VisibilityTimeout" -> 10.toString).asJava) // 10 seconds
     newQueueReq.setQueueName(testQueueName2)
     val queueUrl = sqsClient.createQueue(newQueueReq).futureValue.getQueueUrl
 

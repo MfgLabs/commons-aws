@@ -196,12 +196,12 @@ class AmazonCloudwatchClient(val client: AmazonCloudWatchAsync) {
     namespace:  String,
     metricData: Iterable[MetricDatum]
   ): Future[PutMetricDataResult] = {
-    import scala.collection.JavaConversions.asJavaCollection
+    import scala.collection.JavaConverters.asJavaCollectionConverter
 
     putMetricData(
       new PutMetricDataRequest()
       .withNamespace(namespace)
-      .withMetricData(metricData)
+      .withMetricData(metricData.asJavaCollection)
     )
   }
 

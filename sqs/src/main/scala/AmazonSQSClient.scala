@@ -64,7 +64,7 @@ class AmazonSQSClient(
   val executorService : ExecutorService
 ) extends AmazonSQSWrapper {
 
-  import scala.collection.JavaConversions._
+  import scala.collection.JavaConverters._
 
   val defaultMessageOpsConcurrency = 16
 
@@ -97,8 +97,8 @@ class AmazonSQSClient(
       val msg = new ReceiveMessageRequest(queueUrl)
       msg.setWaitTimeSeconds(longPollingMaxWait.toSeconds.toInt) // > 0 seconds allow long-polling. 20 seconds is the maximum
       msg.setMaxNumberOfMessages(Math.min(currentDemand, 10)) // 10 is SQS limit
-      msg.setMessageAttributeNames(messageAttributeNames)
-      receiveMessage(msg).map(res => (res.getMessages.toSeq, false))
+      msg.setMessageAttributeNames(messageAttributeNames.asJava)
+      receiveMessage(msg).map(res => (res.getMessages.asScala, false))
     }
 
     if (autoAck)
@@ -130,8 +130,8 @@ class AmazonSQSClient(
       val msg = new ReceiveMessageRequest(queueUrl)
       msg.setWaitTimeSeconds(longPollingMaxWait.toSeconds.toInt) // > 0 seconds allow long-polling. 20 seconds is the maximum
       msg.setMaxNumberOfMessages(Math.min(currentDemand, 10)) // 10 is SQS limit
-      msg.setMessageAttributeNames(messageAttributeNames)
-      receiveMessage(msg).map(res => (res.getMessages.toSeq, false))
+      msg.setMessageAttributeNames(messageAttributeNames.asJava)
+      receiveMessage(msg).map(res => (res.getMessages.asScala, false))
     }
 
     if (autoAck)

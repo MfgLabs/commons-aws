@@ -77,19 +77,20 @@ class AmazonS3Client(
    * @param maybePrefix S3 prefix. If not present, all the files of the bucket will be returned.
    */
   def listFilesAsStream(bucket: String, maybePrefix: Option[String] = None): Source[S3ObjectSummary, akka.NotUsed] = {
-    import collection.JavaConversions._
+    import collection.JavaConverters._
 
     def getFirstListing: Future[ObjectListing] = maybePrefix match {
       case Some(prefix) => listObjects(bucket, prefix)
       case None => listObjects(bucket)
     }
 
-    def unfold(listing: ObjectListing) = Some(Some(listing) -> listing.getObjectSummaries.to[Seq])
+    def unfold(listing: ObjectListing) =
+      Some(Some(listing) -> listing.getObjectSummaries.asScala.to[Seq])
 
     Source.unfoldAsync[Option[ObjectListing], Seq[S3ObjectSummary]](None) {
       case None             => getFirstListing.map(unfold)
       case Some(oldListing) if oldListing.isTruncated => listNextBatchOfObjects(oldListing).map(unfold)
-      case Some(oldListing) => Future.successful(None)
+      case Some(_)          => Future.successful(None)
     }.mapConcat(identity)
   }
 
@@ -136,7 +137,7 @@ class AmazonS3Client(
   }
 
   def uploadStreamAsFile(intiate: InitiateMultipartUploadRequest, chunkUploadConcurrency: Int): Flow[ByteString, CompleteMultipartUploadResult, akka.NotUsed] = {
-    import scala.collection.JavaConversions._
+    import scala.collection.JavaConverters._
 
     val uploadChunkSize = 8 * 1024 * 1024 // recommended by AWS
 
@@ -166,7 +167,7 @@ class AmazonS3Client(
         etags.headOption match {
           case Some((_, uploadId)) =>
             val compRequest = new CompleteMultipartUploadRequest(
-              intiate.getBucketName, intiate.getKey, uploadId, etags.map(_._1).toBuffer[PartETag]
+              intiate.getBucketName, intiate.getKey, uploadId, etags.map(_._1).asJava
             )
 
             val futResult = completeMultipartUpload(compRequest).map(Option.apply).recoverWith { case e: Exception =>
