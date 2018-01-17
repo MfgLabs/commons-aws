@@ -2,6 +2,11 @@
 
 This file summarizes the main changes for each release.
 
+# <a name="0.12.2-spark-2.2"></a>Version 0.12.2-spark-2.2
+  - Revert the Aws SDK to version `1.7.4` to be compatible with Spark `2.2`.
+  - Drop support for CloudwWatch.
+  - Delete some unsupported S3 operation.
+
 # <a name="0.12.2"></a>Version 0.12.2
 
  - Add cross compilation to scala 2.12 ([#24](https://github.com/MfgLabs/commons-aws/pull/24))

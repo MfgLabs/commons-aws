@@ -4,7 +4,7 @@ package sqs
 import akka.actor._
 import akka.stream._
 import akka.stream.scaladsl._
-import com.amazonaws.services.sqs.model.{CreateQueueRequest, MessageAttributeValue, SendMessageRequest}
+import com.amazonaws.services.sqs.model.{CreateQueueRequest, SendMessageRequest}
 import org.scalatest.concurrent.ScalaFutures
 import org.scalatest.time.{Millis, Seconds, Span}
 import org.scalatest.{FlatSpec, Matchers}
@@ -22,12 +22,10 @@ class SQSSpec extends FlatSpec with Matchers with ScalaFutures {
   implicit val as = ActorSystem()
   implicit val fm = ActorMaterializer()
 
-  val sqsClient  = AmazonSQSClient.from(Regions.EU_WEST_1)()
+  val sqsClient  = AmazonSQSClient.from(Regions.EU_WEST_1, new com.amazonaws.auth.profile.ProfileCredentialsProvider("mfg"))()
 
   val testQueueName = "commons-aws-sqs-test-" + Random.nextInt()
   val testQueueName2 = "commons-aws-sqs-test-" + Random.nextInt()
-
-  val messageAttributeKey = "attribute_key"
 
   "SQS client" should "delete all test queue if any" in {
     sqsClient.listQueues("commons-aws-sqs-test-").futureValue.headOption.foreach(queueUrl => sqsClient.deleteQueue(queueUrl).futureValue)
@@ -43,7 +41,6 @@ class SQSSpec extends FlatSpec with Matchers with ScalaFutures {
     val futSent = Source(msgs)
       .map { body =>
       val req = new SendMessageRequest()
-      req.addMessageAttributesEntry(messageAttributeKey, new MessageAttributeValue().withDataType("String").withStringValue(body))
       req.setMessageBody(body)
       req.setQueueUrl(queueUrl)
       req
@@ -51,12 +48,11 @@ class SQSSpec extends FlatSpec with Matchers with ScalaFutures {
       .via(sqsClient.sendMessageAsStream())
       .take(200)
       .runWith(Sink.seq)
-    val futReceived = sqsClient.receiveMessageAsStream(queueUrl, autoAck = true, messageAttributeNames = List(messageAttributeKey)).take(200).runWith(Sink.seq)
+    val futReceived = sqsClient.receiveMessageAsStream(queueUrl, autoAck = true, messageAttributeNames = List()).take(200).runWith(Sink.seq)
 
     val (_, received) = futSent.zip(futReceived).futureValue
 
     received.map(_.getBody).sorted shouldEqual msgs.sorted
-    received.map(_.getMessageAttributes.get(messageAttributeKey).getStringValue).sorted shouldEqual msgs.sorted
 
     // testing auto-ack (queue must be empty)
     val res = sqsClient

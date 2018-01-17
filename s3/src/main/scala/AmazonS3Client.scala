@@ -5,7 +5,6 @@ import akka.stream.ActorMaterializer
 import akka.stream.scaladsl._
 import akka.util.ByteString
 
-import com.amazonaws.services.s3.AmazonS3
 import com.amazonaws.services.s3.model._
 import com.mfglabs.stream.{ExecutionContextForBlockingOps, FlowExt, SourceExt}
 
@@ -18,8 +17,8 @@ import scala.concurrent.Future
 object AmazonS3Client {
   import com.amazonaws.auth._
   import com.amazonaws.ClientConfiguration
-  import com.amazonaws.regions.Regions
-  import com.amazonaws.services.s3.AmazonS3ClientBuilder
+  import com.amazonaws.regions.{Region, Regions}
+
   import FutureHelper.defaultExecutorService
 
   def apply(
@@ -29,7 +28,9 @@ object AmazonS3Client {
   )(
     executorService     : ExecutorService     = defaultExecutorService(clientConfiguration, "aws.wrap.s3")
   ): AmazonS3Client = {
-    from(region, new AWSStaticCredentialsProvider(awsCredentials), clientConfiguration)(executorService)
+   val client = new com.amazonaws.services.s3.AmazonS3Client(awsCredentials, clientConfiguration)
+   client.setRegion(Region.getRegion(region))
+    new AmazonS3Client(client, executorService)
   }
 
   def from(
@@ -39,27 +40,14 @@ object AmazonS3Client {
   )(
     executorService        : ExecutorService        = defaultExecutorService(clientConfiguration, "aws.wrap.s3")
   ): AmazonS3Client = {
-
-   val client = AmazonS3ClientBuilder
-      .standard()
-      .withRegion(region)
-      .withCredentials(awsCredentialsProvider)
-      .withClientConfiguration(clientConfiguration)
-      .build()
-
+   val client = new com.amazonaws.services.s3.AmazonS3Client(awsCredentialsProvider, clientConfiguration)
+   client.setRegion(Region.getRegion(region))
     new AmazonS3Client(client, executorService)
   }
-
-  def build(builder: AmazonS3ClientBuilder) = {
-    val client = builder.build()
-
-    new AmazonS3Client(client, defaultExecutorService(builder.getClientConfiguration, "aws.wrap.s3"))
-  }
-
 }
 
 class AmazonS3Client(
-  val client          : AmazonS3,
+  val client          : com.amazonaws.services.s3.AmazonS3Client,
   val executorService : ExecutorService
 ) extends AmazonS3Wrapper {
   import scala.collection.immutable.Seq
@@ -166,8 +154,10 @@ class AmazonS3Client(
       .mapAsync(1) { etags =>
         etags.headOption match {
           case Some((_, uploadId)) =>
+            // Otherwise it create a immutable java List which throw `UnsupportedOperationException`
+            val javaETags = etags.map(_._1).to[scala.collection.mutable.Buffer].asJava
             val compRequest = new CompleteMultipartUploadRequest(
-              intiate.getBucketName, intiate.getKey, uploadId, etags.map(_._1).asJava
+              intiate.getBucketName, intiate.getKey, uploadId, javaETags
             )
 
             val futResult = completeMultipartUpload(compRequest).map(Option.apply).recoverWith { case e: Exception =>

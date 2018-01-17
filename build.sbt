@@ -4,9 +4,7 @@ organization in ThisBuild := "com.mfglabs"
 
 scalaVersion in ThisBuild := "2.11.11"
 
-version in ThisBuild := "0.12.2"
-
-crossScalaVersions := Seq("2.11.11", "2.12.2")
+version in ThisBuild := "0.12.2-spark-2.2"
 
 resolvers in ThisBuild ++= Seq(
   "Typesafe repository" at "http://repo.typesafe.com/typesafe/releases/",
@@ -64,7 +62,6 @@ lazy val noPublishSettings = Seq(
 
 lazy val all = (project in file("."))
   .aggregate(commons)
-  .aggregate(cloudwatch)
   .aggregate(s3)
   .aggregate(sqs)
   .settings(name := "commons-aws-all")
@@ -76,47 +73,25 @@ lazy val commons = project.in(file("commons"))
   .settings   (
     name := "commons-aws",
     libraryDependencies ++= Seq(
-      Dependencies.Compile.awsJavaSDKcore
+      Dependencies.Compile.awsJavaSDK,
+      Dependencies.Compile.akkaStreamExt,
+      Dependencies.Compile.slf4j,
+      Dependencies.Test.scalaTest
     ),
     commonSettings,
     publishSettings
   )
 
-lazy val cloudwatch = project.in(file("cloudwatch"))
-  .settings   (
-    name := "commons-aws-cloudwatch",
-    libraryDependencies ++= Seq(
-      Dependencies.Compile.awsJavaSDKcw,
-      Dependencies.Compile.akkaStreamExt,
-      Dependencies.Compile.slf4j,
-      Dependencies.Test.scalaTest
-    ),
-    commonSettings,
-    publishSettings
-  ).dependsOn(commons)
-
 lazy val s3 = project.in(file("s3"))
   .settings   (
     name := "commons-aws-s3",
-    libraryDependencies ++= Seq(
-      Dependencies.Compile.awsJavaSDKs3,
-      Dependencies.Compile.akkaStreamExt,
-      Dependencies.Compile.slf4j,
-      Dependencies.Test.scalaTest
-    ),
     commonSettings,
     publishSettings
-  ).dependsOn(commons)
+  ).dependsOn(commons % "compile->compile;test->test")
 
 lazy val sqs = project.in(file("sqs"))
   .settings   (
     name := "commons-aws-sqs",
-    libraryDependencies ++= Seq(
-      Dependencies.Compile.awsJavaSDKsqs,
-      Dependencies.Compile.akkaStreamExt,
-      Dependencies.Compile.slf4j,
-      Dependencies.Test.scalaTest
-    ),
     commonSettings,
     publishSettings
-  ).dependsOn(commons)
+  ).dependsOn(commons  % "compile->compile;test->test")

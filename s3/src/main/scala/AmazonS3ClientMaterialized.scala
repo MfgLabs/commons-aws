@@ -11,7 +11,7 @@ import scala.concurrent.Future
  * Additional functions which materialize stream to Future.
  */
 class AmazonS3ClientMaterialized(
-  client                        : com.amazonaws.services.s3.AmazonS3,
+  client                        : com.amazonaws.services.s3.AmazonS3Client,
   executorService               : java.util.concurrent.ExecutorService,
   implicit val flowMaterializer : ActorMaterializer
 ) extends AmazonS3Client(client, executorService) {

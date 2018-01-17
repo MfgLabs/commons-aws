@@ -24,7 +24,6 @@ import java.net.URL
 import scala.collection.JavaConverters._
 import scala.concurrent.{ExecutionContext, Future}
 
-import com.amazonaws.services.s3._
 import com.amazonaws.services.s3.model._
 
 /**
@@ -46,7 +45,7 @@ import com.amazonaws.services.s3.model._
   * @see java.util.concurrent.ExecutorService
   */
 trait AmazonS3Wrapper extends FutureHelper.MethodWrapper {
-  def client          : AmazonS3
+  def client          : com.amazonaws.services.s3.AmazonS3Client
   def executorService : java.util.concurrent.ExecutorService
 
   implicit val ec = ExecutionContext.fromExecutorService(executorService)
@@ -301,12 +300,6 @@ trait AmazonS3Wrapper extends FutureHelper.MethodWrapper {
     */
   def listBuckets(): Future[Seq[Bucket]] =
     listBuckets(new ListBucketsRequest())
-
-  /**
-   * @see [[http://docs.aws.amazon.com/AWSJavaSDK/latest/javadoc/com/amazonaws/services/s3/AmazonS3.html#listNextBatchOfObjects(com.amazonaws.services.s3.model.ListNextBatchOfObjectsRequest)]]
-   */
-  def listNextBatchOfObjects(req: ListNextBatchOfObjectsRequest): Future[ObjectListing] =
-    wrapMethod[ListNextBatchOfObjectsRequest, ObjectListing](client.listNextBatchOfObjects, req)
 
   /**
    * @see [[http://docs.aws.amazon.com/AWSJavaSDK/latest/javadoc/com/amazonaws/services/s3/AmazonS3.html#listNextBatchOfObjects(com.amazonaws.services.s3.model.ObjectListing) AWS Java SDK]]

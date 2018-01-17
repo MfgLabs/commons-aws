@@ -1,5 +1,7 @@
 # Streaming / asynchronous Scala client for common AWS services
 
+This is a custom version compatible with Spark `2.2` which force the use of Aws SDK `1.7.4`.
+
 Streaming / asynchronous Scala client for common AWS services.
 When possible, clients expose methods that return Akka Stream's Sources / Flows / Sinks to provide streaming facilities.
 
@@ -20,16 +22,15 @@ resolvers ++= Seq(
 
 Three packages are available :
 ```scala
-libraryDependencies += "com.mfglabs" %% "commons-aws-cloudwatch" % "0.12.2"
-libraryDependencies += "com.mfglabs" %% "commons-aws-s3" % "0.12.2"
-libraryDependencies += "com.mfglabs" %% "commons-aws-sqs" % "0.12.2"
+libraryDependencies += "com.mfglabs" %% "commons-aws-s3" % "0.12.2-spark-2.2"
+libraryDependencies += "com.mfglabs" %% "commons-aws-sqs" % "0.12.2-spark-2.2"
 ```
 
 Changelog [here](CHANGELOG.md)
 
 ## Usage
 
-> Scaladoc is available [there](http://mfglabs.github.io/commons-aws/api/current/)
+> Scaladoc is available [there](http://mfglabs.github.io/commons-aws/api/0.12.2-spark-2.2/)
 
 ### Commons
 
@@ -94,29 +95,6 @@ Please remark that you don't need any implicit `scala.concurrent.ExecutionContex
 and managed by [[AmazonSQSClient]] itself.
 
 There are also smart `AmazonSQSClient` constructors that can be provided with custom.
-`java.util.concurrent.ExecutorService` if you want to manage your pools of threads.
-
-#### Cloudwatch
-
-In your code:
-
-```scala
-import com.mfglabs.commons.aws.cloudwatch
-import cloudwatch._ // brings implicit extensions
-
-// Create the client
-val CW = cloudwatch.AmazonCloudwatchClient()()
-
-// Use it
-for {
-  metrics  <- CW.listMetrics()
-} yield (metrics)
-```
-
-Please remark that you don't need any implicit `scala.concurrent.ExecutionContext` as it's directly provided
-and managed by [[AmazonCloudwatchClient]] itself.
-
-There are also smart `AmazonCloudwatchClient` constructors that can be provided with custom.
 `java.util.concurrent.ExecutorService` if you want to manage your pools of threads.
 
 ## License

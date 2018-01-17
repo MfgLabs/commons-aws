@@ -20,7 +20,7 @@ package s3
 
 import scala.concurrent.{Future, Promise}
 
-import com.amazonaws.event.{ProgressListener, ProgressEvent, ProgressEventType}
+import com.amazonaws.event.{ProgressListener, ProgressEvent}
 import com.amazonaws.services.s3.transfer.Transfer
 
 import org.slf4j.{Logger, LoggerFactory}
@@ -88,57 +88,21 @@ object FutureTransfer {
         }
       }
     }
+
     def logProgressEvent(progressEvent: ProgressEvent): Unit = {
       if (logger.isDebugEnabled) {
-        progressEvent.getEventType match {
-          case ProgressEventType.CLIENT_REQUEST_FAILED_EVENT =>
-            debugLog("CLIENT_REQUEST_FAILED_EVENT")
-          case ProgressEventType.CLIENT_REQUEST_RETRY_EVENT =>
-            debugLog("CLIENT_REQUEST_RETRY_EVENT")
-          case ProgressEventType.CLIENT_REQUEST_STARTED_EVENT =>
-            debugLog("CLIENT_REQUEST_STARTED_EVENT")
-          case ProgressEventType.CLIENT_REQUEST_SUCCESS_EVENT =>
-            debugLog("CLIENT_REQUEST_SUCCESS_EVENT")
-          case ProgressEventType.HTTP_REQUEST_COMPLETED_EVENT =>
-            debugLog("HTTP_REQUEST_COMPLETED_EVENT")
-          case ProgressEventType.HTTP_REQUEST_CONTENT_RESET_EVENT =>
-            debugLog("HTTP_REQUEST_CONTENT_RESET_EVENT")
-          case ProgressEventType.HTTP_REQUEST_STARTED_EVENT =>
-            debugLog("HTTP_REQUEST_STARTED_EVENT")
-          case ProgressEventType.HTTP_RESPONSE_COMPLETED_EVENT =>
-            debugLog("HTTP_RESPONSE_COMPLETED_EVENT")
-          case ProgressEventType.HTTP_RESPONSE_CONTENT_RESET_EVENT =>
-            debugLog("HTTP_RESPONSE_CONTENT_RESET_EVENT")
-          case ProgressEventType.HTTP_RESPONSE_STARTED_EVENT =>
-            debugLog("HTTP_RESPONSE_STARTED_EVENT")
-          case ProgressEventType.REQUEST_BYTE_TRANSFER_EVENT =>
-            debugLog("REQUEST_BYTE_TRANSFER_EVENT")
-          case ProgressEventType.REQUEST_CONTENT_LENGTH_EVENT =>
-            debugLog("REQUEST_CONTENT_LENGTH_EVENT")
-          case ProgressEventType.RESPONSE_BYTE_DISCARD_EVENT =>
-            debugLog("RESPONSE_BYTE_DISCARD_EVENT")
-          case ProgressEventType.RESPONSE_BYTE_TRANSFER_EVENT =>
-            debugLog("RESPONSE_BYTE_TRANSFER_EVENT")
-          case ProgressEventType.RESPONSE_CONTENT_LENGTH_EVENT =>
-            debugLog("RESPONSE_CONTENT_LENGTH_EVENT")
-          case ProgressEventType.TRANSFER_CANCELED_EVENT =>
-            debugLog("TRANSFER_CANCELED_EVENT")
-          case ProgressEventType.TRANSFER_COMPLETED_EVENT =>
-            debugLog("TRANSFER_COMPLETED_EVENT")
-          case ProgressEventType.TRANSFER_FAILED_EVENT =>
-            debugLog("TRANSFER_FAILED_EVENT")
-          case ProgressEventType.TRANSFER_PART_COMPLETED_EVENT =>
-            debugLog("TRANSFER_PART_COMPLETED_EVENT")
-          case ProgressEventType.TRANSFER_PART_FAILED_EVENT =>
-            debugLog("TRANSFER_PART_FAILED_EVENT")
-          case ProgressEventType.TRANSFER_PART_STARTED_EVENT =>
-            debugLog("TRANSFER_PART_STARTED_EVENT")
-          case ProgressEventType.TRANSFER_PREPARING_EVENT =>
-            debugLog("TRANSFER_PREPARING_EVENT")
-          case ProgressEventType.TRANSFER_STARTED_EVENT =>
-            debugLog("TRANSFER_STARTED_EVENT")
+        progressEvent.getEventCode match {
+          case ProgressEvent.CANCELED_EVENT_CODE        => debugLog("CANCELED_EVENT_CODE")
+          case ProgressEvent.COMPLETED_EVENT_CODE       => debugLog("COMPLETED_EVENT_CODE")
+          case ProgressEvent.FAILED_EVENT_CODE          => debugLog("FAILED_EVENT_CODE")
+          case ProgressEvent.PART_COMPLETED_EVENT_CODE  => debugLog("PART_COMPLETED_EVENT_CODE")
+          case ProgressEvent.PART_FAILED_EVENT_CODE     => debugLog("PART_FAILED_EVENT_CODE")
+          case ProgressEvent.PART_STARTED_EVENT_CODE    => debugLog("PART_STARTED_EVENT_CODE")
+          case ProgressEvent.PREPARING_EVENT_CODE       => debugLog("PREPARING_EVENT_CODE")
+          case ProgressEvent.RESET_EVENT_CODE           => debugLog("RESET_EVENT_CODE")
+          case ProgressEvent.STARTED_EVENT_CODE         => debugLog("STARTED_EVENT_CODE")
           case _ =>
-            logger.warn(s"unrecognized progress event type for transfer $transferDescription")
+            logger.warn(s"unrecognized progress event code for transfer $transferDescription")
         }
       }
     }
@@ -189,10 +153,10 @@ object FutureTransfer {
       override def progressChanged(progressEvent: ProgressEvent): Unit = {
         logProgressEvent(progressEvent)
 
-        val code = progressEvent.getEventType()
-        if (code == ProgressEventType.TRANSFER_CANCELED_EVENT ||
-            code == ProgressEventType.TRANSFER_COMPLETED_EVENT ||
-            code == ProgressEventType.TRANSFER_FAILED_EVENT) {
+        val code = progressEvent.getEventCode()
+        if (code == ProgressEvent.CANCELED_EVENT_CODE  ||
+            code == ProgressEvent.COMPLETED_EVENT_CODE  ||
+            code == ProgressEvent.FAILED_EVENT_CODE ) {
           val success = p trySuccess transfer
           if (logger.isDebugEnabled) {
             if (success) {

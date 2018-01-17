@@ -32,14 +32,14 @@ trait AmazonSQSWrapper {
 
   def addPermission(
     addPermissionRequest: AddPermissionRequest
-  ): Future[AddPermissionResult] =
+  ): Future[Void] =
     wrapAsyncMethod(client.addPermissionAsync, addPermissionRequest)
 
   def addPermission(
     queueUrl:       String,
     label:          String,
     accountActions: Map[String, String]
-  ): Future[AddPermissionResult] = {
+  ): Future[Void] = {
     val (accounts, actions) = accountActions.unzip
     addPermission(
       new AddPermissionRequest(
@@ -53,14 +53,14 @@ trait AmazonSQSWrapper {
 
   def changeMessageVisibility(
     changeMessageVisibilityRequest: ChangeMessageVisibilityRequest
-  ): Future[ChangeMessageVisibilityResult] =
+  ): Future[Void] =
     wrapAsyncMethod(client.changeMessageVisibilityAsync, changeMessageVisibilityRequest)
 
   def changeMessageVisibility(
     queueUrl:          String,
     receiptHandle:     String,
     visibilityTimeout: Int
-  ): Future[ChangeMessageVisibilityResult] =
+  ): Future[Void] =
     changeMessageVisibility(new ChangeMessageVisibilityRequest(queueUrl, receiptHandle, visibilityTimeout))
 
   def changeMessageVisibilityBatch(
@@ -102,13 +102,13 @@ trait AmazonSQSWrapper {
 
   def deleteMessage(
     deleteMessageRequest: DeleteMessageRequest
-  ): Future[DeleteMessageResult] =
+  ): Future[Void] =
     wrapAsyncMethod(client.deleteMessageAsync, deleteMessageRequest)
 
   def deleteMessage(
     queueUrl:      String,
     receiptHandle: String
-  ): Future[DeleteMessageResult] =
+  ): Future[Void] =
     deleteMessage(new DeleteMessageRequest(queueUrl, receiptHandle))
 
   def deleteMessageBatch(
@@ -131,12 +131,12 @@ trait AmazonSQSWrapper {
 
   def deleteQueue(
     deleteQueueRequest: DeleteQueueRequest
-  ): Future[DeleteQueueResult] =
-    wrapAsyncMethod[DeleteQueueRequest, DeleteQueueResult](client.deleteQueueAsync, deleteQueueRequest)
+  ): Future[Void] =
+    wrapAsyncMethod[DeleteQueueRequest, Void](client.deleteQueueAsync, deleteQueueRequest)
 
   def deleteQueue(
     queueUrl: String
-  ): Future[DeleteQueueResult] =
+  ): Future[Void] =
     deleteQueue(new DeleteQueueRequest(queueUrl))
 
   def getQueueAttributes(
@@ -194,13 +194,13 @@ trait AmazonSQSWrapper {
 
   def removePermission(
     removePermissionRequest: RemovePermissionRequest
-  ): Future[RemovePermissionResult] =
+  ): Future[Void] =
     wrapAsyncMethod(client.removePermissionAsync, removePermissionRequest)
 
   def removePermission(
     queueUrl: String,
     label:    String
-  ): Future[RemovePermissionResult] =
+  ): Future[Void] =
     removePermission(new RemovePermissionRequest(queueUrl, label))
 
   def sendMessage(
@@ -234,13 +234,13 @@ trait AmazonSQSWrapper {
 
   def setQueueAttributes(
     setQueueAttributesRequest: SetQueueAttributesRequest
-  ): Future[SetQueueAttributesResult] =
+  ): Future[Void] =
     wrapAsyncMethod(client.setQueueAttributesAsync, setQueueAttributesRequest)
 
   def setQueueAttributes(
     queueUrl:   String,
     attributes: Map[String, String]
-  ): Future[SetQueueAttributesResult] =
+  ): Future[Void] =
     setQueueAttributes(new SetQueueAttributesRequest(queueUrl, attributes.asJava))
 
   def shutdown(): Unit =

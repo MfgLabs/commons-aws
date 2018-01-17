@@ -3,7 +3,6 @@ package sqs
 
 import akka.actor._
 import akka.stream.scaladsl._
-import com.amazonaws.client.builder.ExecutorFactory
 import com.amazonaws.services.sqs.model._
 import com.mfglabs.stream._
 import java.util.concurrent.ExecutorService
@@ -14,8 +13,8 @@ import scala.concurrent.duration._
 object AmazonSQSClient {
   import com.amazonaws.auth._
   import com.amazonaws.ClientConfiguration
-  import com.amazonaws.regions.Regions
-  import com.amazonaws.services.sqs.AmazonSQSAsyncClientBuilder
+  import com.amazonaws.regions.{Region, Regions}
+  import com.amazonaws.services.sqs.AmazonSQSAsyncClient
   import FutureHelper.defaultExecutorService
 
   def apply(
@@ -25,7 +24,10 @@ object AmazonSQSClient {
   )(
     executorService     : ExecutorService     = defaultExecutorService(clientConfiguration, "aws.wrap.sqs")
   ): AmazonSQSClient = {
-    from(region, new AWSStaticCredentialsProvider(awsCredentials), clientConfiguration)(executorService)
+
+    val client = new AmazonSQSAsyncClient(awsCredentials, clientConfiguration, executorService)
+    client.setRegion(Region.getRegion(region))
+    new AmazonSQSClient(client, executorService)
   }
 
   def from(
@@ -35,24 +37,8 @@ object AmazonSQSClient {
   )(
     executorService     : ExecutorService     = defaultExecutorService(clientConfiguration, "aws.wrap.sqs")
   ): AmazonSQSClient = {
-   val client = AmazonSQSAsyncClientBuilder
-      .standard()
-      .withRegion(region)
-      .withCredentials(awsCredentialsProvider)
-      .withClientConfiguration(clientConfiguration)
-      .withExecutorFactory(new ExecutorFactory { def newExecutor() = executorService })
-      .build()
-
-    new AmazonSQSClient(client, executorService)
-  }
-
-  def build(builder: AmazonSQSAsyncClientBuilder)(
-    executorService : ExecutorService = defaultExecutorService(builder.getClientConfiguration, "aws.wrap.sqs")
-  ) = {
-   val client = builder
-      .withExecutorFactory(new ExecutorFactory { def newExecutor() = executorService })
-      .build()
-
+    val client = new AmazonSQSAsyncClient(awsCredentialsProvider, clientConfiguration, executorService)
+    client.setRegion(Region.getRegion(region))
     new AmazonSQSClient(client, executorService)
   }
 
@@ -97,7 +83,7 @@ class AmazonSQSClient(
       val msg = new ReceiveMessageRequest(queueUrl)
       msg.setWaitTimeSeconds(longPollingMaxWait.toSeconds.toInt) // > 0 seconds allow long-polling. 20 seconds is the maximum
       msg.setMaxNumberOfMessages(Math.min(currentDemand, 10)) // 10 is SQS limit
-      msg.setMessageAttributeNames(messageAttributeNames.asJava)
+      msg.withAttributeNames(messageAttributeNames.asJava)
       receiveMessage(msg).map(res => (res.getMessages.asScala, false))
     }
 
@@ -130,7 +116,7 @@ class AmazonSQSClient(
       val msg = new ReceiveMessageRequest(queueUrl)
       msg.setWaitTimeSeconds(longPollingMaxWait.toSeconds.toInt) // > 0 seconds allow long-polling. 20 seconds is the maximum
       msg.setMaxNumberOfMessages(Math.min(currentDemand, 10)) // 10 is SQS limit
-      msg.setMessageAttributeNames(messageAttributeNames.asJava)
+      msg.withAttributeNames(messageAttributeNames.asJava)
       receiveMessage(msg).map(res => (res.getMessages.asScala, false))
     }
 
