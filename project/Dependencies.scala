@@ -3,7 +3,7 @@ import sbt._
 object Dependencies {
 
   object V {
-    val awsJavaSDK        = "1.11.132"
+    val awsJavaSDK        = "1.11.199"
     val akkaStreamExt     = "0.11.2"
     val scalaTest         = "3.0.3"
     val slf4j             = "1.7.12"

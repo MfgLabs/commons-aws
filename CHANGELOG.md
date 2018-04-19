@@ -2,6 +2,10 @@
 
 This file summarizes the main changes for each release.
 
+# <a name="0.12.2-hadoop-3.0.1"></a>Version 0.12.2-hadoop-3.0.1
+
+ - Upgrade the Aws SDK to version `1.11.199` to match the one included in hadoop 3.0.1
+
 # <a name="0.12.2"></a>Version 0.12.2
 
  - Add cross compilation to scala 2.12 ([#24](https://github.com/MfgLabs/common-aws/pull/24))

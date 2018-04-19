@@ -1,5 +1,7 @@
 # Streaming / asynchronous Scala client for common AWS services
 
+This is a custom version with Aws SDK `1.11.199` to match the one used by hadoop `3.0.1`.
+
 Streaming / asynchronous Scala client for common AWS services.
 When possible, clients expose methods that return Akka Stream's Sources / Flows / Sinks to provide streaming facilities.
 
@@ -20,16 +22,16 @@ resolvers ++= Seq(
 
 Three packages are available :
 ```scala
-libraryDependencies += "com.mfglabs" %% "commons-aws-cloudwatch" % "0.12.2"
-libraryDependencies += "com.mfglabs" %% "commons-aws-s3" % "0.12.2"
-libraryDependencies += "com.mfglabs" %% "commons-aws-sqs" % "0.12.2"
+libraryDependencies += "com.mfglabs" %% "commons-aws-cloudwatch" % "0.12.2-hadoop-3.0.1"
+libraryDependencies += "com.mfglabs" %% "commons-aws-s3" % "0.12.2-hadoop-3.0.1"
+libraryDependencies += "com.mfglabs" %% "commons-aws-sqs" % "0.12.2-hadoop-3.0.1"
 ```
 
 Changelog [here](CHANGELOG.md)
 
 ## Usage
 
-> Scaladoc is available [there](http://mfglabs.github.io/commons-aws/api/current/)
+> Scaladoc is available [there](http://mfglabs.github.io/commons-aws/api/0.12.2-hadoop-3.0.1/)
 
 ### Commons
 

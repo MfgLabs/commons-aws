@@ -4,7 +4,7 @@ organization in ThisBuild := "com.mfglabs"
 
 scalaVersion in ThisBuild := "2.11.11"
 
-version in ThisBuild := "0.12.2"
+version in ThisBuild := "0.12.2-hadoop-3.0.1"
 
 crossScalaVersions := Seq("2.11.11", "2.12.2")
 
