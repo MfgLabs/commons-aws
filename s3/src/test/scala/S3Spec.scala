@@ -69,7 +69,7 @@ class S3Spec extends FlatSpec with Matchers with ScalaFutures with BeforeAndAfte
   it should "download a big file and chunk it by line" in {
     val futLines = s3Client.getFileAsStream(bucket, s"$keyPrefix/big")
       .via(FlowExt.rechunkByteStringBySize(2 * 1024 * 1024))
-      .via(FlowExt.rechunkByteStringBySeparator(ByteString("\n"), 8 * 1024))
+      .via(Framing.delimiter(ByteString("\n"), 8 * 1024, allowTruncation = true))
       .map(_.utf8String)
       .runWith(Sink.seq)
 
