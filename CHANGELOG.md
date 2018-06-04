@@ -2,6 +2,10 @@
 
 This file summarizes the main changes for each release.
 
+# <a name="0.13.0"></a>Version 0.13.0
+ - Upgrade `akka-stream-extensions` version to `0.12.0` (Akka 2.5)
+ - Upgrade scala, awsSdk, scalaTest, slf4j to latest version. 
+
 # <a name="0.12.2"></a>Version 0.12.2
 
  - Add cross compilation to scala 2.12 ([#24](https://github.com/MfgLabs/common-aws/pull/24))

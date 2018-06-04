@@ -211,7 +211,7 @@ trait AmazonS3Wrapper extends FutureHelper.MethodWrapper {
   def doesBucketExist(
     bucketName: String
   ): Future[Boolean] =
-    wrapMethod(client.doesBucketExist, bucketName)
+    wrapMethod(client.doesBucketExistV2, bucketName)
 
   /**
     * @see [[http://docs.aws.amazon.com/AWSJavaSDK/latest/javadoc/com/amazonaws/services/s3/AmazonS3.html#getBucketLocation(com.amazonaws.services.s3.model.GetBucketLocationRequest) AWS Java SDK]]
